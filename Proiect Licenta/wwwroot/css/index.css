@@ -1,0 +1,76 @@
+﻿/* Fundalul care acoperă tot ecranul */
+.full-page-container {
+    background: rgba(255, 255, 255, 0.85); /* Alb cu 85% opacitate */
+    backdrop-filter: blur(10px); /* Încețoșează fundalul din spate pentru un look premium */
+    border-radius: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    margin-bottom: 30px;
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+/* Specific pentru Hero */
+.main-hero {
+    max-width: 900px;
+    margin: 0 auto 50px auto;
+    text-align: center;
+}
+
+    .main-hero h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: #2c3e50;
+    }
+
+    .main-hero p {
+        font-size: 1.3rem;
+        color: #555;
+    }
+
+/* Elementele de Features */
+.feature-item h3 {
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.feature-item p {
+    color: #666;
+}
+
+/* Titlul secțiunii cu linie dedesubt */
+.section-title {
+    font-weight: 800;
+    color: #2c3e50;
+}
+
+/* Animație */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hover efect pe butoane și iconițe */
+.btn {
+    transition: transform 0.2s ease;
+}
+
+    .btn:hover {
+        transform: translateY(-3px);
+    }
+
+.feature-item i {
+    transition: transform 0.3s ease;
+}
+
+.feature-item:hover i {
+    transform: scale(1.1) rotate(5deg);
+}

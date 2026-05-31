@@ -1,0 +1,342 @@
+﻿/* ═══════════════════════════════════════════
+   FLIGHT INFO PAGE — FlightInfo.css
+   ═══════════════════════════════════════════ */
+
+.flight-info-container {
+    max-width: 860px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── HEADER ── */
+.flight-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.airline-logo {
+    height: 52px;
+    object-fit: contain;
+    border-radius: 6px;
+}
+
+.flight-number {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.airline-name {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* ── ROUTE CARD ── */
+.route-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1.4rem 2rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.route-point {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.iata {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    letter-spacing: 2px;
+}
+
+.airport-name {
+    font-size: 0.8rem;
+    color: #444;
+    max-width: 180px;
+}
+
+.city {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+.time {
+    font-size: 0.8rem;
+    color: #555;
+}
+
+    .time.bold {
+        font-weight: 700;
+        font-size: 1rem;
+        color: #1a1a2e;
+    }
+
+.route-middle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    padding: 0 1.5rem;
+}
+
+.duration {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.route-line {
+    width: 100%;
+    height: 2px;
+    background: #ccc;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.plane-icon {
+    background: #fff;
+    padding: 0 6px;
+    font-size: 1.1rem;
+    color: #1a73e8;
+}
+
+/* ── PRICE BAR ── */
+.price-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #f0f7ff;
+    border: 1px solid #c5ddf9;
+    border-radius: 10px;
+    padding: 0.9rem 1.4rem;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.price-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #2e7d32;
+}
+
+.btn-book {
+    margin-left: auto;
+    background: #1a73e8;
+    color: #fff;
+    padding: 0.5rem 1.4rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+    .btn-book:hover {
+        background: #1558b0;
+        color: #fff;
+    }
+
+/* ── SEAT MAP TITLE ── */
+.seatmap-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 0.4rem;
+}
+
+.aircraft-model {
+    font-weight: 400;
+    color: #888;
+    font-size: 1rem;
+}
+
+/* ── LEGEND ── */
+.legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.legend-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+    .legend-dot.available {
+        background: #4caf50;
+    }
+
+    .legend-dot.taken {
+        background: #e53935;
+    }
+
+.aircraft-body {
+    background: #f5f7fa;
+    border: 2px solid #d0d7e3;
+    border-radius: 20px;
+    padding: 1rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    width: fit-content; /* ADD THIS — shrinks to content width */
+    margin: 0 auto; /* ADD THIS — keeps it centered on the page */
+}
+
+.aircraft-nose {
+    width: 60px;
+    height: 24px;
+    background: linear-gradient(to bottom, #d0d7e3, #f5f7fa);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    margin-bottom: 6px;
+}
+
+.aircraft-tail {
+    width: 60px;
+    height: 24px;
+    background: linear-gradient(to top, #d0d7e3, #f5f7fa);
+    border-radius: 0 0 50% 50% / 0 0 100% 100%;
+    margin-top: 6px;
+}
+
+/* ── CABIN SECTION ── */
+.cabin-section {
+    width: auto; /* was: width: 100% */
+    padding: 0.5rem 1rem;
+    border-bottom: 1px dashed #cdd3de;
+    align-self: center; /* keep it centered in the flex column */
+}
+
+    .cabin-section:last-of-type {
+        border-bottom: none;
+    }
+
+.cabin-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    display: inline-block;
+}
+
+.cabin-section.first .cabin-label {
+    background: #fff3cd;
+    color: #7c5a00;
+}
+
+.cabin-section.business .cabin-label {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.cabin-section.economy .cabin-label {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+/* ── SEAT ROW ── */
+.seat-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.row-num {
+    width: 24px;
+    font-size: 0.65rem;
+    color: #999;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* ── SEAT BLOCKS & AISLE ── */
+.seat-block,
+.seat-block-header {
+    display: flex;
+    gap: 4px;
+}
+
+.aisle,
+.aisle-header {
+    width: 20px;
+    flex-shrink: 0;
+}
+
+/* ── COLUMN LABELS ── */
+.header-row {
+    margin-bottom: 2px;
+}
+
+.col-label {
+    width: 32px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+}
+
+/* ── INDIVIDUAL SEAT ── */
+.seat {
+    width: 32px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px 5px 3px 3px;
+    font-size: 0.55rem;
+    font-weight: 600;
+    cursor: default;
+    border-bottom: 3px solid rgba(0,0,0,0.15);
+    transition: transform 0.1s, opacity 0.1s;
+    color: #fff;
+    letter-spacing: 0;
+    line-height: 1;
+}
+
+    .seat.available {
+        background: #4caf50;
+    }
+
+    .seat.taken {
+        background: #e53935;
+        opacity: 0.75;
+    }
+
+    .seat.available:hover {
+        transform: scale(1.15);
+        cursor: pointer;
+    }

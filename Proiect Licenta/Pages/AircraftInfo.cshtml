@@ -1,0 +1,52 @@
+﻿@page "{id:guid}"
+@model Proiect_Licenta.Pages.AircraftInfoModel
+@{
+    ViewData["Title"] = Model.Aircraft.Model;
+}
+
+
+<style>
+    a.aircraft-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+</style>
+
+<div class="background">
+    <h2>@Model.Aircraft.Model</h2>
+    <p><strong>Total Seats:</strong> @Model.Aircraft.TotalSeats</p>
+
+    <h4>Seat Sections</h4>
+    @foreach (var seatSection in Model.Aircraft.SeatSections)
+    {
+        <div>
+            <strong>@seatSection.TravelClass</strong> —
+            Rows @seatSection.StartRow to @seatSection.EndRow,
+            Layout: @seatSection.Layout,
+            Seats: @seatSection.Seats.Count
+        </div>
+    }
+
+    <h4>Flights</h4>
+    @foreach (var flight in Model.Aircraft.Flights)
+    {
+        <p class="flight-info">
+            @flight.FlightNumber — @flight.DepartureTime.ToString("dd MMM yyyy HH:mm")
+
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                @if (User.Identity.Name == flight.Airline.User.UserName
+                        || User.IsInRole("Admin"))
+                {
+                    <a asp-page="/FlightInfo" asp-route-id="@flight.Id" class="flight-link">
+                        <span class="details-link">
+                            View details
+                        </span>
+                    </a>
+                }
+            }
+        </p>
+        
+    }
+</div>

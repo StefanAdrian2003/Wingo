@@ -1,0 +1,33 @@
+﻿@page
+@model Proiect_Licenta.Pages.PostModel
+@{
+}
+
+<h2>Create Post</h2>
+
+<form method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-floating mb-3">
+        <input asp-for="Input.Title" class="form-control" placeholder="Title" />
+        <label asp-for="Input.Title"></label>
+        <span asp-validation-for="Input.Title" class="text-danger"></span>
+    </div>
+
+    <div class="form-floating mb-3">
+        <textarea asp-for="Input.Description" class="form-control" placeholder="Description"></textarea>
+        <label asp-for="Input.Description"></label>
+        <span asp-validation-for="Input.Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <input asp-for="Input.ImageFile" type="file" class="form-control" />
+        <span asp-validation-for="Input.ImageFile" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Post</button>
+</form>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+}

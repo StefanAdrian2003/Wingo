@@ -1,0 +1,129 @@
+﻿@page "{id:guid}"
+@model Proiect_Licenta.Pages.FlightInfoModel
+@{
+    ViewData["Title"] = Model.Flight.FlightNumber;
+}
+
+<link rel="stylesheet" href="~/css/FlightInfo.css" asp-append-version="true" />
+
+<div class="background">
+
+    <div class="flight-info-container">
+        <div class="flight-header">
+            <img src="@Model.Flight.Airline.LogoUrl"
+                 alt="@Model.Flight.Airline.Name"
+                 class="airline-logo" />
+            <div class="flight-header-text">
+                <h2 class="flight-number">@Model.Flight.FlightNumber</h2>
+                <span class="airline-name">@Model.Flight.Airline.Name</span>
+            </div>
+        </div>
+
+        <div class="route-card">
+            <div class="route-point">
+                <span class="iata">@Model.Flight.DepartureAirport.IATACode</span>
+                <span class="airport-name">@Model.Flight.DepartureAirport.Name</span>
+                <span class="city">@Model.Flight.DepartureAirport.City</span>
+                <span class="time">@Model.Flight.DepartureTime.ToString("dd MMM yyyy")</span>
+                <span class="time bold">@Model.Flight.DepartureTime.ToString("HH:mm")</span>
+            </div>
+
+            <div class="route-middle">
+                <span class="duration">@($"{Model.Flight.DurationMinutes / 60}h {Model.Flight.DurationMinutes % 60}m")</span>
+                <div class="route-line">
+                    <span class="plane-icon">✈</span>
+                </div>
+            </div>
+
+            <div class="route-point">
+                <span class="iata">@Model.Flight.ArrivalAirport.IATACode</span>
+                <span class="airport-name">@Model.Flight.ArrivalAirport.Name</span>
+                <span class="city">@Model.Flight.ArrivalAirport.City</span>
+                <span class="time">@Model.Flight.ArrivalTime.ToString("dd MMM yyyy")</span>
+                <span class="time bold">@Model.Flight.ArrivalTime.ToString("HH:mm")</span>
+            </div>
+        </div>
+
+        <div class="price-bar">
+            <span>Price from</span>
+            <span class="price-value">€@Model.Flight.Price</span>
+            <a asp-page="/BookFlight" asp-route-id="@Model.Flight.Id" class="btn-book">
+                Book Now
+            </a>
+        </div>
+
+        <h3 class="seatmap-title">
+            Seat Map
+            <span class="aircraft-model">— @Model.Flight.Aircraft.Model</span>
+        </h3>
+
+        <div class="legend">
+            <span class="legend-item"><span class="legend-dot available"></span> Available</span>
+            <span class="legend-item"><span class="legend-dot taken"></span> Taken</span>
+        </div>
+
+        <div class="aircraft-body">
+
+            <div class="aircraft-nose"></div>
+
+            @foreach (var seatSection in Model.Flight.Aircraft.SeatSections.OrderBy(ss => ss.StartRow))
+            {
+                var blocks = seatSection.Layout.Split('-');
+
+                var seatLookup = seatSection.Seats
+                .ToDictionary(
+                s => s.SeatNumber,
+                s => s.FlightSeats.FirstOrDefault()?.TicketId != null
+                );
+
+                <div class="cabin-section @seatSection.TravelClass.ToString().ToLower()">
+                    <div class="cabin-label">@seatSection.TravelClass Class</div>
+
+                    <div class="seat-row header-row">
+                        <span class="row-num"></span>
+                        @foreach (var block in blocks)
+                        {
+                            <span class="seat-block-header">
+                                @foreach (char letter in block)
+                                {
+                                    <span class="col-label">@letter</span>
+                                }
+                            </span>
+                            @if (block != blocks.Last())
+                            {
+                                <span class="aisle-header"></span>
+                            }
+                        }
+                    </div>
+
+                    @for (int row = seatSection.StartRow; row <= seatSection.EndRow; row++)
+                    {
+                        <div class="seat-row">
+                            <span class="row-num">@row</span>
+                            @foreach (var block in blocks)
+                            {
+                                <span class="seat-block">
+                                    @foreach (char letter in block)
+                                    {
+                                        var seatNum = $"{row}{letter}";
+                                        var taken = seatLookup.ContainsKey(seatNum) && seatLookup[seatNum];
+                                        var cssClass = taken ? "seat taken" : "seat available";
+                                        <span class="@cssClass" title="@seatNum">@seatNum</span>
+                                    }
+                                </span>
+                                @if (block != blocks.Last())
+                                {
+                                    <span class="aisle"></span>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="aircraft-tail"></div>
+
+        </div>
+
+    </div>
+</div>

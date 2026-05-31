@@ -1,0 +1,209 @@
+﻿@page
+@model Proiect_Licenta.Areas.Identity.Pages.Account.Manage.ProfileModel
+@{
+    ViewData["Title"] = Model.CurrentUser?.UserName ?? "My Profile";
+}
+
+
+
+<link rel="stylesheet" href="~/css/Profile.css" asp-append-version="true" />
+
+
+<div class="background">
+    @if (TempData["StatusMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["StatusMessage"]</div>
+    }
+
+
+
+
+    <h2>@Model.CurrentUser?.UserName</h2>
+
+
+    @if (Model.CurrentUser.IsCompany)
+    {
+        <div class="company-profile">
+            <img src="@Model.CurrentUser.Airline.LogoUrl" alt="Company Logo" class="company-logo" />
+        </div>
+
+        <a asp-page="/AddAircraft" class="btn btn-primary">
+            Add Aircraft
+        </a>
+
+        <p><strong style="color:blue;">Aircrafts:</strong></p>
+        @if (!Model.CurrentUser.Airline.Aircraft.Any())
+        {
+            <p>No aircrafts yet.</p>
+        }
+        else
+        {
+            <div class="company-aircrafts">
+                @foreach (var aircraft in Model.CurrentUser.Airline.Aircraft)
+                {
+                    <hr />
+                    <a asp-page="/AircraftInfo" asp-route-id="@aircraft.Id" class="aircraft-link">
+                        <partial name="_AircraftCard" model="aircraft" />
+                    </a>
+                    <hr />
+                }
+            </div>
+        }
+
+        <a asp-page="/AddFlight" class="btn btn-primary">
+            Add Flight
+        </a>
+
+        <p><strong style="color:blue;">Flights:</strong></p>
+
+
+        <div class="company-flights">
+
+            @if (!Model.Flights.Any())
+            {
+                <p>No flights yet.</p>
+            }
+            else
+            {
+                <div class="flight-grid">
+
+                    @foreach (var flight in Model.Flights)
+                    {
+                        <div class="flight-with-bookings">
+
+                            <partial name="_FlightCard" model="flight" />
+
+                            <div class="flight-bookings">
+
+                                <h5>Bookings</h5>
+
+                                @if (!flight.Bookings.Any())
+                                {
+                                    <p>No bookings yet.</p>
+                                }
+                                else
+                                {
+                                    <div class="booking-list">
+
+                                        @foreach (var booking in flight.Bookings)
+                                        {
+                                            <div class="booking-item">
+
+                                                👤 @booking.User.UserName
+
+                                            </div>
+                                        }
+
+                                    </div>
+                                }
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+    }
+    else
+    {
+        <p><strong style="color:blue;">Level:</strong> <span style="color:green;">@Model.CurrentUser.Level</span></p>
+
+        int userPoints = Model.CurrentUser.TotalPoints ?? 0;
+
+        @if (userPoints > 0)
+        {
+            <p>
+                <strong style="color:blue;">Points:</strong>
+                <span style="color:orange;">@userPoints</span>
+            </p>
+        }
+        else
+        {
+            <p>
+                <strong style="color:blue;">Points:</strong>
+                <span style="color:orange; font-weight:bold;">You have to create a post to earn points</span>
+            </p>
+        }
+
+
+        int level = Model.CurrentUser.Level ?? 1;
+        int totalPoints = Model.CurrentUser.TotalPoints ?? 0;
+
+        int currentLevelStart = (level - 1) * (level - 1) * 100;
+        int nextLevelPoints = level * level * 100;
+
+        int pointsInLevel = totalPoints - currentLevelStart;
+        int levelRange = nextLevelPoints - currentLevelStart;
+
+        int progressPercent = levelRange > 0
+        ? (int)((double)pointsInLevel / levelRange * 100)
+        : 0;
+
+        progressPercent = Math.Clamp(progressPercent, 0, 100);
+
+        <p>
+            Progress to next level:
+            @Model.CurrentUser.TotalPoints / @nextLevelPoints
+        </p>
+
+        <div class="level-progress-container">
+            <div class="level-progress-bar"
+                 style="width:@progressPercent%">
+            </div>
+        </div>
+
+        @if (Model.CurrentUser.LastLevelUp != null &&
+            Model.CurrentUser.LastLevelUp > DateTime.UtcNow.AddSeconds(-5))
+        {
+            <div class="level-up-animation">
+                🎉 LEVEL UP! 🎉
+            </div>
+        }
+
+        <p><strong style="color:blue;">Badges:</strong></p>
+
+        @if (Model.UserBadges.Count == 0)
+        {
+            <p>No badges yet.</p>
+        }
+        else
+        {
+            <div class="badge-grid">
+                @foreach (var ub in Model.UserBadges)
+                {
+                    <partial name="_BadgeCard" model="ub" />
+                }
+            </div>
+        }
+    }
+
+
+
+    <p><strong style="color:blue;">Posts:</strong></p>
+
+    @if (!Model.Posts.Any())
+    {
+        <p>No posts yet.</p>
+    }
+    else
+    {
+        <div class="post-grid">
+            @foreach (var post in Model.Posts)
+            {
+                <partial name="_PostCard" model="post" />
+            }
+        </div>
+    }
+</div>
+
+        
+@section Scripts {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- AJAX PT ACTUALIZARE LIVE COMENTARII-->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <partial name="_ValidationScriptsPartial" />
+}

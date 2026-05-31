@@ -1,0 +1,148 @@
+﻿@page
+@model Proiect_Licenta.Pages.NotificationsModel
+@using Proiect_Licenta.Models
+
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<style>
+    .notification-card {
+        border-radius: 14px;
+        padding: 16px;
+        border: 1px solid #e5e5e5;
+        margin-bottom: 12px;
+        transition: 0.2s ease;
+        background: white;
+    }
+
+        .notification-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+    .notification-unread {
+        border-left: 5px solid #0d6efd;
+        background: #f4f8ff;
+    }
+
+    .notification-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 15px;
+    }
+
+    .notification-time {
+        margin-top: 6px;
+        font-size: 13px;
+        color: gray;
+    }
+
+    .profile-link {
+        font-weight: 600;
+        text-decoration: none;
+        color: #0d6efd;
+    }
+
+        .profile-link:hover {
+            text-decoration: underline;
+        }
+
+    .notification-post-link {
+        text-decoration: none;
+        color: inherit;
+    }
+</style>
+
+<h2 class="mb-4">Notifications</h2>
+
+@if (!Model.Notifications.Any())
+{
+    <div class="alert alert-info">
+        No notifications yet.
+    </div>
+}
+else
+{
+    @foreach (var n in Model.Notifications)
+    {
+        <div class="notification-card @(n.IsRead ? "" : "notification-unread")">
+
+            <div class="notification-header">
+
+                @switch (n.Type)
+                {
+                    case NotificationType.Like:
+                        <span>❤️</span>
+                        break;
+
+                    case NotificationType.Comment:
+                        <span>💬</span>
+                        break;
+
+                    case NotificationType.Badge:
+                        <span>🏆</span>
+                        break;
+
+                    case NotificationType.Booking:
+                        <span>✈️</span>
+                        break;
+
+                    case NotificationType.FlightCancelled:
+                        <span>❌</span>
+                        break;
+
+                    default:
+                        <span>🔔</span>
+                        break;
+                }
+
+                @if (n.Sender != null)
+                {
+                    <a class="profile-link"
+                       asp-page="/CustomProfile"
+                       asp-route-username="@n.Sender.UserName">
+
+                        @n.Sender.UserName
+                    </a>
+                }
+                else
+                {
+                    <span>System</span>
+                }
+
+
+                <span>
+                    @n.Message
+                </span>
+
+            </div>
+
+            @if (n.PostId != null)
+            {
+                <div class="mt-2">
+                    <button type="button"
+                            class="btn btn-link p-0"
+                            data-bs-toggle="modal"
+                            data-bs-target="#commentsModal-@n.PostId">
+                        See post
+                    </button>
+
+                </div>
+            }
+
+            <div class="notification-time">
+                @n.DateOfCreation.ToLocalTime()
+            </div>
+
+        </div>
+    }
+}
+
+
+
+@foreach (var post in Model.Posts)
+{
+    <partial name="_CommentsModal" model="post" />
+}

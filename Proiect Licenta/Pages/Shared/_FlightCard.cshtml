@@ -1,0 +1,147 @@
+﻿@model Proiect_Licenta.Models.Flight
+
+
+<link rel="stylesheet" href="~/css/FlightCard.css" asp-append-version="true" />
+
+
+<div class="flight-card">
+
+    <!-- HEADER -->
+    <div class="flight-card-header">
+
+        <div class="flight-main-info">
+
+            <div class="flight-top-row">
+
+                <h4 class="flight-number">
+                    @Model.FlightNumber
+                </h4>
+
+                <div class="flight-airline">
+
+                    <img src="@Model.Airline.LogoUrl"
+                         alt="Airline Logo"
+                         class="airline-logo" />
+
+                    <span class="airline-name">
+                        @Model.Airline.Name
+                    </span>
+
+                </div>
+
+
+                <a asp-page="/FlightInfo" asp-route-id="@Model.Id" class="flight-link">
+                    <span class="details-link">
+                        View details
+                    </span>
+                </a>
+            </div>
+
+            <div class="flight-route">
+                @Model.DepartureAirport.Name (@Model.DepartureAirport.IATACode)
+                <span class="route-arrow">→</span>
+                @Model.ArrivalAirport.Name (@Model.ArrivalAirport.IATACode)
+            </div>
+
+        </div>
+
+        @if (User.Identity != null && User.Identity.IsAuthenticated &&
+                User.Identity.Name != Model.Airline.User.UserName)
+        {
+            <button type="button"
+                    onclick="openReportModal('@Model.Id', 'Flight')">
+                Report
+            </button>
+        }
+
+        @if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            @if (User.Identity.Name == Model.Airline.User.UserName
+                    || User.IsInRole("Admin"))
+            {
+                <form method="post"
+                      asp-page="/_Actions"
+                      asp-page-handler="DeleteFlight">
+
+                    <input type="hidden"
+                           name="flightId"
+                           value="@Model.Id" />
+
+                    <button type="button"
+                            onclick="openDeleteModal('@Model.Id', 'Flight')">
+                        ✖
+                    </button>
+
+                </form>
+            }
+        }
+
+    </div>
+
+    <!-- BODY -->
+    <div class="flight-card-body">
+
+        <div class="flight-info-box">
+
+            <span class="flight-label">
+                Departure
+            </span>
+
+            <span class="flight-value">
+                @Model.DepartureTime.ToString("g")
+            </span>
+
+        </div>
+
+        <div class="flight-info-box">
+
+            <span class="flight-label">
+                Arrival
+            </span>
+
+            <span class="flight-value">
+                @Model.ArrivalTime.ToString("g")
+            </span>
+
+        </div>
+
+        <div class="flight-info-box">
+
+            <span class="flight-label">
+                Aircraft
+            </span>
+
+            <span class="flight-value">
+                @Model.Aircraft.Model
+            </span>
+
+        </div>
+
+        <div class="flight-price-box">
+
+            <span class="price-label">
+                Price
+            </span>
+
+            <span class="flight-price">
+                €@Model.Price
+            </span>
+
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="flight-card-footer">
+
+        <a asp-page="/Flights/Details"
+           asp-route-id="@Model.Id"
+           class="reserve-btn">
+
+            Reserve now!
+
+        </a>
+
+    </div>
+
+</div>

@@ -1,0 +1,100 @@
+﻿@model Proiect_Licenta.Models.Post
+
+
+<style>
+    .post-description {
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* maxim 2 randuri */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+
+
+<div class="post-card">
+
+    <!-- HEADER -->
+    <div class="post-header">
+        <a asp-page="/CustomProfile"
+           asp-route-username="@Model.User.UserName"
+           class="post-user-link text-decoration-none">
+
+            @Model.User.UserName
+
+        </a>
+
+
+        @if (User.Identity.IsAuthenticated &&
+                User.Identity.Name != Model.User.UserName)
+        {
+            <button type="button"
+                    onclick="openReportModal('@Model.Id', 'Post')">
+                Report
+            </button>
+        }
+
+        @if (User.Identity.IsAuthenticated &&
+                (User.Identity.Name == Model.User.UserName || User.IsInRole("Admin")))
+        {
+            <button type="button"
+                    onclick="openDeleteModal('@Model.Id', 'Post')">
+                ✖
+            </button>
+        }
+
+    </div>
+
+    <span class="post-title">@Model.Title</span>
+
+    <!-- IMAGE -->
+    <div class="post-image-wrapper">
+        <img src="@Model.ImagePath"
+             alt="Post image"
+             class="post-image" />
+    </div>
+
+    <!-- DESCRIPTION -->
+    @if (!string.IsNullOrWhiteSpace(Model.Description))
+    {
+        <p class="post-description">@Model.Description</p>
+    }
+
+    <!-- STATS -->
+    <div class="post-stats">
+        <!-- LIKE -->
+        <form method="post" 
+              asp-page="/_Actions"
+              asp-page-handler="Like"
+              asp-route-postId="@Model.Id"
+              class="d-inline">
+
+            <button hx-post="/_Actions?handler=Like&postId=@Model.Id"
+                    hx-target="#like-count-@Model.Id"
+                    hx-swap="outerHTML">
+                ❤️ <span id="like-count-@Model.Id">@Model.Likes.Count</span>
+            </button>
+
+
+        </form>
+
+
+
+        <!-- COMMENTS -->
+        <button type="button"
+                class="btn btn-link p-0"
+                data-bs-toggle="modal"
+                data-bs-target="#commentsModal-@Model.Id">
+            See post
+        </button>
+    </div>
+
+    <!-- DATE -->
+    <div class="creation-date">
+        @Model.DateOfCreation.ToString("g")
+    </div>
+</div>
+
+<!-- MODAL COMENTARII -->
+<partial name="_CommentsModal" model="Model" />
+

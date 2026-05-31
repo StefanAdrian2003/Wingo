@@ -1,0 +1,176 @@
+﻿.flight-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+    transition: 0.2s ease;
+}
+
+    .flight-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+/* HEADER */
+
+.flight-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 22px;
+}
+
+.flight-main-info {
+    flex: 1;
+}
+
+.flight-top-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.flight-number {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    color: #222;
+}
+
+.flight-route {
+    margin-top: 10px;
+    font-size: 17px;
+    color: #666;
+    font-weight: 500;
+}
+
+.route-arrow {
+    margin: 0 10px;
+    color: #007bff;
+    font-weight: bold;
+}
+
+/* AIRLINE */
+
+.flight-airline {
+    display: flex;
+    align-items: center;
+    background: #f5f7fa;
+    padding: 6px 12px;
+    border-radius: 999px;
+}
+
+.airline-logo {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    margin-right: 8px;
+}
+
+.airline-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+}
+
+/* DELETE BUTTON */
+
+.delete-flight-btn {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    background: #ff4d4d;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+    .delete-flight-btn:hover {
+        background: #e03131;
+        transform: scale(1.05);
+    }
+
+/* BODY */
+
+.flight-card-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.flight-info-box {
+    background: #f8f9fc;
+    padding: 16px;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+}
+
+.flight-label {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.flight-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+}
+
+/* PRICE */
+
+.flight-price-box {
+    background: linear-gradient(135deg, #007bff, #3399ff);
+    color: white;
+    padding: 16px;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.price-label {
+    font-size: 13px;
+    opacity: 0.85;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.flight-price {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+/* FOOTER */
+
+.flight-card-footer {
+    margin-top: 10px;
+}
+
+.reserve-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 14px;
+    border-radius: 14px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    font-size: 17px;
+    font-weight: 700;
+    transition: 0.2s ease;
+}
+
+    .reserve-btn:hover {
+        background: #005fd1;
+        color: white;
+        transform: translateY(-1px);
+    }

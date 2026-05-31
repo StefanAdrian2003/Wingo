@@ -1,0 +1,23 @@
+﻿@page
+@model Proiect_Licenta.Pages.FeedModel
+@{
+}
+
+
+<div class="background">
+    @if (!Model.Posts.Any())
+    {
+        <p>No posts yet.</p>
+    }
+    else
+    {
+        <div class="post-grid">
+            @foreach (var post in Model.Posts)
+            {
+                <partial name="_PostCard" model="post" />
+            }
+        </div>
+    }
+</div>
+
+<partial name="_DeleteModal" />

@@ -1,0 +1,61 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Proiect_Licenta.Models
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
+@inject ApplicationDbContext _db
+@{
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+
+    var userName = User.Identity?.Name;
+
+    var userId = _db.Users
+        .Where(u => u.UserName == userName)
+        .Select(u => u.Id)
+        .FirstOrDefault();
+
+    var hasNotifications = _db.Notifications
+        .Any(n => n.UserId == userId && !n.IsRead);
+}
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item position-relative">
+            <a class="nav-link @(currentPage.Contains("/Notifications") ? "active" : "")"
+                asp-page="/Notifications">
+                🔔 Notifications
+            </a>
+
+            @if (hasNotifications)
+            {
+                <span class="notification-dot"></span>
+            }
+        </li>
+        var currentUser = await UserManager.GetUserAsync(User);
+        <li class="nav-item">
+            @* Verifică dacă pagina curentă face parte din folderul Manage din Identity *@
+            <a class="nav-link @(currentPage.Contains("/Account/Manage/") ? "active" : "")"
+               asp-area="Identity" asp-page="/Account/Manage/Profile" title="Manage">
+                Hello @User.Identity.Name! @(currentUser?.IsCompany == true ? " (Company)" : "")
+            </a>
+        </li>
+        <li class="nav-item">
+            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })">
+                <button type="submit" class="nav-link btn btn-link">
+                    Logout <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link @(currentPage == "/Account/Register" ? "active" : "")" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentPage == "/Account/Login" ? "active" : "")" asp-area="Identity" asp-page="/Account/Login">
+                Login <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            </a>
+        </li>
+    }
+</ul>

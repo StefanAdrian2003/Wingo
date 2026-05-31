@@ -1,0 +1,97 @@
+﻿@model Proiect_Licenta.Models.Post
+
+
+
+<style>
+    .post-modal-img {
+        width: 100%;
+        /* SCHIMBĂM AICI: de la height: 450px la */
+        max-height: 400px; /* Înălțimea MAXIMĂ pe care o poate avea imaginea */
+        object-fit: contain; /* Sau 'cover', dar 'contain' arată toată diagrama */
+        border-radius: 10px;
+        /* Ne asigurăm că imaginea se poate micșora */
+        flex-shrink: 1;
+    }
+
+    .post-description {
+        margin-top: 12px;
+        white-space: pre-wrap;
+        word-break: break-all;
+        overflow-wrap: break-word;
+        max-width: 100%;
+        line-height: 1.4;
+        /* MODIFICĂRILE AICI: */
+        /* Îi spunem să ocupe tot spațiul rămas liber pe verticală */
+        flex-grow: 1;
+        min-height: 100px; /* Un minim garantat */
+        /* Scroll bar dacă textul este foarte, foarte lung */
+        overflow-y: auto;
+    }
+</style>
+
+
+<div class="modal fade"
+     id="commentsModal-@Model.Id"
+     tabindex="-1"
+     data-bs-focus="false">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">@Model.Title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body d-flex gap-3 align-items-stretch" style="min-height:500px;">
+
+                <!-- STANGA -->
+                <div style="flex: 1; min-width: 0; max-width: 50%; overflow: hidden; border-right: 1px solid #ddd; padding-right: 10px; display:flex; flex-direction:column;">
+
+                    <img src="@Model.ImagePath" class="post-modal-img" />
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Description))
+                    {
+                        <div class="post-description">
+                            @Model.Description
+                        </div>
+                    }
+                </div>
+
+                <!-- DREAPTA -->
+                <div style="flex: 1; display:flex; flex-direction:column;">
+
+                    <!-- LISTA COMENTARII (ia tot spațiul disponibil) -->
+                    <div id="comments-list-@Model.Id"
+                         style="flex: 1; overflow-y:auto; border-bottom:1px solid #eee; padding-bottom:10px;">
+
+                        <partial name="_CommentsList" model="Model" />
+                    </div>
+
+                    <!-- FORMULAR FIX JOS -->
+                    <form class="mt-2"
+                          hx-post="/_Actions?handler=Comment&postId=@Model.Id"
+                          hx-target="#comments-list-@Model.Id"
+                          hx-swap="innerHTML"
+                          hx-on="htmx:afterRequest: this.reset()">
+
+                        @Html.AntiForgeryToken()
+
+                        <textarea name="content"
+                                  class="form-control mb-2"
+                                  rows="2"
+                                  placeholder="Write a comment..."
+                                  required></textarea>
+
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            Post Comment
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>

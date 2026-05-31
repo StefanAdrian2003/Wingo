@@ -1,0 +1,60 @@
+﻿@model Proiect_Licenta.Models.Post
+
+
+
+@if (Model?.Comments != null && Model.Comments.Any())
+{
+    foreach (var comment in Model.Comments.OrderBy(c => c.DateOfCreation))
+    {
+        <div class="mb-2">
+
+            <div class="d-flex justify-content-between align-items-start">
+
+                <div>
+                    <strong>@comment.User?.UserName</strong>
+                    <small class="text-muted">
+                        @comment.DateOfCreation.ToLocalTime().ToString("HH:mm")
+                    </small>
+                </div>
+
+                <div class="comment-actions">
+
+                    @if (User.Identity.IsAuthenticated &&
+                                User.Identity.Name != comment.User?.UserName)
+                    {
+                        <button type="button"
+                                onclick="openReportModal('@comment.Id', 'Comment')">
+                            Report
+                        </button>
+                    }
+
+                    @if (User.Identity.IsAuthenticated &&
+                                (User.Identity.Name == comment.User?.UserName
+                                || User.Identity.Name == Model.User?.UserName
+                                || User.IsInRole("Admin")))
+                    {
+                        <button type="button"
+                                onclick="openDeleteModal('@comment.Id', 'Comment')">
+                            ✖
+                        </button>
+                    }
+
+                </div>
+
+            </div>
+
+            <div>@comment.Content</div>
+        </div>
+    }
+}
+else
+{
+    <p class="text-muted">No comments yet.</p>
+}
+
+@if (TempData["CommentError"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["CommentError"]
+    </div>
+}

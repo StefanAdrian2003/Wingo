@@ -1,0 +1,186 @@
+﻿html {
+    font-size: 14px;
+    height: 100%;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+        height: 100%;
+    }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+
+body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    background: url('/images/background.png') no-repeat center center fixed;
+    background-size: cover;
+    height: 100%;
+}
+
+.logo {
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+    object-fit: contain;
+}
+
+.footer {
+    background-color: #ffffff;
+    border-top: 1px solid #e5e5e5;
+    padding: 15px 0;
+    text-align: center;
+}
+
+.container {
+    flex: 1;
+}
+
+
+.manage-nav {
+    background-color: white;
+    padding: 20px;
+    border-radius: 20px;
+    max-width: 260px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+    /* Link-uri */
+    .manage-nav .nav-link {
+        display: block;
+        color: #333 !important;
+        padding: 12px 18px;
+        margin-bottom: 10px;
+        border-radius: 12px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        text-decoration: none;
+    }
+
+        /* HOVER: Combinăm ridicarea (Y) cu deplasarea la dreapta (X) */
+        .manage-nav .nav-link:hover {
+            background-color: rgba(37, 140, 251, 0.05) !important;
+            transform: translateY(-4px) translateX(8px); /* Se ridică și pleacă la dreapta */
+            box-shadow: 0 8px 20px rgba(37, 140, 251, 0.15);
+            color: #258cfb !important;
+        }
+
+        /* CLICK: Efectul de apăsare */
+        .manage-nav .nav-link:active {
+            transform: scale(0.96) translateX(4px);
+        }
+
+        /* ACTIVE: Pagina curentă își menține poziția "evidențiată" */
+        .manage-nav .nav-link.active {
+            background: linear-gradient(90deg, #258cfb, #4dabf7) !important;
+            color: white !important;
+            font-weight: 600;
+            box-shadow: 0 10px 20px rgba(37, 140, 251, 0.35);
+            transform: translateY(-4px) translateX(8px); /* Rămâne în starea de hover */
+        }
+
+        /* Linia animată de jos (doar pentru cele inactive) */
+        .manage-nav .nav-link::after {
+            content: "";
+            position: absolute;
+            left: 15px;
+            bottom: 5px;
+            width: 0%;
+            height: 2px;
+            background: #258cfb;
+            transition: width 0.3s ease;
+        }
+
+        .manage-nav .nav-link:hover::after {
+            width: 70%;
+        }
+
+        /* Ascundem linia pe elementul activ pentru a nu strica gradientul */
+        .manage-nav .nav-link.active::after {
+            display: none;
+        }
+
+
+
+
+
+
+.background {
+    background-color: white;
+    max-width: 1000px; /* limitează lățimea */
+    margin: 30px auto; /* centrează + spațiu sus/jos */
+    padding: 30px 40px; /* face div-ul mai “mare” pe interior */
+    border-radius: 20px; /* colțuri mai rotunjite */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15); /* efect modern */
+}
+
+/* Navigație Base */
+.nav-buttons .nav-item {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+}
+
+.nav-buttons .nav-link {
+    color: #333 !important;
+    padding: 10px 18px !important;
+    margin: 0 4px;
+    border-radius: 12px;
+    transition: all 0.25s ease;
+    position: relative;
+    border: none;
+}
+
+    /* Linia de jos (After) */
+    .nav-buttons .nav-link::after {
+        content: "";
+        position: absolute;
+        bottom: 5px;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background-color: #258cfb;
+        transition: all 0.25s ease;
+        transform: translateX(-50%);
+    }
+
+/* Efect Hover și Stare ACTIVĂ (Rămâne ridicat) */
+.nav-buttons .nav-item:hover,
+.nav-buttons .nav-item:has(.active) {
+    transform: translateY(-3px);
+}
+
+    .nav-buttons .nav-item:hover .nav-link,
+    .nav-buttons .nav-link.active {
+        background-color: rgba(37, 140, 251, 0.08) !important;
+        box-shadow: 0 8px 20px rgba(37, 140, 251, 0.15);
+        color: #258cfb !important;
+    }
+
+        /* Afișează linia când e hover sau activ */
+        .nav-buttons .nav-item:hover .nav-link::after,
+        .nav-buttons .nav-link.active::after {
+            width: 60%;
+        }
+
+/* Click */
+.nav-buttons .nav-item:active {
+    transform: scale(0.95);
+}
+
+.notification-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%;
+    border: 2px solid white;
+}

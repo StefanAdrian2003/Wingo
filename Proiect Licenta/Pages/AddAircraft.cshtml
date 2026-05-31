@@ -1,0 +1,30 @@
+﻿@page
+@model Proiect_Licenta.Pages.AddAircraftModel
+@{
+}
+
+<h2>Add Aircraft</h2>
+
+<div class="background">
+    <form method="post">
+        <div class="form-group">
+            <label>Model</label>
+            <input asp-for="Aircraft.Model" class="form-control" />
+            <span asp-validation-for="Aircraft.Model" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mt-2">
+            <label>Total Seats</label>
+            <input asp-for="Aircraft.TotalSeats" type="number" class="form-control" />
+            <span asp-validation-for="Aircraft.TotalSeats" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">
+            Add Aircraft
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

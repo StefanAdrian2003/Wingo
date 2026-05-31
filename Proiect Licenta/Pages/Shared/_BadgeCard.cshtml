@@ -1,0 +1,9 @@
+﻿@model Proiect_Licenta.Models.UserBadge
+
+
+<div class="badge-card">
+    <img src="@Model.Badge.Icon" alt="@Model.Badge.Name" />
+    <h4>@Model.Badge.Name</h4>
+    <p>@Model.Badge.Description</p>
+    <small>Awarded: @Model.DateOfCreation.ToShortDateString()</small>
+</div>

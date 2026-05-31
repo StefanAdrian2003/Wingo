@@ -1,0 +1,42 @@
+﻿@page
+@model VouchersModel
+@{
+    ViewData["Title"] = "My Vouchers";
+    ViewData["ActivePage"] = ManageNavPages.Vouchers; // Sau poți crea o clasă nouă pentru meniu
+}
+
+<h3>@ViewData["Title"]</h3>
+
+<div class="row">
+    <div class="col-md-12">
+        @if (Model.UserVouchers.Any())
+        {
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                @foreach (var voucher in Model.UserVouchers)
+                {
+                    <div class="col">
+                        <div class="card border-primary h-100">
+                            <div class="card-header bg-primary text-white d-flex justify-content-between">
+                                <span>Voucher</span>
+                                <strong>@voucher.Code</strong>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">@voucher.Name</h5>
+                                <p class="card-text text-muted">@voucher.Description</p>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <small class="text-dark">Status: <strong>Active</strong></small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                You don't have any vouchers yet. Keep participating to earn some!
+            </div>
+        }
+    </div>
+</div>

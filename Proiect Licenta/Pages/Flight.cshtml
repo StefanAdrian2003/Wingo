@@ -1,0 +1,157 @@
+﻿@page
+@model Proiect_Licenta.Pages.FlightModel
+
+@{
+    ViewData["Title"] = "Flights";
+}
+
+<link rel="stylesheet"
+      href="~/css/Flight.css"
+      asp-append-version="true" />
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+
+
+<div class="flights-page">
+
+    <!-- SIDEBAR -->
+    <div class="flight-search-sidebar">
+
+        <h3>Search Flights</h3>
+
+        <form method="get">
+
+            <!-- DEPARTURE -->
+            <div class="mb-3">
+                <label>Departure Airport</label>
+                <select asp-for="DepartureAirportId" class="form-select airport-search" id="departureAirport">
+                    @if (Model.DepartureAirportId != Guid.Empty)
+                    {
+                        <option value="@Model.DepartureAirportId" selected>
+                            @Model.SelectedDepartureName
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <!-- ARRIVAL -->
+            <div class="mb-3">
+                <label>Arrival Airport</label>
+                <select asp-for="ArrivalAirportId" class="form-select airport-search" id="arrivalAirport">
+                    @if (Model.ArrivalAirportId != Guid.Empty)
+                    {
+                        <option value="@Model.ArrivalAirportId" selected>
+                            @Model.SelectedArrivalName
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <!-- LAYOVER -->
+            <div class="form-check mb-3">
+
+                <input asp-for="WithLayover"
+                       class="form-check-input" />
+
+                <label asp-for="WithLayover"
+                       class="form-check-label">
+
+                    Allow layovers
+
+                </label>
+
+            </div>
+
+
+            <!-- PRICE FILTER -->
+            <div class="mb-3">
+
+                <label>Maximum Price (€)</label>
+
+                <input asp-for="MaxPrice"
+                       type="number"
+                       min="0"
+                       class="form-control"
+                       placeholder="Ex: 300" />
+
+            </div>
+
+            <!-- SEARCH BUTTON -->
+            <button type="submit"
+                    class="btn btn-primary w-100">
+
+                Search
+
+            </button>
+
+        </form>
+
+    </div>
+
+    <!-- FLIGHTS -->
+    <div class="flights-container background">
+
+        <h2>Available Flights</h2>
+
+        @if (!Model.Flights.Any())
+        {
+            <p>No flights found.</p>
+        }
+        else
+        {
+            <div class="flight-list">
+
+                @foreach (var flight in Model.Flights)
+                {
+                    <partial name="_FlightCard"
+                             model="flight" />
+                }
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+
+            function initializeSelect2(selector) {
+
+                $(selector).select2({
+                    minimumInputLength: 2,
+                    placeholder: "Search airport...",
+                    allowClear: true,
+                    ajax: {
+                        url: '?handler=Airports',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                term: params.term
+                            };
+                        },
+                        processResults: function (data) {
+                            return {
+                                results: data.results
+                            };
+                        }
+                    }
+                });
+
+            }
+
+            initializeSelect2('#departureAirport');
+            initializeSelect2('#arrivalAirport');
+
+        });
+    </script>
+}

@@ -1,0 +1,62 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
+
+@* Totul este acum într-un singur wrapper principal *@
+<div class="full-page-container">
+
+    @* Secțiunea Hero *@
+    <section class="hero-section">
+        <div class="glass-panel main-hero">
+            <h1>Explore. Share. Earn.</h1>
+            <p>Wingo is a social platform where aviation meets gamification.</p>
+
+            <div class="d-flex justify-content-center gap-3 mt-4">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <a asp-page="/Post" class="btn btn-primary btn-lg">Create Post</a>
+                }
+                else
+                {
+                    <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-light btn-lg">Login</a>
+                    <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-outline-light btn-lg">Join Now</a>
+                }
+            </div>
+        </div>
+    </section>
+
+    @* Secțiunea Features *@
+    <section class="container pb-5">
+        <div class="glass-panel py-5">
+            <h2 class="section-title text-center mb-5">Why join the Wingo community?</h2>
+
+            <div class="row px-4">
+                <div class="col-md-4 mb-4 text-center">
+                    <div class="feature-item">
+                        <i class="fa-solid fa-plane-departure fa-3x text-primary mb-3"></i>
+                        <h3>Track Flights</h3>
+                        <p>Keep a digital logbook of all your aviation adventures.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4 text-center">
+                    <div class="feature-item">
+                        <i class="fa-solid fa-ranking-star fa-3x text-warning mb-3"></i>
+                        <h3>Earn XP</h3>
+                        <p>Complete challenges and unlock rare aviation badges.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4 text-center">
+                    <div class="feature-item">
+                        <i class="fa-solid fa-users fa-3x text-info mb-3"></i>
+                        <h3>Connect</h3>
+                        <p>Meet other enthusiasts and share technical insights.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
