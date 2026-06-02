@@ -21,8 +21,12 @@ namespace Proiect_Licenta.Pages
         }
 
         public IList<Airport> Airports { get; set; } = new List<Airport>();
-        public IList<Flight> Flights { get; set; } = new List<Flight>();
 
+        // Liste pentru stocarea rezultatelor transmise către HTML
+        public IList<Flight> Flights { get; set; } = new List<Flight>();
+        public IList<RoundTrip> RoundTrips { get; set; } = new List<RoundTrip>();
+
+        // Filtrele din formular
         [BindProperty(SupportsGet = true)]
         public Guid? DepartureAirportId { get; set; }
 
@@ -33,18 +37,20 @@ namespace Proiect_Licenta.Pages
         public bool WithLayover { get; set; }
 
         [BindProperty(SupportsGet = true)]
+        public bool IsRoundTrip { get; set; } = false; // Proprietatea nouă pentru checkbox
+
+        [BindProperty(SupportsGet = true)]
         public decimal? MaxPrice { get; set; }
 
-        // --- NEW DATE FILTER PROPERTY ---
         [BindProperty(SupportsGet = true)]
         [DataType(DataType.Date)]
         public DateTime? SelectedDate { get; set; }
 
-        // --- PAGINATION PROPERTIES ---
+        // Proprietăți pentru paginare
         [BindProperty(SupportsGet = true)]
         public int CurrentPage { get; set; } = 1;
         public int TotalPages { get; set; }
-        public int PageSize { get; set; } = 20;
+        public int PageSize { get; set; } = 10;
         public bool HasPreviousPage => CurrentPage > 1;
         public bool HasNextPage => CurrentPage < TotalPages;
 
@@ -55,88 +61,122 @@ namespace Proiect_Licenta.Pages
         {
             if (CurrentPage < 1) CurrentPage = 1;
 
-            Airports = await _db.Airports
-                .OrderBy(a => a.City)
-                .ToListAsync();
+            // Încărcăm aeroporturile pentru popularea inițială sau fallback
+            Airports = await _db.Airports.OrderBy(a => a.City).ToListAsync();
 
-            var query = _db.Flights
+            DateTime now = DateTime.Now;
+
+            // 1. EXTRACTIE ZBORURI DUS (OUTBOUND)
+            var outboundQuery = _db.Flights
                 .Include(f => f.DepartureAirport)
                 .Include(f => f.ArrivalAirport)
                 .Include(f => f.Aircraft)
-                .Include(f => f.Airline)
-                    .ThenInclude(a => a.User)
+                .Include(f => f.Airline).ThenInclude(a => a.User)
+                .Where(f => f.DepartureTime >= now)
                 .AsQueryable();
 
-            // ---------------------------------------------------------------------
-            // RECULĂ PRINCIPALĂ: Ascunde zborurile din trecut
-            // ---------------------------------------------------------------------
-            DateTime now = DateTime.Now;
-            query = query.Where(f => f.DepartureTime >= now);
-
-            // Filtre Core
             if (DepartureAirportId.HasValue)
-            {
-                query = query.Where(f => f.DepartureAirportId == DepartureAirportId.Value);
-            }
+                outboundQuery = outboundQuery.Where(f => f.DepartureAirportId == DepartureAirportId.Value);
 
             if (ArrivalAirportId.HasValue)
-            {
-                query = query.Where(f => f.ArrivalAirportId == ArrivalAirportId.Value);
-            }
+                outboundQuery = outboundQuery.Where(f => f.ArrivalAirportId == ArrivalAirportId.Value);
 
-            if (MaxPrice.HasValue)
-            {
-                query = query.Where(f => f.Price <= MaxPrice.Value);
-            }
-
-            // Filtru dată calendaristică (ajustat pentru a respecta ora curentă)
             if (SelectedDate.HasValue)
             {
                 DateTime startOfDay = SelectedDate.Value.Date;
                 DateTime endOfDay = startOfDay.AddDays(1).AddTicks(-1);
+                if (startOfDay == now.Date) startOfDay = now;
 
-                // Dacă utilizatorul a selectat ziua de AOARE, intervalul pornește de ACUM, nu de la miezul nopții
-                if (startOfDay == now.Date)
+                outboundQuery = outboundQuery.Where(f => f.DepartureTime >= startOfDay && f.DepartureTime <= endOfDay);
+            }
+
+            var matchingOutboundFlights = await outboundQuery.ToListAsync();
+
+            // 2. LOGICĂ GENERARE DUS-ÎNTORS SAU DOAR DUS
+            if (IsRoundTrip && DepartureAirportId.HasValue && ArrivalAirportId.HasValue)
+            {
+                // Căutăm zborurile de întoarcere (inversând aeroporturile selectate)
+                var returnQuery = _db.Flights
+                    .Include(f => f.DepartureAirport)
+                    .Include(f => f.ArrivalAirport)
+                    .Include(f => f.Aircraft)
+                    .Include(f => f.Airline).ThenInclude(a => a.User)
+                    .Where(f => f.DepartureAirportId == ArrivalAirportId.Value &&
+                                f.ArrivalAirportId == DepartureAirportId.Value)
+                    .AsQueryable();
+
+                var matchingReturnFlights = await returnQuery.ToListAsync();
+
+                var dynamicPairs = new List<RoundTrip>();
+                foreach (var outbound in matchingOutboundFlights)
                 {
-                    startOfDay = now;
+                    // Zborul de întoarcere trebuie să plece după ce zborul de dus a aterizat
+                    var validReturns = matchingReturnFlights
+                        .Where(ret => ret.DepartureTime > outbound.ArrivalTime);
+
+                    foreach (var inbound in validReturns)
+                    {
+                        var roundTrip = new RoundTrip
+                        {
+                            OutboundFlight = outbound,
+                            ReturnFlight = inbound
+                        };
+
+                        // Verificăm filtrul de preț maxim aplicat pe prețul total redus al pachetului
+                        if (!MaxPrice.HasValue || roundTrip.TotalPrice <= MaxPrice.Value)
+                        {
+                            dynamicPairs.Add(roundTrip);
+                        }
+                    }
                 }
 
-                query = query.Where(f => f.DepartureTime >= startOfDay && f.DepartureTime <= endOfDay);
-            }
+                int totalPairsCount = dynamicPairs.Count;
+                TotalPages = (int)Math.Ceiling(totalPairsCount / (double)PageSize);
+                if (TotalPages == 0) TotalPages = 1;
 
-            if (!WithLayover)
+                RoundTrips = dynamicPairs
+                    .OrderBy(rt => rt.OutboundFlight.DepartureTime)
+                    .Skip((CurrentPage - 1) * PageSize)
+                    .Take(PageSize)
+                    .ToList();
+
+                // Golim lista de zboruri simple pentru siguranța interfeței
+                Flights = new List<Flight>();
+            }
+            else
             {
-                // direct flights logic placeholder
+                // Modul standard: Doar Dus
+                if (MaxPrice.HasValue)
+                    outboundQuery = outboundQuery.Where(f => f.Price <= MaxPrice.Value);
+
+                int totalSingleCount = outboundQuery.Count();
+                TotalPages = (int)Math.Ceiling(totalSingleCount / (double)PageSize);
+                if (TotalPages == 0) TotalPages = 1;
+
+                Flights = await outboundQuery
+                    .OrderBy(f => f.DepartureTime)
+                    .Skip((CurrentPage - 1) * PageSize)
+                    .Take(PageSize)
+                    .ToListAsync();
+
+                // Golim lista de round trips
+                RoundTrips = new List<RoundTrip>();
             }
 
-            int totalFlightsCount = await query.CountAsync();
+            await HydrateSelectionLabels();
+        }
 
-            TotalPages = (int)Math.Ceiling(totalFlightsCount / (double)PageSize);
-            if (TotalPages == 0) TotalPages = 1;
-
-            Flights = await query
-                .OrderBy(f => f.DepartureTime)
-                .Skip((CurrentPage - 1) * PageSize)
-                .Take(PageSize)
-                .ToListAsync();
-
-            // Încarcă etichetele vizuale pentru dropdown-uri
+        private async Task HydrateSelectionLabels()
+        {
             if (DepartureAirportId.HasValue)
             {
-                var departureAirport = await _db.Airports.FirstOrDefaultAsync(a => a.Id == DepartureAirportId.Value);
-                if (departureAirport != null)
-                {
-                    SelectedDepartureName = $"{departureAirport.Name} - {departureAirport.City} ({departureAirport.IATACode})";
-                }
+                var dep = await _db.Airports.FirstOrDefaultAsync(a => a.Id == DepartureAirportId.Value);
+                if (dep != null) SelectedDepartureName = $"{dep.Name} - {dep.City} ({dep.IATACode})";
             }
-
             if (ArrivalAirportId.HasValue)
             {
-                var arrivalAirport = await _db.Airports.FirstOrDefaultAsync(a => a.Id == ArrivalAirportId.Value);
-                if (arrivalAirport != null)
-                {
-                    SelectedArrivalName = $"{arrivalAirport.Name} - {arrivalAirport.City} ({arrivalAirport.IATACode})";
-                }
+                var arr = await _db.Airports.FirstOrDefaultAsync(a => a.Id == ArrivalAirportId.Value);
+                if (arr != null) SelectedArrivalName = $"{arr.Name} - {arr.City} ({arr.IATACode})";
             }
         }
 
@@ -145,11 +185,7 @@ namespace Proiect_Licenta.Pages
             var result = await _db.Airports
                 .Where(a => a.Name.Contains(term) || a.City.Contains(term) || a.IATACode.Contains(term))
                 .Take(10)
-                .Select(a => new
-                {
-                    id = a.Id,
-                    text = $"{a.Name} - {a.City} ({a.IATACode})"
-                })
+                .Select(a => new { id = a.Id, text = $"{a.Name} - {a.City} ({a.IATACode})" })
                 .ToListAsync();
 
             return new JsonResult(new { results = result });

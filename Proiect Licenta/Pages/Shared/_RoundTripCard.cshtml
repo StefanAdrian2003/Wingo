@@ -1,0 +1,98 @@
+﻿@model Proiect_Licenta.Models.RoundTrip
+
+<link rel="stylesheet" href="~/css/FlightCard.css" asp-append-version="true" />
+
+<div class="flight-card round-trip-card">
+    
+    <div class="flight-trip-segment container border-bottom pb-3 mb-3">
+        <div class="badge bg-primary text-white mb-2">Outbound / Dus</div>
+        <div class="flight-card-header p-0 border-0">
+            <div class="flight-main-info">
+                <div class="flight-top-row">
+                    <h4 class="flight-number">@Model.OutboundFlight.FlightNumber</h4>
+                    <div class="flight-airline">
+                        <img src="@Model.OutboundFlight.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" />
+                        <span class="airline-name">@Model.OutboundFlight.Airline.Name</span>
+                    </div>
+                    <a asp-page="/FlightInfo" asp-route-id="@Model.OutboundFlight.Id" class="flight-link">
+                        <span class="details-link">Details</span>
+                    </a>
+                </div>
+                <div class="flight-route">
+                    @Model.OutboundFlight.DepartureAirport.Name (@Model.OutboundFlight.DepartureAirport.IATACode)
+                    <span class="route-arrow">→</span>
+                    @Model.OutboundFlight.ArrivalAirport.Name (@Model.OutboundFlight.ArrivalAirport.IATACode)
+                </div>
+            </div>
+        </div>
+
+        <div class="flight-card-body p-0 mt-2 d-flex justify-content-between">
+            <div class="flight-info-box">
+                <span class="flight-label">Departure</span>
+                <span class="flight-value">@Model.OutboundFlight.DepartureTime.ToString("g")</span>
+            </div>
+            <div class="flight-info-box">
+                <span class="flight-label">Arrival</span>
+                <span class="flight-value">@Model.OutboundFlight.ArrivalTime.ToString("g")</span>
+            </div>
+            <div class="flight-info-box">
+                <span class="flight-label">Aircraft</span>
+                <span class="flight-value">@Model.OutboundFlight.Aircraft.Model</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="flight-trip-segment container">
+        <div class="badge bg-secondary text-white mb-2">Return / Întors</div>
+        <div class="flight-card-header p-0 border-0">
+            <div class="flight-main-info">
+                <div class="flight-top-row">
+                    <h4 class="flight-number">@Model.ReturnFlight.FlightNumber</h4>
+                    <div class="flight-airline">
+                        <img src="@Model.ReturnFlight.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" />
+                        <span class="airline-name">@Model.ReturnFlight.Airline.Name</span>
+                    </div>
+                    <a asp-page="/FlightInfo" asp-route-id="@Model.ReturnFlight.Id" class="flight-link">
+                        <span class="details-link">Details</span>
+                    </a>
+                </div>
+                <div class="flight-route">
+                    @Model.ReturnFlight.DepartureAirport.Name (@Model.ReturnFlight.DepartureAirport.IATACode)
+                    <span class="route-arrow">→</span>
+                    @Model.ReturnFlight.ArrivalAirport.Name (@Model.ReturnFlight.ArrivalAirport.IATACode)
+                </div>
+            </div>
+        </div>
+
+        <div class="flight-card-body p-0 mt-2 d-flex justify-content-between">
+            <div class="flight-info-box">
+                <span class="flight-label">Departure</span>
+                <span class="flight-value">@Model.ReturnFlight.DepartureTime.ToString("g")</span>
+            </div>
+            <div class="flight-info-box">
+                <span class="flight-label">Arrival</span>
+                <span class="flight-value">@Model.ReturnFlight.ArrivalTime.ToString("g")</span>
+            </div>
+            <div class="flight-info-box">
+                <span class="flight-label">Aircraft</span>
+                <span class="flight-value">@Model.ReturnFlight.Aircraft.Model</span>
+            </div>
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="flight-card-footer d-flex justify-content-between align-items-center mt-3">
+        <div class="flight-price-box">
+            <span class="price-label">Total Price (Both Flights)</span>
+            <span class="flight-price text-success fs-4 fw-bold">€@Model.TotalPrice</span>
+        </div>
+
+        <a asp-page="/BookingPassenger"
+           asp-route-outboundId="@Model.OutboundFlight.Id"
+           asp-route-returnId="@Model.ReturnFlight.Id"
+           class="reserve-btn btn btn-primary">
+            Reserve Bundle!
+        </a>
+    </div>
+</div>
