@@ -1,0 +1,263 @@
+﻿@page
+@using Proiect_Licenta.Models
+@model Proiect_Licenta.Pages.BookingBaggageModel
+@{
+    ViewData["Title"] = "Select Baggage";
+    var basePrice = Model.Flight.Price;
+    var multipliers = new Dictionary<TravelClass, decimal>
+    {
+        { TravelClass.Economy,  1.0m },
+        { TravelClass.Business, 2.2m },
+        { TravelClass.First,    3.5m }
+    };
+}
+
+<link rel="stylesheet" href="~/css/BookingBaggage.css" asp-append-version="true" />
+
+<div class="background">
+    <div class="booking-layout">
+
+        <div class="baggage-panel">
+
+            <div class="page-header">
+                <a asp-page="/BookingPassenger" asp-route-id="@Model.Flight.Id" class="back-link">← Back</a>
+                <div class="flight-badge">
+                    <img src="@Model.Flight.Airline.LogoUrl" class="mini-logo" />
+                    <span>@Model.Flight.FlightNumber</span>
+                    <span class="route-mini">
+                        @Model.Flight.DepartureAirport.IATACode → @Model.Flight.ArrivalAirport.IATACode
+                    </span>
+                </div>
+            </div>
+
+            <h2 class="page-title">Select Baggage</h2>
+            <p class="page-subtitle">Choose baggage options for each passenger</p>
+
+            <form method="post" id="baggageForm">
+                @Html.AntiForgeryToken()
+
+                @for (int i = 0; i < Model.SelectedSeats.Count; i++)
+                {
+                    var seat = Model.SelectedSeats[i];
+                    var travelClass = seat.SeatSection.TravelClass;
+                    var seatPrice = Math.Round(basePrice * multipliers[travelClass], 2);
+
+                    <div class="baggage-card" data-index="@i" data-seat-price="@seatPrice">
+
+                        <div class="card-header">
+                            <div class="passenger-info">
+                                <span class="passenger-label">Passenger @(i + 1)</span>
+                                <span class="seat-badge @travelClass.ToString().ToLower()">
+                                    Seat @seat.SeatNumber — @travelClass
+                                </span>
+                            </div>
+                            <span class="seat-ticket-price">€@seatPrice</span>
+                        </div>
+
+                        <div class="baggage-options">
+
+                            <label class="baggage-option" data-baggage-price="0">
+                                <input type="radio"
+                                       name="baggageTypes[@i]"
+                                       value="None"
+                                       checked
+                                       class="baggage-radio" />
+                                <div class="option-content">
+                                    <span class="option-icon">🚫</span>
+                                    <div class="option-text">
+                                        <span class="option-name">No Baggage</span>
+                                        <span class="option-desc">Personal item only</span>
+                                    </div>
+                                    <span class="option-price free">FREE</span>
+                                </div>
+                            </label>
+
+                            <label class="baggage-option" data-baggage-price="0">
+                                <input type="radio"
+                                       name="baggageTypes[@i]"
+                                       value="Cabin"
+                                       class="baggage-radio" />
+                                <div class="option-content">
+                                    <span class="option-icon">🎒</span>
+                                    <div class="option-text">
+                                        <span class="option-name">Cabin Bag</span>
+                                        <span class="option-desc">Up to 10kg, fits overhead</span>
+                                    </div>
+                                    <span class="option-price free">FREE</span>
+                                </div>
+                            </label>
+
+                            <label class="baggage-option" data-baggage-price="25">
+                                <input type="radio"
+                                       name="baggageTypes[@i]"
+                                       value="Checked20"
+                                       class="baggage-radio" />
+                                <div class="option-content">
+                                    <span class="option-icon">🧳</span>
+                                    <div class="option-text">
+                                        <span class="option-name">Checked Bag 20kg</span>
+                                        <span class="option-desc">Standard hold luggage</span>
+                                    </div>
+                                    <span class="option-price">+€25.00</span>
+                                </div>
+                            </label>
+
+                            <label class="baggage-option" data-baggage-price="40">
+                                <input type="radio"
+                                       name="baggageTypes[@i]"
+                                       value="Checked32"
+                                       class="baggage-radio" />
+                                <div class="option-content">
+                                    <span class="option-icon">📦</span>
+                                    <div class="option-text">
+                                        <span class="option-name">Checked Bag 32kg</span>
+                                        <span class="option-desc">Large hold luggage</span>
+                                    </div>
+                                    <span class="option-price">+€40.00</span>
+                                </div>
+                            </label>
+
+                        </div>
+
+                        <div class="extra-bag-row">
+                            <label class="extra-bag-label">
+                                <input type="checkbox"
+                                       name="hasExtraBags[@i]"
+                                       value="true"
+                                       class="extra-checkbox"
+                                       data-extra-price="35" />
+                                <span class="extra-icon">➕</span>
+                                <div class="extra-text">
+                                    <span class="extra-name">Extra Bag</span>
+                                    <span class="extra-desc">1 additional checked bag, max 23kg</span>
+                                </div>
+                                <span class="extra-price">+€35.00</span>
+                            </label>
+                            <input type="hidden" name="hasExtraBags[@i]" value="false" />
+                        </div>
+
+                        <div class="card-subtotal">
+                            Baggage subtotal: <span class="subtotal-value" id="subtotal-@i">€0.00</span>
+                        </div>
+
+                    </div>
+                }
+
+                <button type="submit" id="hiddenSubmit" style="display:none;"></button>
+            </form>
+
+        </div>
+
+        <div class="summary-panel">
+            <div class="summary-sticky">
+                <h3 class="summary-title">Booking Summary</h3>
+
+                <div class="summary-section">
+                    <div class="summary-section-label">Seats</div>
+                    <div id="seatSummaryList">
+                        @for (int i = 0; i < Model.SelectedSeats.Count; i++)
+                        {
+                            var seat = Model.SelectedSeats[i];
+                            var travelClass = seat.SeatSection.TravelClass;
+                            var seatPrice = Math.Round(basePrice * multipliers[travelClass], 2);
+                            <div class="summary-line">
+                                <span class="summary-seat-chip @travelClass.ToString().ToLower()">@seat.SeatNumber</span>
+                                <span class="summary-line-price">€@seatPrice</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <div class="summary-section-label">Baggage</div>
+                    <div id="baggageSummaryList">
+                        @for (int i = 0; i < Model.SelectedSeats.Count; i++)
+                        {
+                            <div class="summary-line" id="baggage-summary-@i">
+                                <span class="summary-bag-label">Seat @Model.SelectedSeats[i].SeatNumber</span>
+                                <span class="summary-line-price" id="bag-price-@i">€0.00</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-total-row">
+                    <span>Seats</span>
+                    <span id="totalSeats">€@Model.SelectedSeats.Sum(s => Math.Round(basePrice * multipliers[s.SeatSection.TravelClass], 2))</span>
+                </div>
+                <div class="summary-total-row">
+                    <span>Baggage</span>
+                    <span id="totalBaggage">€0.00</span>
+                </div>
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-grand-total">
+                    <span>Total</span>
+                    <span class="grand-amount" id="grandTotal">
+                        €@Model.SelectedSeats.Sum(s => Math.Round(basePrice * multipliers[s.SeatSection.TravelClass], 2))
+                    </span>
+                </div>
+
+                <button type="button" class="btn-continue" onclick="document.getElementById('hiddenSubmit').click()">
+                    Continue to Review →
+                </button>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // seat prices from server
+        const seatPrices = [@Html.Raw(string.Join(",", Model.SelectedSeats.Select(s =>
+                    Math.Round(basePrice * multipliers[s.SeatSection.TravelClass], 2))))];
+
+    const totalSeatsAmount = seatPrices.reduce((a, b) => a + b, 0);
+
+        function recalculate() {
+            let totalBaggage = 0;
+
+            document.querySelectorAll('.baggage-card').forEach((card, i) => {
+                const radio     = card.querySelector('.baggage-radio:checked');
+                const extra     = card.querySelector('.extra-checkbox');
+                const subtotalEl = document.getElementById(`subtotal-${i}`);
+                const bagPriceEl = document.getElementById(`bag-price-${i}`);
+
+                let bagPrice = radio ? parseFloat(radio.closest('.baggage-option').dataset.baggagePrice) : 0;
+                if (extra && extra.checked) bagPrice += 35;
+
+                totalBaggage += bagPrice;
+
+                subtotalEl.textContent = `€${bagPrice.toFixed(2)}`;
+                bagPriceEl.textContent = `€${bagPrice.toFixed(2)}`;
+            });
+
+            document.getElementById('totalBaggage').textContent = `€${totalBaggage.toFixed(2)}`;
+            document.getElementById('grandTotal').textContent   = `€${(totalSeatsAmount + totalBaggage).toFixed(2)}`;
+        }
+
+        // attach listeners
+        document.querySelectorAll('.baggage-radio, .extra-checkbox').forEach(input => {
+            input.addEventListener('change', recalculate);
+        });
+
+        // highlight selected option
+        document.querySelectorAll('.baggage-radio').forEach(radio => {
+            radio.addEventListener('change', () => {
+                const card = radio.closest('.baggage-card');
+                card.querySelectorAll('.baggage-option').forEach(o => o.classList.remove('selected'));
+                radio.closest('.baggage-option').classList.add('selected');
+            });
+        });
+
+        // set initial selected state
+        document.querySelectorAll('.baggage-radio:checked').forEach(radio => {
+            radio.closest('.baggage-option').classList.add('selected');
+        });
+    </script>
+}

@@ -1,0 +1,352 @@
+﻿/* ═══════════════════════════════════════════════
+   MOCK PAY — MockPay.css
+   ═══════════════════════════════════════════════ */
+
+.pay-layout {
+    display: flex;
+    gap: 2rem;
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+    align-items: flex-start;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── LEFT PANEL ── */
+.pay-panel {
+    flex: 1;
+    min-width: 0;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.back-link {
+    font-size: 0.85rem;
+    color: #1a73e8;
+    text-decoration: none;
+}
+
+    .back-link:hover {
+        text-decoration: underline;
+    }
+
+.page-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.error-alert {
+    background: #fdecea;
+    border: 1px solid #f44336;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    color: #c62828;
+    margin-bottom: 1rem;
+}
+
+/* ── CARD PREVIEW ── */
+.card-preview {
+    background: linear-gradient(135deg, #1a1a2e 0%, #1a73e8 100%);
+    border-radius: 18px;
+    padding: 1.4rem 1.6rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 8px 30px rgba(26,115,232,0.35);
+    transition: transform 0.4s ease;
+    min-height: 170px;
+    position: relative;
+    overflow: hidden;
+}
+
+    .card-preview::before {
+        content: '';
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.06);
+    }
+
+    .card-preview.flipped {
+        transform: rotateY(180deg);
+    }
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.2rem;
+}
+
+.card-bank {
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    opacity: 0.9;
+}
+
+.card-chip {
+    font-size: 1.4rem;
+    opacity: 0.7;
+}
+
+.card-number-display {
+    font-size: 1.25rem;
+    letter-spacing: 3px;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 1.2rem;
+    opacity: 0.95;
+}
+
+.card-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.card-holder-display,
+.card-expiry-display {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.card-label {
+    font-size: 0.55rem;
+    letter-spacing: 1px;
+    opacity: 0.6;
+    text-transform: uppercase;
+}
+
+.card-holder-display span:last-child,
+.card-expiry-display span:last-child {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* ── FORM ── */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 0.4rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #1a1a2e;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+    background: #fff;
+}
+
+    .form-input:focus {
+        outline: none;
+        border-color: #1a73e8;
+        box-shadow: 0 0 0 3px rgba(26,115,232,0.12);
+    }
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+    .form-row .form-group {
+        flex: 1;
+    }
+
+.cvv-input {
+    letter-spacing: 4px;
+}
+
+.secure-note {
+    font-size: 0.75rem;
+    color: #aaa;
+    text-align: center;
+    margin-bottom: 1.2rem;
+}
+
+.btn-pay {
+    width: 100%;
+    background: #2e7d32;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.9rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, transform 0.1s;
+}
+
+    .btn-pay:hover {
+        background: #1b5e20;
+        transform: translateY(-2px);
+    }
+
+    .btn-pay:active {
+        transform: translateY(0);
+    }
+
+    .btn-pay:disabled {
+        background: #aaa;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+/* ── RIGHT: ORDER SUMMARY ── */
+.order-summary {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+.summary-sticky {
+    position: sticky;
+    top: 1.5rem;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 14px;
+    padding: 1.3rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+}
+
+.summary-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 0.9rem 0;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.flight-mini {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.mini-logo {
+    height: 28px;
+    object-fit: contain;
+}
+
+.flight-mini-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.flight-num {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.flight-route {
+    font-size: 0.78rem;
+    color: #555;
+}
+
+.flight-date {
+    font-size: 0.72rem;
+    color: #888;
+}
+
+.summary-divider {
+    height: 1px;
+    background: #f0f0f0;
+    margin: 0.75rem 0;
+}
+
+.order-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.35rem 0;
+    gap: 0.5rem;
+}
+
+.order-line-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.seat-chip {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #fff;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+    .seat-chip.economy {
+        background: #4caf50;
+    }
+
+    .seat-chip.business {
+        background: #1a73e8;
+    }
+
+    .seat-chip.first {
+        background: #f59e0b;
+    }
+
+.order-line-detail {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.78rem;
+    color: #555;
+    gap: 1px;
+}
+
+.bag-tag {
+    font-size: 0.7rem;
+    color: #888;
+}
+
+.order-line-price {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    white-space: nowrap;
+}
+
+.grand-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #1a1a2e;
+}
+
+.grand-total-amount {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #2e7d32;
+}

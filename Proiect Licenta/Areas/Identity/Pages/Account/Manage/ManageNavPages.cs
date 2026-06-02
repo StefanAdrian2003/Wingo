@@ -23,6 +23,8 @@ namespace  Proiect_Licenta.Areas.Identity.Pages.Account.Manage
 
         public static string Vouchers => "Vouchers";
 
+        public static string Bookings => "Bookings";
+
         public static string Index => "Index";
 
         /// <summary>
@@ -77,6 +79,8 @@ namespace  Proiect_Licenta.Areas.Identity.Pages.Account.Manage
 
 
         public static string VouchersNavClass(ViewContext viewContext) => PageNavClass(viewContext, Vouchers);
+
+        public static string BookingsNavClass(ViewContext viewContext) => PageNavClass(viewContext, Bookings);
 
         public static string IndexNavClass(ViewContext viewContext) => PageNavClass(viewContext, Index);
 

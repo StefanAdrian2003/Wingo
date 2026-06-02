@@ -1,0 +1,128 @@
+﻿@page
+@using Proiect_Licenta.Models
+@model Proiect_Licenta.Areas.Identity.Pages.Account.Manage.BookingsModel
+@{
+    ViewData["Title"] = "My Bookings";
+    ViewData["ActivePage"] = "Bookings";
+}
+
+<link rel="stylesheet" href="~/css/Bookings.css" asp-append-version="true" />
+
+
+
+
+<div class="background">
+    <h3 class="bookings-heading">My Bookings</h3>
+
+    @if (!Model.Bookings.Any())
+    {
+        <div class="empty-state">
+            <span class="empty-icon">✈️</span>
+            <p class="empty-title">No bookings yet</p>
+            <p class="empty-sub">Your confirmed flights will appear here</p>
+            <a asp-page="/Index" class="btn-explore">Explore Flights</a>
+        </div>
+    }
+    else
+    {
+        @foreach (var booking in Model.Bookings)
+        {
+            var flight = booking.Flight;
+            var totalPrice = booking.Tickets.Sum(t => t.Price);
+            var isPast = flight.DepartureTime < DateTime.UtcNow;
+
+            <div class="booking-card @(isPast ? "past" : "upcoming")">
+
+                <div class="booking-card-top">
+                    <span class="status-badge @(isPast ? "past" : "upcoming")">
+                        @(isPast ? "Completed" : "Upcoming")
+                    </span>
+                    <span class="booking-date">
+                        Booked on @booking.BookingDate.ToString("dd MMM yyyy")
+                    </span>
+                </div>
+
+                <div class="flight-route-row">
+                    <img src="@flight.Airline.LogoUrl"
+                         alt="@flight.Airline.Name"
+                         class="airline-logo" />
+
+                    <div class="route-info">
+                        <div class="route-airports">
+                            <span class="iata">@flight.DepartureAirport.IATACode</span>
+                            <div class="route-line-mid">
+                                <span class="flight-num">@flight.FlightNumber</span>
+                                <div class="route-line"><span>✈</span></div>
+                                <span class="duration">
+                                    @($"{flight.DurationMinutes / 60}h {flight.DurationMinutes % 60}m")
+                                </span>
+                            </div>
+                            <span class="iata">@flight.ArrivalAirport.IATACode</span>
+                        </div>
+                        <div class="route-details">
+                            <span class="route-city">@flight.DepartureAirport.City</span>
+                            <span class="route-time">
+                                @flight.DepartureTime.ToString("dd MMM, HH:mm")
+                                → @flight.ArrivalTime.ToString("HH:mm")
+                            </span>
+                            <span class="route-city right">@flight.ArrivalAirport.City</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tickets-section">
+                    <div class="tickets-label">
+                        🎫 @booking.Tickets.Count ticket@(booking.Tickets.Count > 1 ? "s" : "")
+                    </div>
+
+                    <div class="tickets-grid">
+                        @foreach (var ticket in booking.Tickets)
+                        {
+                            var seat = ticket.FlightSeat?.Seat;
+                            var seatNum = seat?.SeatNumber ?? "—";
+                            var bagItems = ticket.BaggageItems.ToList();
+
+                            <div class="ticket-chip">
+                                <div class="ticket-chip-top">
+                                    <span class="chip-seat @ticket.TravelClass.ToString().ToLower()">
+                                        @seatNum
+                                    </span>
+                                    <span class="chip-class">@ticket.TravelClass</span>
+                                </div>
+                                <div class="chip-price">€@ticket.Price</div>
+                                @if (bagItems.Any())
+                                {
+                                    <div class="chip-bags">
+                                        @foreach (var bag in bagItems)
+                                        {
+                                            <span class="chip-bag-tag">
+                                                @(bag.Type == BaggageType.Cabin ? "🎒 Cabin" :
+                                                                            bag.Type == BaggageType.Checked ? $"🧳 {bag.WeightKg}kg" :
+                                                                            "📦 Extra")
+                        </span>
+                                                }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="chip-bags">
+                                        <span class="chip-bag-tag no-bag">No baggage</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="booking-footer">
+                    <span class="booking-total-label">Total paid</span>
+                    <span class="booking-total-amount">€@totalPrice</span>
+                </div>
+
+            </div>
+        }
+    }
+
+</div>
+
+

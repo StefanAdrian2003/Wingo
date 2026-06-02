@@ -10,12 +10,7 @@ namespace Proiect_Licenta.Data.Seeders
                 ApplicationDbContext context,
                 UserManager<User> userManager)
         {
-            if (await context.Users.AnyAsync(u => u.IsCompany))
-                return;
-
             var random = new Random();
-
-            // ---------------- AIRPORTS ----------------
 
             var airports = await context.Airports
                 .Where(a =>
@@ -31,71 +26,60 @@ namespace Proiect_Licenta.Data.Seeders
                     a.Country == "Austria")
                 .ToListAsync();
 
-            // aeroporturi foarte folosite
             var priorityAirports = airports
                 .Where(a =>
-                    a.IATACode == "OTP" ||
-                    a.IATACode == "CLJ" ||
-                    a.IATACode == "IAS" ||
-                    a.IATACode == "TSR" ||
-                    a.IATACode == "LTN" ||
-                    a.IATACode == "CDG" ||
-                    a.IATACode == "FCO" ||
-                    a.IATACode == "AMS" ||
-                    a.IATACode == "IST" ||
-                    a.IATACode == "MAD")
+                    a.IATACode == "OTP" || a.IATACode == "CLJ" ||
+                    a.IATACode == "IAS" || a.IATACode == "TSR" ||
+                    a.IATACode == "LTN" || a.IATACode == "CDG" ||
+                    a.IATACode == "FCO" || a.IATACode == "AMS" ||
+                    a.IATACode == "IST" || a.IATACode == "MAD")
                 .ToList();
 
-            // ---------------- COMPANIES ----------------
+            if (!airports.Any() || !priorityAirports.Any())
+                throw new InvalidOperationException("Run AirportSeeder before CompanySeeder.");
 
             var companies = new List<(string Name, string IATA, string Country)>
             {
-                ("Lufthansa", "LH", "Germany"),
-                ("Air France", "AF", "France"),
-                ("KLM", "KL", "Netherlands"),
-                ("Emirates", "EK", "UAE"),
-                ("Qatar Airways", "QR", "Qatar"),
-                ("Turkish Airlines", "TK", "Turkey"),
-                ("Ryanair", "FR", "Ireland"),
-                ("Wizz Air", "W6", "Hungary"),
-                ("British Airways", "BA", "United Kingdom"),
-                ("ITA Airways", "AZ", "Italy"),
-                ("Tarom", "RO", "Romania"),
-                ("Aegean Airlines", "A3", "Greece"),
-                ("Austrian Airlines", "OS", "Austria"),
-                ("Swiss", "LX", "Switzerland"),
-                ("Iberia", "IB", "Spain"),
-                ("easyJet", "U2", "United Kingdom"),
-                ("Finnair", "AY", "Finland"),
-                ("LOT Polish Airlines", "LO", "Poland"),
-                ("SAS", "SK", "Sweden"),
-                ("Brussels Airlines", "SN", "Belgium")
+                ("Lufthansa",          "LH", "Germany"),
+                ("Air France",         "AF", "France"),
+                ("KLM",                "KL", "Netherlands"),
+                ("Emirates",           "EK", "UAE"),
+                ("Qatar Airways",      "QR", "Qatar"),
+                ("Turkish Airlines",   "TK", "Turkey"),
+                ("Ryanair",            "FR", "Ireland"),
+                ("Wizz Air",           "W6", "Hungary"),
+                ("British Airways",    "BA", "United Kingdom"),
+                ("ITA Airways",        "AZ", "Italy"),
+                ("Tarom",              "RO", "Romania"),
+                ("Aegean Airlines",    "A3", "Greece"),
+                ("Austrian Airlines",  "OS", "Austria"),
+                ("Swiss",              "LX", "Switzerland"),
+                ("Iberia",             "IB", "Spain"),
+                ("easyJet",            "U2", "United Kingdom"),
+                ("Finnair",            "AY", "Finland"),
+                ("LOT Polish Airlines","LO", "Poland"),
+                ("SAS",                "SK", "Sweden"),
+                ("Brussels Airlines",  "SN", "Belgium")
             };
 
             string[] aircraftModels =
             {
-                "Airbus A320",
-                "Boeing 737",
-                "Airbus A321",
-                "Boeing 777",
-                "Embraer E190",
-                "Airbus A330",
-                "ATR 72",
-                "Boeing 787 Dreamliner"
+                "Airbus A320", "Boeing 737", "Airbus A321", "Boeing 777",
+                "Embraer E190", "Airbus A330", "ATR 72", "Boeing 787 Dreamliner"
             };
+
+            // seats-per-row matching layouts — seat counts will be exact multiples
+            const int firstPerRow = 4; // "AB-CD"
+            const int businessPerRow = 6; // "ABC-DEF"
+            const int economyPerRow = 6; // "ABC-DEF"
 
             foreach (var company in companies)
             {
-                var email =
-                    $"{company.Name.Replace(" ", "").ToLower()}@wingo.com";
+                var email = $"{company.Name.Replace(" ", "").ToLower()}@wingo.com";
 
-                var existingUser =
-                    await userManager.FindByEmailAsync(email);
-
+                var existingUser = await userManager.FindByEmailAsync(email);
                 if (existingUser != null)
                     continue;
-
-                // ---------------- USER ----------------
 
                 var user = new User
                 {
@@ -107,15 +91,11 @@ namespace Proiect_Licenta.Data.Seeders
                     IsCompany = true
                 };
 
-                var result =
-                    await userManager.CreateAsync(user, "Company123!");
-
+                var result = await userManager.CreateAsync(user, "Company123!");
                 if (!result.Succeeded)
                     continue;
 
                 await userManager.AddToRoleAsync(user, "Company");
-
-                // ---------------- AIRLINE ----------------
 
                 var airline = new Airline
                 {
@@ -128,17 +108,14 @@ namespace Proiect_Licenta.Data.Seeders
                 };
 
                 context.Airlines.Add(airline);
-
                 user.Airline = airline;
                 user.AirlineId = airline.Id;
-
-                // ---------------- AIRCRAFT ----------------
 
                 var aircraftList = new List<Aircraft>();
 
                 for (int i = 0; i < 5; i++)
                 {
-                    int rawSeats = random.Next(10, 27); // 10*12=120, 26*12=312
+                    int rawSeats = random.Next(10, 27); // * 12 = always divisible by both 4 and 6
                     var aircraft = new Aircraft
                     {
                         Model = aircraftModels[random.Next(aircraftModels.Length)],
@@ -153,17 +130,18 @@ namespace Proiect_Licenta.Data.Seeders
 
                 await context.SaveChangesAsync();
 
-
-                // ---------------- SEAT STRUCTURE + SEATS ----------------
-
                 foreach (var aircraft in aircraftList)
                 {
-                    int totalSeats = aircraft.TotalSeats;
+                    int total = aircraft.TotalSeats;
 
-                    // împărțire realistă
-                    int firstSeats = (int)(totalSeats * 0.1);   // 10%
-                    int businessSeats = (int)(totalSeats * 0.2); // 20%
-                    int economySeats = totalSeats - firstSeats - businessSeats;
+                    // calculate ROWS first → seat count = rows * seatsPerRow (no remainder)
+                    int firstRows = Math.Max(1, (int)(total * 0.10) / firstPerRow);
+                    int businessRows = Math.Max(1, (int)(total * 0.20) / businessPerRow);
+                    int economyRows = Math.Max(1, (total / economyPerRow) - firstRows - businessRows);
+
+                    int firstSeats = firstRows * firstPerRow;
+                    int businessSeats = businessRows * businessPerRow;
+                    int economySeats = economyRows * economyPerRow;
 
                     int currentRow = 1;
 
@@ -172,14 +150,12 @@ namespace Proiect_Licenta.Data.Seeders
                         if (seatCount <= 0) return;
 
                         int seatsPerRow = layout.Replace("-", "").Length;
-
-                        int rows = (int)Math.Ceiling((double)seatCount / seatsPerRow);
+                        int rows = seatCount / seatsPerRow; // exact — no remainder ever
                         int endRow = currentRow + rows - 1;
 
                         var section = new SeatSection
                         {
                             AircraftId = aircraft.Id,
-                            Aircraft = aircraft,
                             TravelClass = travelClass,
                             StartRow = currentRow,
                             EndRow = endRow,
@@ -187,31 +163,20 @@ namespace Proiect_Licenta.Data.Seeders
                         };
 
                         context.SeatSections.Add(section);
-                        aircraft.SeatSections.Add(section);
 
-                        int seatIndex = 0;
-
+                        // simple nested loop — no done flag needed, rows are exact
                         for (int row = currentRow; row <= endRow; row++)
                         {
                             foreach (var block in layout.Split('-'))
                             {
-                                foreach (char seatLetter in block)
+                                foreach (char letter in block)
                                 {
-                                    if (seatIndex >= seatCount)
-                                        break;
-
-                                    var seat = new Seat
+                                    context.Seats.Add(new Seat
                                     {
-                                        SeatSection = section,
                                         SeatSectionId = section.Id,
                                         TravelClass = travelClass,
-                                        SeatNumber = $"{row}{seatLetter}"
-                                    };
-
-                                    context.Seats.Add(seat);
-                                    section.Seats.Add(seat);
-
-                                    seatIndex++;
+                                        SeatNumber = $"{row}{letter}"
+                                    });
                                 }
                             }
                         }
@@ -219,91 +184,48 @@ namespace Proiect_Licenta.Data.Seeders
                         currentRow = endRow + 1;
                     }
 
-                    // FIRST CLASS
                     CreateSection(TravelClass.First, firstSeats, "AB-CD");
-
-                    // BUSINESS
                     CreateSection(TravelClass.Business, businessSeats, "ABC-DEF");
-
-                    // ECONOMY
                     CreateSection(TravelClass.Economy, economySeats, "ABC-DEF");
                 }
 
                 await context.SaveChangesAsync();
 
-                // ---------------- FLIGHTS ----------------
-
                 for (int i = 0; i < 20; i++)
                 {
-                    Airport departureAirport;
-                    Airport arrivalAirport;
+                    Airport dep, arr;
 
-                    // 70% sanse aeroport popular
-                    if (random.Next(1, 101) <= 70)
-                    {
-                        departureAirport =
-                            priorityAirports[random.Next(priorityAirports.Count)];
-                    }
-                    else
-                    {
-                        departureAirport =
-                            airports[random.Next(airports.Count)];
-                    }
+                    dep = random.Next(1, 101) <= 70
+                        ? priorityAirports[random.Next(priorityAirports.Count)]
+                        : airports[random.Next(airports.Count)];
 
                     do
                     {
-                        if (random.Next(1, 101) <= 70)
-                        {
-                            arrivalAirport =
-                                priorityAirports[random.Next(priorityAirports.Count)];
-                        }
-                        else
-                        {
-                            arrivalAirport =
-                                airports[random.Next(airports.Count)];
-                        }
+                        arr = random.Next(1, 101) <= 70
+                            ? priorityAirports[random.Next(priorityAirports.Count)]
+                            : airports[random.Next(airports.Count)];
                     }
-                    while (arrivalAirport.Id == departureAirport.Id);
+                    while (arr.Id == dep.Id);
 
-                    var aircraft =
-                        aircraftList[random.Next(aircraftList.Count)];
+                    var ac = aircraftList[random.Next(aircraftList.Count)];
+                    var duration = random.Next(60, 240);
+                    var departs = DateTime.UtcNow
+                        .AddDays(random.Next(1, 20))
+                        .AddHours(random.Next(0, 24))
+                        .AddMinutes(random.Next(0, 60));
 
-                    // zboruri mai apropiate pentru teste
-                    var departureTime =
-                        DateTime.UtcNow
-                            .AddDays(random.Next(1, 20))
-                            .AddHours(random.Next(0, 24))
-                            .AddMinutes(random.Next(0, 60));
-
-                    var duration =
-                        random.Next(60, 240);
-
-                    var flight = new Flight
+                    context.Flights.Add(new Flight
                     {
-                        FlightNumber =
-                            $"{company.IATA}{random.Next(100, 9999)}",
-
-                        DepartureAirportId = departureAirport.Id,
-                        ArrivalAirportId = arrivalAirport.Id,
-
-                        DepartureTime = departureTime,
-
-                        ArrivalTime =
-                            departureTime.AddMinutes(duration),
-
+                        FlightNumber = $"{company.IATA}{random.Next(100, 9999)}",
+                        DepartureAirportId = dep.Id,
+                        ArrivalAirportId = arr.Id,
+                        DepartureTime = departs,
+                        ArrivalTime = departs.AddMinutes(duration),
                         DurationMinutes = duration,
-
-                        Price =
-                            random.Next(40, 450),
-
+                        Price = random.Next(40, 450),
                         AirlineId = airline.Id,
-                        Airline = airline,
-
-                        AircraftId = aircraft.Id,
-                        Aircraft = aircraft
-                    };
-
-                    context.Flights.Add(flight);
+                        AircraftId = ac.Id
+                    });
                 }
 
                 await context.SaveChangesAsync();

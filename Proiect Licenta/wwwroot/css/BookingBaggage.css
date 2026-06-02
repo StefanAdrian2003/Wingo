@@ -1,0 +1,407 @@
+﻿/* ═══════════════════════════════════════════════
+   BOOKING BAGGAGE — BookingBaggage.css
+   ═══════════════════════════════════════════════ */
+
+.booking-layout {
+    display: flex;
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+    align-items: flex-start;
+}
+
+/* ── LEFT PANEL ── */
+.baggage-panel {
+    flex: 1;
+    min-width: 0;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.back-link {
+    font-size: 0.85rem;
+    color: #1a73e8;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+    .back-link:hover {
+        text-decoration: underline;
+    }
+
+.flight-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.mini-logo {
+    height: 22px;
+    object-fit: contain;
+}
+
+.route-mini {
+    color: #888;
+    font-weight: 400;
+    font-size: 0.8rem;
+}
+
+.page-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 0.25rem;
+}
+
+.page-subtitle {
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 1.5rem;
+}
+
+/* ── BAGGAGE CARD ── */
+.baggage-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 14px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s;
+}
+
+    .baggage-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.09);
+    }
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.passenger-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.passenger-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+}
+
+.seat-badge {
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+    .seat-badge.economy {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .seat-badge.business {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .seat-badge.first {
+        background: #fff8e1;
+        color: #f57f17;
+    }
+
+.seat-ticket-price {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1a1a2e;
+}
+
+/* ── BAGGAGE OPTIONS ── */
+.baggage-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 0.8rem;
+}
+
+.baggage-option {
+    display: block;
+    border: 2px solid #e8e8e8;
+    border-radius: 10px;
+    padding: 0.65rem 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+    .baggage-option:hover {
+        border-color: #90caf9;
+        background: #f5faff;
+    }
+
+    .baggage-option.selected {
+        border-color: #1a73e8;
+        background: #f0f7ff;
+    }
+
+    .baggage-option input[type=radio] {
+        display: none;
+    }
+
+.option-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.option-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.option-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.option-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.option-desc {
+    font-size: 0.72rem;
+    color: #888;
+}
+
+.option-price {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    white-space: nowrap;
+}
+
+    .option-price.free {
+        color: #2e7d32;
+    }
+
+/* ── EXTRA BAG ── */
+.extra-bag-row {
+    border-top: 1px dashed #e0e0e0;
+    padding-top: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.extra-bag-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.5rem 0.9rem;
+    border: 2px dashed #e0e0e0;
+    border-radius: 10px;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+    .extra-bag-label:hover {
+        border-color: #1a73e8;
+        background: #f5faff;
+    }
+
+    .extra-bag-label input[type=checkbox] {
+        width: 16px;
+        height: 16px;
+        accent-color: #1a73e8;
+        flex-shrink: 0;
+    }
+
+.extra-icon {
+    font-size: 1.2rem;
+}
+
+.extra-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.extra-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.extra-desc {
+    font-size: 0.72rem;
+    color: #888;
+}
+
+.extra-price {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+/* ── CARD SUBTOTAL ── */
+.card-subtotal {
+    font-size: 0.8rem;
+    color: #888;
+    text-align: right;
+}
+
+.subtotal-value {
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+/* ── RIGHT: SUMMARY PANEL ── */
+.summary-panel {
+    width: 300px;
+    flex-shrink: 0;
+}
+
+.summary-sticky {
+    position: sticky;
+    top: 1.5rem;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 14px;
+    padding: 1.4rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.summary-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.summary-section {
+    margin-bottom: 0.75rem;
+}
+
+.summary-section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #aaa;
+    margin-bottom: 0.4rem;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.3rem 0;
+    font-size: 0.82rem;
+}
+
+.summary-seat-chip {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: #fff;
+}
+
+    .summary-seat-chip.economy {
+        background: #4caf50;
+    }
+
+    .summary-seat-chip.business {
+        background: #1a73e8;
+    }
+
+    .summary-seat-chip.first {
+        background: #f59e0b;
+    }
+
+.summary-bag-label {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+.summary-line-price {
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.summary-divider {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 0.8rem 0;
+}
+
+.summary-total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 0.3rem;
+}
+
+.summary-grand-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 1rem;
+}
+
+.grand-amount {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #2e7d32;
+}
+
+.btn-continue {
+    width: 100%;
+    background: #1a73e8;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+    .btn-continue:hover {
+        background: #1558b0;
+        transform: translateY(-1px);
+    }
+
+    .btn-continue:active {
+        transform: translateY(0);
+    }

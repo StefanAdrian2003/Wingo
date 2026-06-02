@@ -312,7 +312,7 @@ namespace Proiect_Licenta.Data
 
             builder.Entity<FlightSeat>()
                 .HasOne(fs => fs.Ticket)
-                .WithOne()
+                .WithOne(t => t.FlightSeat)          // ← claims the navigation
                 .HasForeignKey<FlightSeat>(fs => fs.TicketId)
                 .OnDelete(DeleteBehavior.NoAction);
 

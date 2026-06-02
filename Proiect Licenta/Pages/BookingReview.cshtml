@@ -1,0 +1,151 @@
+﻿@page
+@using Proiect_Licenta.Models
+@model Proiect_Licenta.Pages.BookingReviewModel
+@{
+    ViewData["Title"] = "Review Booking";
+
+    var multipliers = new Dictionary<TravelClass, decimal>
+    {
+        { TravelClass.Economy,  1.0m },
+        { TravelClass.Business, 2.2m },
+        { TravelClass.First,    3.5m }
+    };
+}
+
+<link rel="stylesheet" href="~/css/BookingReview.css" asp-append-version="true" />
+
+<div class="background">
+    <div class="review-container">
+
+        <div class="page-header">
+            <a asp-page="/BookingBaggage" class="back-link">← Back</a>
+            <h2 class="page-title">Review Your Booking</h2>
+        </div>
+
+        <div class="review-card flight-card">
+            <div class="review-card-title">
+                <img src="@Model.Flight.Airline.LogoUrl" class="airline-logo-sm" />
+                <span>@Model.Flight.FlightNumber — @Model.Flight.Airline.Name</span>
+            </div>
+            <div class="route-row">
+                <div class="route-point">
+                    <span class="iata">@Model.Flight.DepartureAirport.IATACode</span>
+                    <span class="airport-small">@Model.Flight.DepartureAirport.City</span>
+                    <span class="time-bold">@Model.Flight.DepartureTime.ToString("HH:mm")</span>
+                    <span class="date-small">@Model.Flight.DepartureTime.ToString("dd MMM yyyy")</span>
+                </div>
+                <div class="route-mid">
+                    <span class="duration-label">
+                        @($"{Model.Flight.DurationMinutes / 60}h {Model.Flight.DurationMinutes % 60}m")
+                    </span>
+                    <div class="route-line"><span class="plane-icon">✈</span></div>
+                </div>
+                <div class="route-point right">
+                    <span class="iata">@Model.Flight.ArrivalAirport.IATACode</span>
+                    <span class="airport-small">@Model.Flight.ArrivalAirport.City</span>
+                    <span class="time-bold">@Model.Flight.ArrivalTime.ToString("HH:mm")</span>
+                    <span class="date-small">@Model.Flight.ArrivalTime.ToString("dd MMM yyyy")</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="review-card">
+            <div class="review-card-title">🎫 Tickets (@Model.SelectedSeats.Count)</div>
+
+            @for (int i = 0; i < Model.SelectedSeats.Count; i++)
+            {
+                var seat = Model.SelectedSeats[i];
+                var travelClass = seat.SeatSection.TravelClass;
+                var seatPrice = Math.Round(Model.Flight.Price * multipliers[travelClass], 2);
+                var baggage = Model.Session.Baggage?.ElementAtOrDefault(i);
+                var bagPrice = baggage?.TotalBaggagePrice ?? 0m;
+                var ticketTotal = seatPrice + bagPrice;
+
+                <div class="ticket-row">
+                    <div class="ticket-left">
+                        <div class="ticket-header">
+                            <span class="passenger-num">Passenger @(i + 1)</span>
+                            <span class="seat-chip @travelClass.ToString().ToLower()">
+                                Seat @seat.SeatNumber
+                            </span>
+                            <span class="class-label">@travelClass Class</span>
+                        </div>
+                        <div class="ticket-details">
+                            <div class="detail-line">
+                                <span class="detail-label">Seat price</span>
+                                <span class="detail-value">€@seatPrice</span>
+                            </div>
+                            @if (baggage != null && baggage.BaggageType != "None")
+                            {
+                                <div class="detail-line">
+                                    <span class="detail-label">
+                                        @(baggage.BaggageType == "Cabin" ? "🎒 Cabin bag" :
+                                                                        baggage.BaggageType == "Checked20" ? "🧳 Checked 20kg" :
+                                                                        "📦 Checked 32kg")
+                                                                                      </span>
+                                                                                      <span class="detail-value">
+                                        @(baggage.BaggageType == "Cabin" ? "FREE" :
+                                                                        baggage.BaggageType == "Checked20" ? "+€25.00" : "+€40.00")
+                            </span>
+                        </div>
+                                                }
+                            else
+                            {
+                                <div class="detail-line">
+                                    <span class="detail-label">🚫 No baggage</span>
+                                    <span class="detail-value">FREE</span>
+                                </div>
+                            }
+                            @if (baggage != null && baggage.HasExtraBag)
+                            {
+                                <div class="detail-line">
+                                    <span class="detail-label">➕ Extra bag</span>
+                                    <span class="detail-value">+€35.00</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="ticket-total">
+                        <span class="ticket-total-label">Ticket total</span>
+                        <span class="ticket-total-amount">€@ticketTotal</span>
+                    </div>
+                </div>
+
+                @if (i < Model.SelectedSeats.Count - 1)
+                {
+                    <div class="ticket-divider"></div>
+                }
+            }
+        </div>
+
+        <div class="review-card totals-card">
+            <div class="review-card-title">💰 Price Breakdown</div>
+            <div class="total-line">
+                <span>Seats (@Model.SelectedSeats.Count)</span>
+                <span>€@Model.SeatTotal</span>
+            </div>
+            <div class="total-line">
+                <span>Baggage</span>
+                <span>€@Model.BaggageTotal</span>
+            </div>
+            <div class="total-divider"></div>
+            <div class="total-line grand">
+                <span>Total</span>
+                <span class="grand-value">€@Model.GrandTotal</span>
+            </div>
+        </div>
+
+        <div class="confirm-row">
+            <p class="confirm-note">
+                ⚠️ Seat availability will be checked before proceeding to payment.
+            </p>
+            <form method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-confirm">
+                    Confirm & Proceed to Payment →
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>

@@ -19,6 +19,8 @@ namespace Proiect_Licenta.Models
         public Guid BookingId { get; set; }
         public Booking Booking { get; set; }
 
+        public FlightSeat FlightSeat { get; set; }
+
         public ICollection<BaggageItem> BaggageItems { get; set; } = new List<BaggageItem>();
 
     }

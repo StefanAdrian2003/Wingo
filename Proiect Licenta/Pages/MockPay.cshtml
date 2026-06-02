@@ -1,0 +1,218 @@
+﻿@page
+@using Proiect_Licenta.Models
+@model Proiect_Licenta.Pages.MockPayModel
+@{
+    ViewData["Title"] = "Payment";
+
+    var multipliers = new Dictionary<TravelClass, decimal>
+    {
+        { TravelClass.Economy,  1.0m },
+        { TravelClass.Business, 2.2m },
+        { TravelClass.First,    3.5m }
+    };
+}
+
+<link rel="stylesheet" href="~/css/MockPay.css" asp-append-version="true" />
+
+<div class="background">
+    <div class="pay-layout">
+
+        <div class="pay-panel">
+
+            <div class="page-header">
+                <a asp-page="/BookingReview" class="back-link">← Back</a>
+                <h2 class="page-title">Payment</h2>
+            </div>
+
+            @if (!ModelState.IsValid)
+            {
+                <div class="error-alert">
+                    ⚠️ Something went wrong. Please try again.
+                </div>
+            }
+
+            <div class="card-preview" id="cardPreview">
+                <div class="card-top">
+                    <span class="card-bank">WinGo Pay</span>
+                    <span class="card-chip">▣</span>
+                </div>
+                <div class="card-number-display" id="cardNumberDisplay">
+                    •••• •••• •••• ••••
+                </div>
+                <div class="card-bottom">
+                    <div class="card-holder-display">
+                        <span class="card-label">CARDHOLDER</span>
+                        <span id="cardHolderDisplay">YOUR NAME</span>
+                    </div>
+                    <div class="card-expiry-display">
+                        <span class="card-label">EXPIRES</span>
+                        <span id="cardExpiryDisplay">MM/YY</span>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" id="payForm">
+                @Html.AntiForgeryToken()
+
+                <div class="form-group">
+                    <label class="form-label">Cardholder Name</label>
+                    <input type="text"
+                           id="cardHolder"
+                           class="form-input"
+                           placeholder="Name on card"
+                           maxlength="30"
+                           autocomplete="cc-name"
+                           required />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Card Number</label>
+                    <input type="text"
+                           id="cardNumber"
+                           class="form-input"
+                           placeholder="1234 5678 9012 3456"
+                           maxlength="19"
+                           autocomplete="cc-number"
+                           inputmode="numeric"
+                           required />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Expiry Date</label>
+                        <input type="text"
+                               id="cardExpiry"
+                               class="form-input"
+                               placeholder="MM/YY"
+                               maxlength="5"
+                               autocomplete="cc-exp"
+                               inputmode="numeric"
+                               required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CVV</label>
+                        <input type="text"
+                               id="cardCvv"
+                               class="form-input cvv-input"
+                               placeholder="•••"
+                               maxlength="3"
+                               inputmode="numeric"
+                               required />
+                    </div>
+                </div>
+
+                <div class="secure-note">
+                    🔒 This is a demo — no real payment is processed
+                </div>
+
+                <button type="submit" class="btn-pay" id="payBtn">
+                    Pay €@Model.GrandTotal
+                </button>
+            </form>
+
+        </div>
+
+        <div class="order-summary">
+            <div class="summary-sticky">
+                <h3 class="summary-title">Order Summary</h3>
+
+                <div class="flight-mini">
+                    <img src="@Model.Flight.Airline.LogoUrl" class="mini-logo" />
+                    <div class="flight-mini-info">
+                        <span class="flight-num">@Model.Flight.FlightNumber</span>
+                        <span class="flight-route">
+                            @Model.Flight.DepartureAirport.IATACode →
+                            @Model.Flight.ArrivalAirport.IATACode
+                        </span>
+                        <span class="flight-date">
+                            @Model.Flight.DepartureTime.ToString("dd MMM yyyy, HH:mm")
+                        </span>
+                    </div>
+                </div>
+
+                <div class="summary-divider"></div>
+
+                @for (int i = 0; i < Model.SelectedSeats.Count; i++)
+                {
+                    var seat = Model.SelectedSeats[i];
+                    var travelClass = seat.SeatSection.TravelClass;
+                    var seatPrice = Math.Round(Model.Flight.Price * multipliers[travelClass], 2);
+                    var baggage = Model.Session.Baggage?.ElementAtOrDefault(i);
+                    var bagPrice = baggage?.TotalBaggagePrice ?? 0m;
+
+                    <div class="order-line">
+                        <div class="order-line-left">
+                            <span class="seat-chip @travelClass.ToString().ToLower()">@seat.SeatNumber</span>
+                            <div class="order-line-detail">
+                                <span>@travelClass Class</span>
+                                @if (baggage != null && baggage.BaggageType != "None")
+                                {
+                                    <span class="bag-tag">
+                                        + @(baggage.BaggageType == "Cabin" ? "Cabin bag" :
+                                                                        baggage.BaggageType == "Checked20" ? "20kg bag" : "32kg bag")
+                            </span>
+                                                        }
+                                @if (baggage?.HasExtraBag == true)
+                                {
+                                    <span class="bag-tag">+ Extra bag</span>
+                                }
+                            </div>
+                        </div>
+                        <span class="order-line-price">€@(seatPrice + bagPrice)</span>
+                    </div>
+                }
+
+                <div class="summary-divider"></div>
+
+                <div class="grand-total-row">
+                    <span>Total</span>
+                    <span class="grand-total-amount">€@Model.GrandTotal</span>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ── CARD NUMBER FORMATTING ──
+        document.getElementById('cardNumber').addEventListener('input', function (e) {
+            let val = e.target.value.replace(/\D/g, '').substring(0, 16);
+            e.target.value = val.match(/.{1,4}/g)?.join(' ') || val;
+
+            const display = val.padEnd(16, '•').match(/.{1,4}/g).join(' ');
+            document.getElementById('cardNumberDisplay').textContent = display;
+        });
+
+        // ── EXPIRY FORMATTING ──
+        document.getElementById('cardExpiry').addEventListener('input', function (e) {
+            let val = e.target.value.replace(/\D/g, '').substring(0, 4);
+            if (val.length >= 3) val = val.substring(0, 2) + '/' + val.substring(2);
+            e.target.value = val;
+            document.getElementById('cardExpiryDisplay').textContent = val || 'MM/YY';
+        });
+
+        // ── HOLDER NAME ──
+        document.getElementById('cardHolder').addEventListener('input', function (e) {
+            const val = e.target.value.toUpperCase() || 'YOUR NAME';
+            document.getElementById('cardHolderDisplay').textContent = val;
+        });
+
+        // ── CVV FOCUS FLIPS CARD ──
+        document.getElementById('cardCvv').addEventListener('focus', () => {
+            document.getElementById('cardPreview').classList.add('flipped');
+        });
+        document.getElementById('cardCvv').addEventListener('blur', () => {
+            document.getElementById('cardPreview').classList.remove('flipped');
+        });
+
+        // ── PAY BUTTON LOADING STATE ──
+        document.getElementById('payForm').addEventListener('submit', function () {
+            const btn = document.getElementById('payBtn');
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
+        });
+    </script>
+}

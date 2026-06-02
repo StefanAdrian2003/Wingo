@@ -1,0 +1,303 @@
+﻿/* ═══════════════════════════════════════════════
+   MY BOOKINGS — Bookings.css
+   ═══════════════════════════════════════════════ */
+
+.bookings-heading {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 1.5rem;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.empty-icon {
+    font-size: 3rem;
+}
+
+.empty-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.empty-sub {
+    font-size: 0.85rem;
+    color: #888;
+    margin: 0;
+}
+
+.btn-explore {
+    margin-top: 0.75rem;
+    background: #1a73e8;
+    color: #fff;
+    padding: 0.55rem 1.4rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+    .btn-explore:hover {
+        background: #1558b0;
+        color: #fff;
+    }
+
+/* ── BOOKING CARD ── */
+.booking-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 14px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s;
+}
+
+    .booking-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.09);
+    }
+
+    .booking-card.past {
+        opacity: 0.8;
+    }
+
+/* ── TOP ROW ── */
+.booking-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.status-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+    .status-badge.upcoming {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .status-badge.past {
+        background: #f5f5f5;
+        color: #888;
+    }
+
+.booking-date {
+    font-size: 0.75rem;
+    color: #aaa;
+}
+
+/* ── FLIGHT ROUTE ROW ── */
+.flight-route-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.airline-logo {
+    height: 36px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.route-info {
+    flex: 1;
+}
+
+.route-airports {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 4px;
+}
+
+.iata {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    letter-spacing: 2px;
+}
+
+.route-line-mid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.flight-num {
+    font-size: 0.65rem;
+    color: #888;
+    font-weight: 600;
+}
+
+.duration {
+    font-size: 0.65rem;
+    color: #888;
+}
+
+.route-line {
+    width: 100%;
+    height: 1px;
+    background: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .route-line span {
+        background: #fff;
+        padding: 0 4px;
+        font-size: 0.8rem;
+        color: #1a73e8;
+    }
+
+.route-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.route-city {
+    font-size: 0.72rem;
+    color: #888;
+}
+
+    .route-city.right {
+        text-align: right;
+    }
+
+.route-time {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #555;
+}
+
+/* ── TICKETS SECTION ── */
+.tickets-section {
+    margin-bottom: 0.8rem;
+}
+
+.tickets-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.6rem;
+}
+
+.tickets-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+/* ── TICKET CHIP ── */
+.ticket-chip {
+    background: #f9f9f9;
+    border: 1px solid #e8e8e8;
+    border-radius: 10px;
+    padding: 0.6rem 0.8rem;
+    min-width: 110px;
+}
+
+.ticket-chip-top {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.3rem;
+}
+
+.chip-seat {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #fff;
+}
+
+    .chip-seat.economy {
+        background: #4caf50;
+    }
+
+    .chip-seat.business {
+        background: #1a73e8;
+    }
+
+    .chip-seat.first {
+        background: #f59e0b;
+    }
+
+.chip-class {
+    font-size: 0.72rem;
+    color: #666;
+}
+
+.chip-price {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin-bottom: 0.3rem;
+}
+
+.chip-bags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+}
+
+.chip-bag-tag {
+    font-size: 0.63rem;
+    background: #e3f2fd;
+    color: #1565c0;
+    padding: 1px 5px;
+    border-radius: 3px;
+}
+
+    .chip-bag-tag.no-bag {
+        background: #f5f5f5;
+        color: #aaa;
+    }
+
+/* ── FOOTER ── */
+.booking-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+.booking-total-label {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+.booking-total-amount {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #2e7d32;
+}
