@@ -5,6 +5,7 @@ using Proiect_Licenta.Data;
 using Proiect_Licenta.Models;
 using Proiect_Licenta.Services;
 using Proiect_Licenta.Data.Seeders;
+using System.Text.RegularExpressions; // Required for CSV Quote-Safe Parser Engine
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,16 +15,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<User>(options => 
+builder.Services.AddDefaultIdentity<User>(options =>
     options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient<CommentModerationService>();
-
-
 
 builder.Services.AddScoped<BadgeService>();
 builder.Services.AddScoped<UserProgressService>();
@@ -31,8 +29,6 @@ builder.Services.AddScoped<VoucherService>();
 builder.Services.AddScoped<NotificationService>();
 
 var app = builder.Build();
-
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -42,7 +38,6 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -56,33 +51,33 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 
-
-
 using (var scope = app.Services.CreateScope())
 {
-
-    // https://openflights.org/data  DE AICI AM LUAT ZBORURILE
-    var context = scope.ServiceProvider
-    .GetRequiredService<ApplicationDbContext>();
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
     await context.Database.MigrateAsync();
-
-
 
     var services = scope.ServiceProvider;
     try
     {
-
         if (!context.Airports.Any())
         {
             var lines = File.ReadAllLines("Data/airports.dat");
 
+            // Regular Expression to match commas ONLY outside of double quotes
+            var csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+
             foreach (var line in lines)
             {
-                var parts = line.Split(',');
+                // Quote-safe array extraction
+                var parts = csvParser.Split(line);
 
-                if (parts.Length < 5)
+                if (parts.Length < 8) // Valid rows must reach at least index position 7 for longitude
                     continue;
+
+                // Safely extract and parse numeric coordinates from indexes 6 and 7
+                double.TryParse(parts[6].Trim('"'), System.Globalization.CultureInfo.InvariantCulture, out double latitude);
+                double.TryParse(parts[7].Trim('"'), System.Globalization.CultureInfo.InvariantCulture, out double longitude);
 
                 var airport = new Airport
                 {
@@ -90,11 +85,12 @@ using (var scope = app.Services.CreateScope())
                     City = parts[2].Trim('"'),
                     Country = parts[3].Trim('"'),
                     IATACode = parts[4].Trim('"'),
-                    ICAOCode = parts[5].Trim('"')
+                    ICAOCode = parts[5].Trim('"'),
+                    Latitude = latitude,   // Assigned
+                    Longitude = longitude  // Assigned
                 };
 
-                // ignoră aeroporturile fără IATA
-                // ignoră aeroporturile incomplete
+                // Filter logic blocks
                 if (string.IsNullOrWhiteSpace(airport.Name) ||
                     string.IsNullOrWhiteSpace(airport.City) ||
                     string.IsNullOrWhiteSpace(airport.IATACode) ||
@@ -109,15 +105,11 @@ using (var scope = app.Services.CreateScope())
             context.SaveChanges();
         }
 
-
-
-
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = services.GetRequiredService<UserManager<User>>();
 
         string[] roles = { "Admin", "Company", "User" };
 
-        // Creează rolurile dacă nu există
         foreach (var role in roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
@@ -126,7 +118,6 @@ using (var scope = app.Services.CreateScope())
             }
         }
 
-        // Creează admin dacă nu există
         string adminEmail = "admin@site.com";
         string adminPassword = "Admin123!";
 
@@ -149,19 +140,14 @@ using (var scope = app.Services.CreateScope())
             {
                 await userManager.AddToRoleAsync(user, "Admin");
             }
-
         }
 
         await CompanySeeder.SeedCompaniesAsync(context, userManager);
-
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Error seeding roles and admin: {ex.Message}");
     }
 }
-
-
-
 
 app.Run();

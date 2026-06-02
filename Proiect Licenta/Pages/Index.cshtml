@@ -139,25 +139,33 @@
                 <div class="feature-icon-wrapper bg-primary-soft">
                     <i class="fa-solid fa-plane-departure"></i>
                 </div>
-                <h3>Track Flights</h3>
-                <p>Keep an interactive digital logbook complete with data tracking for every air adventure.</p>
+                <h3>Log Your Flights</h3>
+                <p>Maintain a beautiful, interactive digital logbook complete with real-time route tracing and flight metrics for every air adventure.</p>
             </div>
 
             <div class="feature-card">
                 <div class="feature-icon-wrapper bg-warning-soft">
                     <i class="fa-solid fa-ranking-star"></i>
                 </div>
-                <h3>Earn XP</h3>
-                <p>Complete seasonal tracking challenges to unlock rare, showcase-ready aviation badges.</p>
+                <h3>Level Up Your Rank</h3>
+                <p>Take to the skies to complete seasonal flight challenges, climb the leaderboard, and unlock rare, showcase-ready badges.</p>
             </div>
 
             <div class="feature-card">
                 <div class="feature-icon-wrapper bg-info-soft">
                     <i class="fa-solid fa-users"></i>
                 </div>
-                <h3>Stay Connected</h3>
-                <p>Exchange flight maps, spotter coordinate recommendations, and technical aircraft configurations.</p>
+                <h3>Enter the Hangar</h3>
+                <p>Connect with a global crew of aviators to trade live flight maps, premium spotting locations, and technical airframe setups.</p>
             </div>
         </div>
     </section>
+</div>
+
+
+<div class="modals-container-layer">
+    @foreach (var post in Model.LatestPosts)
+    {
+        <partial name="_CommentsModal" model="post" />
+    }
 </div>

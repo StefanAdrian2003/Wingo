@@ -21,3 +21,11 @@
 </div>
 
 <partial name="_DeleteModal" />
+
+
+<div class="modals-container-layer">
+    @foreach (var post in Model.Posts)
+    {
+        <partial name="_CommentsModal" model="post" />
+    }
+</div>

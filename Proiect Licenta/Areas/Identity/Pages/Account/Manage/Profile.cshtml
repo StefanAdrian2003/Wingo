@@ -207,3 +207,12 @@
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <partial name="_ValidationScriptsPartial" />
 }
+
+
+
+<div class="modals-container-layer">
+    @foreach (var post in Model.Posts)
+    {
+        <partial name="_CommentsModal" model="post" />
+    }
+</div>

@@ -16,13 +16,22 @@
 
     <!-- HEADER -->
     <div class="post-header">
-        <a asp-page="/CustomProfile"
-           asp-route-username="@Model.User.UserName"
-           class="post-user-link text-decoration-none">
-
-            @Model.User.UserName
-
-        </a>
+        @if (User.Identity.IsAuthenticated && User.Identity.Name == Model.User.UserName)
+        {
+            <a asp-area="Identity"
+               asp-page="/Account/Manage/Profile"
+               class="post-user-link text-decoration-none font-weight-bold">
+                @Model.User.UserName (You)
+            </a>
+        }
+        else
+        {
+            <a asp-page="/CustomProfile"
+               asp-route-username="@Model.User.UserName"
+               class="post-user-link text-decoration-none">
+                @Model.User.UserName
+            </a>
+        }
 
 
         @if (User.Identity.IsAuthenticated &&
@@ -94,7 +103,3 @@
         @Model.DateOfCreation.ToString("g")
     </div>
 </div>
-
-<!-- MODAL COMENTARII -->
-<partial name="_CommentsModal" model="Model" />
-

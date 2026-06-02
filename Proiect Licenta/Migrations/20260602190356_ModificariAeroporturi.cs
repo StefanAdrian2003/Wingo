@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Proiect_Licenta.Migrations
 {
     /// <inheritdoc />
-    public partial class UltimaBaza : Migration
+    public partial class ModificariAeroporturi : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,6 +23,8 @@ namespace Proiect_Licenta.Migrations
                     Country = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IATACode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ICAOCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Latitude = table.Column<double>(type: "float", nullable: false),
+                    Longitude = table.Column<double>(type: "float", nullable: false),
                     DateOfCreation = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -666,35 +668,35 @@ namespace Proiect_Licenta.Migrations
                 columns: new[] { "Id", "DateOfCreation", "Description", "Icon", "Name" },
                 values: new object[,]
                 {
-                    { new Guid("10000000-0000-0000-0000-000000000000"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4943), "You have created your account!", "/images/welcome.png", "Welcome" },
-                    { new Guid("10000000-0000-0000-0000-000000000001"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4957), "You posted for the first time", "/images/post1.png", "First Post" },
-                    { new Guid("10000000-0000-0000-0000-000000000005"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4960), "You made 5 posts", "/images/post5.png", "Traveler" },
-                    { new Guid("10000000-0000-0000-0000-000000000020"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4962), "You made 20 posts", "/images/post20.png", "Explorer" },
-                    { new Guid("10000000-0000-0000-0000-000000000050"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4965), "You made 50 posts", "/images/post50.png", "Adventurer" },
-                    { new Guid("10000000-0000-0000-0000-000000000100"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4967), "You made 100 posts", "/images/post100.png", "Storyteller" },
-                    { new Guid("10000000-0000-0000-0000-000000000250"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4969), "You made 250 posts", "/images/post250.png", "Content Creator" },
-                    { new Guid("10000000-0000-0000-0000-000000000500"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4982), "You made 500 posts", "/images/post500.png", "Master Explorer" },
-                    { new Guid("10000000-0000-0000-0000-000000001000"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4983), "You made 1,000 posts", "/images/post1000.png", "Legendary Poster" },
-                    { new Guid("20000000-0000-0000-0000-000000000005"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4985), "Reached level 5", "/images/level5.png", "Getting Started" },
-                    { new Guid("20000000-0000-0000-0000-000000000010"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4987), "Reached level 10", "/images/level10.png", "Rising Star" },
-                    { new Guid("20000000-0000-0000-0000-000000000020"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4989), "Reached level 20", "/images/level20.png", "Challenger" },
-                    { new Guid("20000000-0000-0000-0000-000000000050"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4991), "Reached level 50", "/images/level50.png", "Veteran Explorer" },
-                    { new Guid("20000000-0000-0000-0000-000000000100"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4992), "Reached level 100", "/images/level100.png", "Legend of InfinityFit" },
-                    { new Guid("30000000-0000-0000-0000-000000000001"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4994), "Gave your first like", "/images/like1.png", "First Love" },
-                    { new Guid("30000000-0000-0000-0000-000000000010"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(4999), "Gave 10 likes", "/images/like10.png", "Supporter" },
-                    { new Guid("30000000-0000-0000-0000-000000000050"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(5001), "Gave 50 likes", "/images/like50.png", "Positive Vibes" },
-                    { new Guid("30000000-0000-0000-0000-000000000100"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(5002), "Gave 100 likes", "/images/like100.png", "Community Booster" },
-                    { new Guid("30000000-0000-0000-0000-000000000500"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(5004), "Gave 500 likes", "/images/like500.png", "Influencer" },
-                    { new Guid("30000000-0000-0000-0000-000000001000"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(5006), "Gave 1,000 likes", "/images/like1000.png", "Social Machine" },
-                    { new Guid("30000000-0000-0000-0000-000000005000"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(5008), "Gave 5,000 likes", "/images/like5000.png", "Infinity Reactor" },
-                    { new Guid("40000000-0000-0000-0000-000000000001"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(5010), "Posted your first comment", "/images/comment1.png", "First Words" },
-                    { new Guid("40000000-0000-0000-0000-000000000005"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(5012), "Posted 5 comments", "/images/comment5.png", "Conversationalist" },
-                    { new Guid("40000000-0000-0000-0000-000000000015"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(5015), "Posted 15 comments", "/images/comment15.png", "Active Voice" },
-                    { new Guid("40000000-0000-0000-0000-000000000050"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(5017), "Posted 50 comments", "/images/comment50.png", "Discussion Leader" },
-                    { new Guid("40000000-0000-0000-0000-000000000100"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(5018), "Posted 100 comments", "/images/comment100.png", "Community Speaker" },
-                    { new Guid("40000000-0000-0000-0000-000000000250"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(5020), "Posted 250 comments", "/images/comment250.png", "Debater Pro" },
-                    { new Guid("40000000-0000-0000-0000-000000000500"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(5022), "Posted 500 comments", "/images/comment500.png", "Social Anchor" },
-                    { new Guid("40000000-0000-0000-0000-000000001000"), new DateTime(2026, 5, 30, 18, 57, 49, 333, DateTimeKind.Utc).AddTicks(5024), "Posted 1,000 comments", "/images/comment1000.png", "Voice of Infinity" }
+                    { new Guid("10000000-0000-0000-0000-000000000000"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6135), "You have created your account!", "/images/welcome.png", "Welcome" },
+                    { new Guid("10000000-0000-0000-0000-000000000001"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6150), "You posted for the first time", "/images/post1.png", "First Post" },
+                    { new Guid("10000000-0000-0000-0000-000000000005"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6154), "You made 5 posts", "/images/post5.png", "Traveler" },
+                    { new Guid("10000000-0000-0000-0000-000000000020"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6157), "You made 20 posts", "/images/post20.png", "Explorer" },
+                    { new Guid("10000000-0000-0000-0000-000000000050"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6160), "You made 50 posts", "/images/post50.png", "Adventurer" },
+                    { new Guid("10000000-0000-0000-0000-000000000100"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6163), "You made 100 posts", "/images/post100.png", "Storyteller" },
+                    { new Guid("10000000-0000-0000-0000-000000000250"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6180), "You made 250 posts", "/images/post250.png", "Content Creator" },
+                    { new Guid("10000000-0000-0000-0000-000000000500"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6183), "You made 500 posts", "/images/post500.png", "Master Explorer" },
+                    { new Guid("10000000-0000-0000-0000-000000001000"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6186), "You made 1,000 posts", "/images/post1000.png", "Legendary Poster" },
+                    { new Guid("20000000-0000-0000-0000-000000000005"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6188), "Reached level 5", "/images/level5.png", "Getting Started" },
+                    { new Guid("20000000-0000-0000-0000-000000000010"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6191), "Reached level 10", "/images/level10.png", "Rising Star" },
+                    { new Guid("20000000-0000-0000-0000-000000000020"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6193), "Reached level 20", "/images/level20.png", "Challenger" },
+                    { new Guid("20000000-0000-0000-0000-000000000050"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6194), "Reached level 50", "/images/level50.png", "Veteran Explorer" },
+                    { new Guid("20000000-0000-0000-0000-000000000100"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6196), "Reached level 100", "/images/level100.png", "Legend of InfinityFit" },
+                    { new Guid("30000000-0000-0000-0000-000000000001"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6200), "Gave your first like", "/images/like1.png", "First Love" },
+                    { new Guid("30000000-0000-0000-0000-000000000010"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6202), "Gave 10 likes", "/images/like10.png", "Supporter" },
+                    { new Guid("30000000-0000-0000-0000-000000000050"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6204), "Gave 50 likes", "/images/like50.png", "Positive Vibes" },
+                    { new Guid("30000000-0000-0000-0000-000000000100"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6206), "Gave 100 likes", "/images/like100.png", "Community Booster" },
+                    { new Guid("30000000-0000-0000-0000-000000000500"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6207), "Gave 500 likes", "/images/like500.png", "Influencer" },
+                    { new Guid("30000000-0000-0000-0000-000000001000"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6209), "Gave 1,000 likes", "/images/like1000.png", "Social Machine" },
+                    { new Guid("30000000-0000-0000-0000-000000005000"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6211), "Gave 5,000 likes", "/images/like5000.png", "Infinity Reactor" },
+                    { new Guid("40000000-0000-0000-0000-000000000001"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6212), "Posted your first comment", "/images/comment1.png", "First Words" },
+                    { new Guid("40000000-0000-0000-0000-000000000005"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6253), "Posted 5 comments", "/images/comment5.png", "Conversationalist" },
+                    { new Guid("40000000-0000-0000-0000-000000000015"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6256), "Posted 15 comments", "/images/comment15.png", "Active Voice" },
+                    { new Guid("40000000-0000-0000-0000-000000000050"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6258), "Posted 50 comments", "/images/comment50.png", "Discussion Leader" },
+                    { new Guid("40000000-0000-0000-0000-000000000100"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6261), "Posted 100 comments", "/images/comment100.png", "Community Speaker" },
+                    { new Guid("40000000-0000-0000-0000-000000000250"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6262), "Posted 250 comments", "/images/comment250.png", "Debater Pro" },
+                    { new Guid("40000000-0000-0000-0000-000000000500"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6264), "Posted 500 comments", "/images/comment500.png", "Social Anchor" },
+                    { new Guid("40000000-0000-0000-0000-000000001000"), new DateTime(2026, 6, 2, 19, 3, 55, 629, DateTimeKind.Utc).AddTicks(6266), "Posted 1,000 comments", "/images/comment1000.png", "Voice of Infinity" }
                 });
 
             migrationBuilder.CreateIndex(

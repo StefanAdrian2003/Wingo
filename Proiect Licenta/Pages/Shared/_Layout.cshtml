@@ -57,6 +57,10 @@
                         @if (User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
+                                <a class="nav-link @(IsActive("/FlightTracking") ? "active" : "")" asp-page="/FlightTracking">FlightTracking</a>
+                            </li>
+
+                            <li class="nav-item">
                                 <a class="nav-link @(IsActive("/Post") ? "active" : "")" asp-page="/Post">
                                     Post <i class="fa-solid fa-plus"></i>
                                 </a>

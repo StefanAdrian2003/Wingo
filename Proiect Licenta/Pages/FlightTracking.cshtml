@@ -1,0 +1,138 @@
+﻿@page
+@model Proiect_Licenta.Pages.FlightTrackingModel
+@{
+    ViewData["Title"] = "Live Flight Tracker";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+<style>
+    .tracker-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 0 15px;
+    }
+
+    .search-card {
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    #flightMap {
+        height: 550px;
+        width: 100%;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border: 1px solid #e2e8f0;
+    }
+
+    .airport-badge {
+        background: #f1f5f9;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        color: #334155;
+    }
+</style>
+
+
+<div class="background">
+
+    <div class="tracker-container">
+
+        <div class="search-card">
+            <h2 class="mb-3" style="font-weight: 700; color: #1e293b;">✈️ Live Database Map Tracking</h2>
+            <p class="text-muted">Enter a flight code from your database to track custom routes live.</p>
+
+            <form method="get" class="row g-3 align-items-center mt-2">
+                <div class="col-sm-6 col-md-4">
+                    <input type="text" asp-for="FlightNumber" class="form-control form-control-lg text-uppercase" placeholder="e.g. RO301" required style="border-radius: 10px;" />
+                </div>
+                <div class="col-sm-3">
+                    <button type="submit" class="btn btn-primary btn-lg px-4" style="border-radius: 10px; font-weight: 600;">Track Flight</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="position-relative">
+            @if (Model.FlightFound)
+            {
+                <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+                    <div>
+                        <span class="text-muted sm-text d-block">Route display for</span>
+                        <strong style="font-size: 1.25rem; color: #0f172a;">Flight @Model.FlightCode</strong>
+                    </div>
+                    <div class="d-flex gap-3 align-items-center">
+                        <div class="airport-badge">🛫 @Model.DepartureAirportName</div>
+                        <span class="text-muted">➔</span>
+                        <div class="airport-badge">🛬 @Model.ArrivalAirportName</div>
+                    </div>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(Model.FlightNumber))
+            {
+                <div class="alert alert-warning mb-3" style="border-radius: 12px;">
+                    ⚠️ Flight reference "@Model.FlightNumber" was not found in the scheduling database records.
+                </div>
+            }
+
+            <div id="flightMap"></div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+    var map = L.map('flightMap').setView([45.0, 25.0], 5); // Default view over Romania/Eastern Europe
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 20
+    }).addTo(map);
+
+    var flightFound = @Model.FlightFound.ToString().ToLower();
+
+    if (flightFound) {
+        var depLat = @Model.DepLat;
+        var depLng = @Model.DepLng;
+        var arrLat = @Model.ArrLat;
+        var arrLng = @Model.ArrLng;
+        var progress = @Model.ProgressPercent;
+
+        // Draw basic layout components
+        var depMarker = L.marker([depLat, depLng]).addTo(map).bindPopup("<b>Departure</b><br>@Model.DepartureAirportName");
+        var arrMarker = L.marker([arrLat, arrLng]).addTo(map).bindPopup("<b>Arrival</b><br>@Model.ArrivalAirportName");
+
+        var flightPathLine = L.polyline([[depLat, depLng], [arrLat, arrLng]], {
+            color: '#ef4444',
+            weight: 3,
+            dashArray: '6, 8',
+            opacity: 0.7
+        }).addTo(map);
+
+        // Vector linear interpolation calculation
+        var planeLat = depLat + progress * (arrLat - depLat);
+        var planeLng = depLng + progress * (arrLng - depLng);
+
+        // Calculate visual heading path rotation angle
+        var angle = Math.atan2(arrLng - depLng, arrLat - depLat) * 180 / Math.PI;
+
+        var planeIcon = L.divIcon({
+            html: `<div style="transform: rotate(${angle - 45}deg); font-size: 24px; color: #0f172a;">✈️</div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+            className: 'plane-tracking-icon'
+        });
+
+        var planeMarker = L.marker([planeLat, planeLng], { icon: planeIcon }).addTo(map)
+            .bindPopup(`<b>Flight Progress:</b> ${(progress * 100).toFixed(1)}% complete.`);
+
+        // Frame bounds to include all components automatically
+        var group = new L.featureGroup([depMarker, arrMarker, planeMarker]);
+        map.fitBounds(group.getBounds().pad(0.2));
+    }
+</script>

@@ -129,6 +129,15 @@
 <partial name="_DeleteModal" />
 
 
+
+
+<div class="modals-container-layer">
+    @foreach (var post in Model.CurrentUser.Posts)
+    {
+        <partial name="_CommentsModal" model="post" />
+    }
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
