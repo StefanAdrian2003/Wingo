@@ -1,61 +1,162 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Home Page";
 }
 
 <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
 
-@* Totul este acum într-un singur wrapper principal *@
 <div class="full-page-container">
 
-    @* Secțiunea Hero *@
+    @* Hero Section *@
     <section class="hero-section">
         <div class="glass-panel main-hero">
-            <h1>Explore. Share. Earn.</h1>
-            <p>Wingo is a social platform where aviation meets gamification.</p>
+            <div class="badge-pill mb-3">🚀 Welcome to Wingo v2.0</div>
+            <h1>Explore. Share. <span class="text-gradient">Earn.</span></h1>
+            <p>Wingo is a premium social ecosystem where real-world aviation mechanics meet addictive gamification elements.</p>
 
             <div class="d-flex justify-content-center gap-3 mt-4">
                 @if (User.Identity.IsAuthenticated)
                 {
-                    <a asp-page="/Post" class="btn btn-primary btn-lg">Create Post</a>
+                    <a asp-page="/Post" class="btn btn-accent btn-lg">Create Post</a>
                 }
                 else
                 {
-                    <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-light btn-lg">Login</a>
-                    <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-outline-light btn-lg">Join Now</a>
+                    <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-blur btn-lg">Sign In</a>
+                    <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-accent btn-lg">Join Community</a>
                 }
             </div>
         </div>
     </section>
 
-    @* Secțiunea Features *@
-    <section class="container pb-5">
-        <div class="glass-panel py-5">
-            <h2 class="section-title text-center mb-5">Why join the Wingo community?</h2>
+    @* Live Stats Ticker *@
+    <section class="stats-ticker-wrapper">
+        <div class="stats-ticker">
+            <div class="ticker-track">
+                <div class="ticker-item">✈️ <span>@Model.FlightsCount</span> Flights tracked</div>
+                <div class="ticker-item">👥 <span>@Model.MembersCount</span> Aviators online</div>
+                <div class="ticker-item">🎫 <span>@Model.BookingsCount</span> Active Bookings</div>
+                <div class="ticker-item">🏆 <span>@Model.BadgesEarnedCount</span> Achievements Unlocked</div>
+                <div class="ticker-item">✈️ <span>@Model.FlightsCount</span> Flights tracked</div>
+                <div class="ticker-item">👥 <span>@Model.MembersCount</span> Aviators online</div>
+                <div class="ticker-item">🎫 <span>@Model.BookingsCount</span> Active Bookings</div>
+                <div class="ticker-item">🏆 <span>@Model.BadgesEarnedCount</span> Achievements Unlocked</div>
+            </div>
+        </div>
+    </section>
 
-            <div class="row px-4">
-                <div class="col-md-4 mb-4 text-center">
-                    <div class="feature-item">
-                        <i class="fa-solid fa-plane-departure fa-3x text-primary mb-3"></i>
-                        <h3>Track Flights</h3>
-                        <p>Keep a digital logbook of all your aviation adventures.</p>
+    @* Interactive Split Feed: Popular Flights & Posts *@
+    <section class="feed-grid">
+        <div class="feed-column">
+            <div class="column-header">
+                <h2><i class="fa-solid fa-fire header-icon text-danger"></i> Popular Flights</h2>
+            </div>
+
+            @if (Model.PopularFlights != null && Model.PopularFlights.Any())
+            {
+                <div id="popularFlightsCarousel" class="carousel slide" data-bs-ride="false">
+                    <div class="carousel-inner">
+                        @{
+                            // Chunk the list into groups of 2 flights per view slide
+                            var chunks = Model.PopularFlights
+                            .Select((flight, index) => new { flight, index })
+                            .GroupBy(x => x.index / 2)
+                            .ToList();
+
+                            for (int i = 0; i < chunks.Count; i++)
+                            {
+                                <div class="carousel-item @(i == 0 ? "active" : "")">
+                                    <div class="carousel-cards-row">
+                                        @foreach (var item in chunks[i])
+                                        {
+                                            <div class="carousel-card-item">
+                                                <partial name="_FlightCard" model="item.flight" />
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
                     </div>
+
+                    <button class="carousel-control-prev custom-carousel-btn" type="button" data-bs-target="#popularFlightsCarousel" data-bs-slide="prev">
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+
+                    <button class="carousel-control-next custom-carousel-btn" type="button" data-bs-target="#popularFlightsCarousel" data-bs-slide="next">
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        <span class="visually-hidden">Next</span>
+                    </button>
                 </div>
-                <div class="col-md-4 mb-4 text-center">
-                    <div class="feature-item">
-                        <i class="fa-solid fa-ranking-star fa-3x text-warning mb-3"></i>
-                        <h3>Earn XP</h3>
-                        <p>Complete challenges and unlock rare aviation badges.</p>
-                    </div>
+            }
+            else
+            {
+                <div class="text-muted p-4 border rounded text-center">No trending high-capacity flights found right now.</div>
+            }
+        </div>
+
+        <div class="feed-column">
+            <div class="column-header">
+                <h2><i class="fa-solid fa-square-rss header-icon text-success"></i> Community Dispatch</h2>
+            </div>
+            <div class="posts-grid">
+                @foreach (var post in Model.LatestPosts)
+                {
+                    <partial name="_PostCard" model="post" />
+                }
+            </div>
+        </div>
+    </section>
+
+    @* Gamification Achievements Ribbon *@
+    <section class="carousel-section">
+        <div class="section-heading-minimal">
+            <h3>Featured Badges</h3>
+            <p>Earn XP and climb ranks by exploring new destinations</p>
+        </div>
+        <div class="badge-carousel">
+            <div class="badge-track">
+                @foreach (var badge in Model.FeaturedBadges)
+                {
+                    <partial name="_BadgePreviewCard" model="badge" />
+                }
+                @foreach (var badge in Model.FeaturedBadges)
+                {
+                    <partial name="_BadgePreviewCard" model="badge" />
+                }
+            </div>
+        </div>
+    </section>
+
+    @* Features Grid *@
+    <section class="features-section">
+        <h2 class="section-title text-center">Why Fly with Wingo?</h2>
+        <p class="section-subtitle text-center">The ultimate hub built exclusively for aviation hobbyists, pilots, and planespotters.</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrapper bg-primary-soft">
+                    <i class="fa-solid fa-plane-departure"></i>
                 </div>
-                <div class="col-md-4 mb-4 text-center">
-                    <div class="feature-item">
-                        <i class="fa-solid fa-users fa-3x text-info mb-3"></i>
-                        <h3>Connect</h3>
-                        <p>Meet other enthusiasts and share technical insights.</p>
-                    </div>
+                <h3>Track Flights</h3>
+                <p>Keep an interactive digital logbook complete with data tracking for every air adventure.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrapper bg-warning-soft">
+                    <i class="fa-solid fa-ranking-star"></i>
                 </div>
+                <h3>Earn XP</h3>
+                <p>Complete seasonal tracking challenges to unlock rare, showcase-ready aviation badges.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-wrapper bg-info-soft">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <h3>Stay Connected</h3>
+                <p>Exchange flight maps, spotter coordinate recommendations, and technical aircraft configurations.</p>
             </div>
         </div>
     </section>

@@ -1,0 +1,104 @@
+﻿@page
+@model Proiect_Licenta.Pages.LeaderboardModel
+@{
+    ViewData["Title"] = "Leaderboard";
+}
+
+<link rel="stylesheet" href="~/css/Leaderboard.css" asp-append-version="true" />
+
+<div class="background">
+    <div class="leaderboard-container">
+
+        <div class="lb-header">
+            <h1 class="lb-title">🏆 Leaderboard</h1>
+            <p class="lb-subtitle">Top players in the WinGo community</p>
+        </div>
+
+        <div class="lb-tabs">
+            <button class="lb-tab active" onclick="switchTab('points', this)">
+                🏆 Points
+            </button>
+            <button class="lb-tab" onclick="switchTab('travelers', this)">
+                ✈️ Travelers
+            </button>
+            <button class="lb-tab" onclick="switchTab('creators', this)">
+                📝 Creators
+            </button>
+            <button class="lb-tab" onclick="switchTab('badges', this)">
+                🏅 Badges
+            </button>
+            <button class="lb-tab" onclick="switchTab('social', this)">
+                💬 Social
+            </button>
+            <button class="lb-tab" onclick="switchTab('airlines', this)">
+                🏢 Airlines
+            </button>
+        </div>
+
+        <div class="lb-panel active" id="panel-points">
+            <div class="panel-desc">Ranked by total XP points earned</div>
+            @await Html.PartialAsync("_LeaderboardTable",
+            new ViewDataDictionary(ViewData) {
+                        { "Entries", Model.TopPoints },
+                        { "Unit", "pts" }
+                        })
+        </div>
+
+        <div class="lb-panel" id="panel-travelers">
+            <div class="panel-desc">Ranked by number of flights booked</div>
+            @await Html.PartialAsync("_LeaderboardTable",
+                        new ViewDataDictionary(ViewData) {
+                        { "Entries", Model.TopTravelers },
+                        { "Unit", "flights" }
+                        })
+        </div>
+
+        <div class="lb-panel" id="panel-creators">
+            <div class="panel-desc">Ranked by number of posts published</div>
+            @await Html.PartialAsync("_LeaderboardTable",
+                        new ViewDataDictionary(ViewData) {
+                        { "Entries", Model.TopCreators },
+                        { "Unit", "posts" }
+                        })
+        </div>
+
+        <div class="lb-panel" id="panel-badges">
+            <div class="panel-desc">Ranked by number of badges collected</div>
+            @await Html.PartialAsync("_LeaderboardTable",
+                        new ViewDataDictionary(ViewData) {
+                        { "Entries", Model.TopBadges },
+                        { "Unit", "badges" }
+                        })
+        </div>
+
+        <div class="lb-panel" id="panel-social">
+            <div class="panel-desc">Ranked by total likes given + comments posted</div>
+            @await Html.PartialAsync("_LeaderboardTable",
+                        new ViewDataDictionary(ViewData) {
+                        { "Entries", Model.TopSocial },
+                        { "Unit", "interactions" }
+                        })
+        </div>
+
+        <div class="lb-panel" id="panel-airlines">
+            <div class="panel-desc">Ranked by total tickets booked across all flights</div>
+            @await Html.PartialAsync("_LeaderboardTable",
+                        new ViewDataDictionary(ViewData) {
+                        { "Entries", Model.TopAirlines },
+                        { "Unit", "tickets" }
+                        })
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function switchTab(name, btn) {
+            document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.lb-panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('panel-' + name).classList.add('active');
+        }
+    </script>
+}

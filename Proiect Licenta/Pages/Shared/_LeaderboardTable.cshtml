@@ -1,0 +1,64 @@
+﻿@using Proiect_Licenta.Pages
+@{
+    var entries = ViewData["Entries"] as List<LeaderboardModel.LeaderboardEntry> ?? new();
+    var unit = ViewData["Unit"] as string ?? "";
+}
+
+@if (!entries.Any())
+{
+    <div class="lb-empty">No data yet — be the first! 🚀</div>
+}
+else
+{
+    <div class="lb-table">
+        @for (int i = 0; i < entries.Count; i++)
+        {
+            var entry = entries[i];
+            var rank = i + 1;
+            var medal = rank == 1 ? "gold" : rank == 2 ? "silver" : rank == 3 ? "bronze" : "";
+            var meIcon = rank == 1 ? "🥇" : rank == 2 ? "🥈" : rank == 3 ? "🥉" : rank.ToString();
+
+            <div class="lb-row @medal @(entry.IsCurrentUser ? "is-me" : "")">
+
+                <div class="lb-rank @medal">@meIcon</div>
+
+                <div class="lb-avatar">
+                    @if (!string.IsNullOrEmpty(entry.ProfilePictureUrl))
+                    {
+                        <img src="@entry.ProfilePictureUrl" alt="@entry.Username" />
+                    }
+                    else
+                    {
+                        <div class="lb-avatar-initials">
+                            @entry.Username.Substring(0, 1).ToUpper()
+                        </div>
+                    }
+                </div>
+
+                <div class="lb-user-info">
+                    <span class="lb-username">
+                        @entry.Username
+                        @if (entry.IsCurrentUser)
+                        {
+                            <span class="you-badge">YOU</span>
+                        }
+                    </span>
+                    @if (entry.Level > 0)
+                    {
+                        <span class="lb-level">Level @entry.Level</span>
+                    }
+                    else
+                    {
+                        <span class="lb-level">Airline</span>
+                    }
+                </div>
+
+                <div class="lb-score">
+                    <span class="score-value">@entry.Score.ToString("N0")</span>
+                    <span class="score-unit">@unit</span>
+                </div>
+
+            </div>
+        }
+    </div>
+}
