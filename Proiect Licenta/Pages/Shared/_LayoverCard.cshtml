@@ -1,0 +1,92 @@
+﻿@model Proiect_Licenta.Models.ConnectingFlight
+
+<div class="flight-card round-trip-card border-warning mb-4">
+
+    <div class="flight-trip-segment container pb-2">
+        <div class="badge bg-info text-dark mb-2">Leg 1</div>
+        <div class="flight-card-header p-0 border-0">
+            <div class="flight-main-info">
+                <div class="flight-top-row">
+                    <h4 class="flight-number">@Model.Leg1.FlightNumber</h4>
+                    <div class="flight-airline">
+                        <img src="@Model.Leg1.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" style="max-height: 25px;" />
+                        <span class="airline-name ms-2 fw-bold">@Model.Leg1.Airline.Name</span>
+                    </div>
+                    <a asp-page="/FlightInfo" asp-route-id="@Model.Leg1.Id" class="flight-link">
+                        <span class="details-link">Details</span>
+                    </a>
+                </div>
+                <div class="flight-route mt-2">
+                    @Model.Leg1.DepartureAirport.Name (@Model.Leg1.DepartureAirport.IATACode)
+                    <span class="route-arrow mx-2 text-muted">→</span>
+                    @Model.Leg1.ArrivalAirport.Name (@Model.Leg1.ArrivalAirport.IATACode)
+                </div>
+            </div>
+        </div>
+
+        <div class="flight-card-body p-0 mt-3 d-flex justify-content-between">
+            <div class="flight-info-box">
+                <span class="flight-label text-muted small d-block">Departure</span>
+                <span class="flight-value fw-bold">@Model.Leg1.DepartureTime.ToString("g")</span>
+            </div>
+            <div class="flight-info-box text-end">
+                <span class="flight-label text-muted small d-block">Arrival</span>
+                <span class="flight-value fw-bold">@Model.Leg1.ArrivalTime.ToString("g")</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center bg-light py-2 border-top border-bottom my-2 text-muted fw-bold">
+        <i class="bi bi-clock-history"></i> Layover in @Model.Leg1.ArrivalAirport.City: @Model.LayoverDuration.ToString(@"hh\h\ mm\m")
+    </div>
+
+    <div class="flight-trip-segment container pt-2">
+        <div class="badge bg-info text-dark mb-2">Leg 2</div>
+        <div class="flight-card-header p-0 border-0">
+            <div class="flight-main-info">
+                <div class="flight-top-row">
+                    <h4 class="flight-number">@Model.Leg2.FlightNumber</h4>
+                    <div class="flight-airline">
+                        <img src="@Model.Leg2.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" style="max-height: 25px;" />
+                        <span class="airline-name ms-2 fw-bold">@Model.Leg2.Airline.Name</span>
+                    </div>
+                    <a asp-page="/FlightInfo" asp-route-id="@Model.Leg2.Id" class="flight-link">
+                        <span class="details-link">Details</span>
+                    </a>
+                </div>
+                <div class="flight-route mt-2">
+                    @Model.Leg2.DepartureAirport.Name (@Model.Leg2.DepartureAirport.IATACode)
+                    <span class="route-arrow mx-2 text-muted">→</span>
+                    @Model.Leg2.ArrivalAirport.Name (@Model.Leg2.ArrivalAirport.IATACode)
+                </div>
+            </div>
+        </div>
+
+        <div class="flight-card-body p-0 mt-3 d-flex justify-content-between">
+            <div class="flight-info-box">
+                <span class="flight-label text-muted small d-block">Departure</span>
+                <span class="flight-value fw-bold">@Model.Leg2.DepartureTime.ToString("g")</span>
+            </div>
+            <div class="flight-info-box text-end">
+                <span class="flight-label text-muted small d-block">Arrival</span>
+                <span class="flight-value fw-bold">@Model.Leg2.ArrivalTime.ToString("g")</span>
+            </div>
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="flight-card-footer d-flex justify-content-between align-items-center mt-3 p-3 bg-light rounded-bottom">
+        <div class="flight-price-box">
+            <span class="price-label text-muted small d-block">Total Price (1 Stop)</span>
+            <span class="flight-price text-success fs-4 fw-bold">€@Model.TotalPrice</span>
+        </div>
+
+        <a asp-page="/BookingPassenger"
+           asp-route-id="@Model.Leg1.Id"
+           asp-route-returnId="@Model.Leg2.Id"
+           class="reserve-btn btn btn-warning px-4 py-2 fw-bold shadow-sm">
+            Book Layover
+        </a>
+    </div>
+</div>

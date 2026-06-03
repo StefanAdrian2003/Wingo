@@ -1,0 +1,86 @@
+﻿@model Proiect_Licenta.Models.RoundTripConnecting
+
+<div class="flight-card round-trip-card border-primary mb-4 shadow-sm">
+
+    <div class="bg-primary text-white p-2 fw-bold text-center rounded-top">
+        <i class="bi bi-airplane-fill me-2"></i> Outbound Journey (1 Stop)
+    </div>
+
+    <div class="p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <strong>@Model.OutboundJourney.Leg1.DepartureAirport.IATACode</strong>
+                (@Model.OutboundJourney.Leg1.DepartureTime.ToString("HH:mm"))
+                <span class="mx-2 text-muted">→</span>
+                <strong>@Model.OutboundJourney.Leg1.ArrivalAirport.IATACode</strong>
+                (@Model.OutboundJourney.Leg1.ArrivalTime.ToString("HH:mm"))
+            </div>
+            <div class="text-muted small">@Model.OutboundJourney.Leg1.Airline.Name</div>
+        </div>
+
+        <div class="text-center py-1 my-2 bg-light text-muted small rounded border">
+            ⏱ Layover in @Model.OutboundJourney.Leg1.ArrivalAirport.City: @Model.OutboundJourney.LayoverDuration.ToString(@"hh\h\ mm\m")
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <strong>@Model.OutboundJourney.Leg2.DepartureAirport.IATACode</strong>
+                (@Model.OutboundJourney.Leg2.DepartureTime.ToString("HH:mm"))
+                <span class="mx-2 text-muted">→</span>
+                <strong>@Model.OutboundJourney.Leg2.ArrivalAirport.IATACode</strong>
+                (@Model.OutboundJourney.Leg2.ArrivalTime.ToString("HH:mm"))
+            </div>
+            <div class="text-muted small">@Model.OutboundJourney.Leg2.Airline.Name</div>
+        </div>
+    </div>
+
+    <div class="bg-secondary text-white p-2 fw-bold text-center border-top">
+        <i class="bi bi-airplane-fill text-white me-2" style="transform: scaleX(-1);"></i> Return Journey (1 Stop)
+    </div>
+
+    <div class="p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <strong>@Model.ReturnJourney.Leg1.DepartureAirport.IATACode</strong>
+                (@Model.ReturnJourney.Leg1.DepartureTime.ToString("HH:mm"))
+                <span class="mx-2 text-muted">→</span>
+                <strong>@Model.ReturnJourney.Leg1.ArrivalAirport.IATACode</strong>
+                (@Model.ReturnJourney.Leg1.ArrivalTime.ToString("HH:mm"))
+            </div>
+            <div class="text-muted small">@Model.ReturnJourney.Leg1.Airline.Name</div>
+        </div>
+
+        <div class="text-center py-1 my-2 bg-light text-muted small rounded border">
+            ⏱ Layover in @Model.ReturnJourney.Leg1.ArrivalAirport.City: @Model.ReturnJourney.LayoverDuration.ToString(@"hh\h\ mm\m")
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <strong>@Model.ReturnJourney.Leg2.DepartureAirport.IATACode</strong>
+                (@Model.ReturnJourney.Leg2.DepartureTime.ToString("HH:mm"))
+                <span class="mx-2 text-muted">→</span>
+                <strong>@Model.ReturnJourney.Leg2.ArrivalAirport.IATACode</strong>
+                (@Model.ReturnJourney.Leg2.ArrivalTime.ToString("HH:mm"))
+            </div>
+            <div class="text-muted small">@Model.ReturnJourney.Leg2.Airline.Name</div>
+        </div>
+    </div>
+
+    <hr class="m-0" />
+
+    <div class="flight-card-footer d-flex justify-content-between align-items-center p-3 bg-light rounded-bottom">
+        <div class="flight-price-box">
+            <span class="price-label text-muted small d-block">Total Price (All 4 Flights + Discount)</span>
+            <span class="flight-price text-success fs-4 fw-bold">€@Model.TotalPrice.ToString("0.00")</span>
+        </div>
+
+        <a asp-page="/BookingPassenger"
+           asp-route-out1="@Model.OutboundJourney.Leg1.Id"
+           asp-route-out2="@Model.OutboundJourney.Leg2.Id"
+           asp-route-ret1="@Model.ReturnJourney.Leg1.Id"
+           asp-route-ret2="@Model.ReturnJourney.Leg2.Id"
+           class="reserve-btn btn btn-primary px-4 py-2 fw-bold shadow-sm">
+            Book Round-Trip Bundle
+        </a>
+    </div>
+</div>

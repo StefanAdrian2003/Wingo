@@ -79,16 +79,34 @@
                     </div>
                 </div>
 
+                <div class="voucher-box">
+                    <label>Voucher</label>
+
+                    <select asp-for="SelectedVoucherId">
+                        <option value="">No voucher</option>
+
+                        @foreach (var v in Model.UserVouchers)
+                        {
+                            <option value="@v.Id"
+                                    data-discount="@v.DiscountPercent">
+                                @v.Name - @v.DiscountPercent%
+                            </option>
+                        }
+                    </select>
+                </div>
+
+
                 <div class="secure-note">
                     🔒 This is a demo — no real payment is processed
                 </div>
 
                 <button type="submit" class="btn-pay" id="payBtn">
-                    Pay €@Model.GrandTotal
+                    Pay 
                 </button>
             </form>
 
         </div>
+
 
         <div class="order-summary">
             <div class="summary-sticky">
@@ -174,9 +192,33 @@
 
                 <div class="summary-divider"></div>
 
+                @if (Model.DiscountAmount > 0)
+                {
+                    <div class="discount-row">
+                        <span>Voucher discount</span>
+                        <span class="discount-amount">
+                            -€@Model.DiscountAmount
+                        </span>
+                    </div>
+
+                    <div class="summary-divider"></div>
+                }
+
+
+                <div id="voucherDiscountRow"
+                     class="discount-row"
+                     style="display:none;">
+                    <span>Voucher discount</span>
+                    <span id="voucherDiscountAmount"
+                          class="discount-amount"></span>
+                </div>
+
                 <div class="grand-total-row">
                     <span>Total</span>
-                    <span class="grand-total-amount">€@Model.GrandTotal</span>
+                    <span id="grandTotalAmount"
+                          class="grand-total-amount">
+                        €@Model.GrandTotal
+                    </span>
                 </div>
 
             </div>
@@ -214,8 +256,52 @@
         document.getElementById('cardCvv').addEventListener('focus', () => {
             document.getElementById('cardPreview').classList.add('flipped');
         });
+
         document.getElementById('cardCvv').addEventListener('blur', () => {
             document.getElementById('cardPreview').classList.remove('flipped');
+        });
+
+        // ── VOUCHER PREVIEW ──
+        const voucherSelect =
+            document.querySelector('[name="SelectedVoucherId"]');
+
+        const totalAmount = @Model.GrandTotal;
+
+        voucherSelect.addEventListener('change', function () {
+
+            const selectedOption =
+                this.options[this.selectedIndex];
+
+            const discountPercent =
+                parseInt(selectedOption.dataset.discount || 0);
+
+            const discountAmount =
+                (totalAmount * discountPercent / 100).toFixed(2);
+
+            const finalTotal =
+                (totalAmount - discountAmount).toFixed(2);
+
+            const discountRow =
+                document.getElementById('voucherDiscountRow');
+
+            const totalElement =
+                document.getElementById('grandTotalAmount');
+
+            if (discountPercent > 0) {
+
+                discountRow.style.display = 'flex';
+
+                document.getElementById('voucherDiscountAmount')
+                    .textContent = '-€' + discountAmount;
+
+                totalElement.textContent = '€' + finalTotal;
+            }
+            else {
+
+                discountRow.style.display = 'none';
+
+                totalElement.textContent = '€' + totalAmount.toFixed(2);
+            }
         });
 
         // ── PAY BUTTON LOADING STATE ──

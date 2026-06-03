@@ -8,7 +8,7 @@ namespace Proiect_Licenta.Models
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
 
-        // FK către User
+        public int DiscountPercent { get; set; }
         public string? UserId { get; set; }  //BUN
         public User? User { get; set; }  //BUN
 

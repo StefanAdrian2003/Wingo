@@ -350,3 +350,16 @@
     font-weight: 800;
     color: #2e7d32;
 }
+
+
+.discount-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: .75rem 0;
+    font-weight: 600;
+}
+
+.discount-amount {
+    color: #22c55e;
+}

@@ -49,6 +49,14 @@ namespace Proiect_Licenta.Pages
         private string BookingKey =>
             $"Booking:{User.FindFirstValue(ClaimTypes.NameIdentifier)}";
 
+
+        [BindProperty]
+        public int? SelectedVoucherId { get; set; }
+        public List<Voucher> UserVouchers { get; set; } = new();
+
+        public decimal DiscountAmount { get; set; }
+
+
         public async Task<IActionResult> OnGetAsync()
         {
             var json = TempData.Peek(BookingKey)?.ToString();
@@ -57,6 +65,13 @@ namespace Proiect_Licenta.Pages
 
             Session = JsonSerializer.Deserialize<BookingSessionDto>(json)!;
             await LoadData(Session);
+
+            var user = await _userManager.GetUserAsync(User);
+
+            UserVouchers = await _context.Vouchers
+                .Where(v => v.UserId == user.Id)
+                .ToListAsync();
+
             return Page();
         }
 
@@ -69,14 +84,45 @@ namespace Proiect_Licenta.Pages
             Session = JsonSerializer.Deserialize<BookingSessionDto>(json)!;
             await LoadData(Session);
 
+           
+
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
                 return RedirectToPage("/Index");
+
+
+            UserVouchers = await _context.Vouchers
+                .Where(v => v.UserId == currentUser.Id)
+                .ToListAsync();
+
+            decimal discountMultiplier = 0m;
+            Voucher? voucher = null;
+
+            if (SelectedVoucherId.HasValue)
+            {
+                voucher = await _context.Vouchers
+                    .FirstOrDefaultAsync(v =>
+                        v.Id == SelectedVoucherId.Value &&
+                        v.UserId == currentUser.Id);
+
+                if (voucher != null)
+                {
+                    discountMultiplier = voucher.DiscountPercent / 100m;
+
+                    DiscountAmount = Math.Round(
+                        GrandTotal * discountMultiplier, 2);
+
+                    GrandTotal -= DiscountAmount;
+                }
+            }
+
+
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
+
                 // ── OUTBOUND CONFLICTS ──
                 var takenOutboundSeatIds = await _context.FlightSeats
                     .Where(fs =>
@@ -144,11 +190,14 @@ namespace Proiect_Licenta.Pages
 
                     var baggage = Session.Baggage?.ElementAtOrDefault(i);
 
+                    var originalPrice = seatPrice + (baggage?.TotalBaggagePrice ?? 0m);
+
                     var ticket = new Ticket
                     {
                         BookingId = booking.Id,
                         TravelClass = travelClass,
-                        Price = seatPrice + (baggage?.TotalBaggagePrice ?? 0m)
+                        Price = Math.Round(
+                            originalPrice * (1 - discountMultiplier), 2)
                     };
 
                     _context.Tickets.Add(ticket);
@@ -197,9 +246,6 @@ namespace Proiect_Licenta.Pages
 
 
 
-
-
-
                 // ── CREATE RETURN BOOKING (ONLY IF ROUND TRIP) ──
                 if (Session.IsRoundTrip)
                 {
@@ -223,11 +269,14 @@ namespace Proiect_Licenta.Pages
 
                         var baggage = Session.ReturnBaggage?.ElementAtOrDefault(i);
 
+                        var originalPrice = seatPrice + (baggage?.TotalBaggagePrice ?? 0m);
+
                         var ticket = new Ticket
                         {
                             BookingId = bookingReturn.Id,
                             TravelClass = travelClass,
-                            Price = seatPrice + (baggage?.TotalBaggagePrice ?? 0m)
+                            Price = Math.Round(
+                            originalPrice * (1 - discountMultiplier), 2)
                         };
 
                         _context.Tickets.Add(ticket);
@@ -286,6 +335,13 @@ namespace Proiect_Licenta.Pages
                 await _userManager.UpdateAsync(currentUser);
 
                 await _progressService.AddPointsAsync(currentUser, 50 * SelectedSeats.Count);
+
+                if (voucher != null)
+                {
+                    _context.Vouchers.Remove(voucher);
+                    await _context.SaveChangesAsync();
+                }
+
 
                 await transaction.CommitAsync();
 

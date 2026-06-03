@@ -22,11 +22,12 @@ namespace Proiect_Licenta.Pages
 
         public IList<Airport> Airports { get; set; } = new List<Airport>();
 
-        // Liste pentru stocarea rezultatelor transmise către HTML
+        // Lists for storing the results sent to HTML
         public IList<Flight> Flights { get; set; } = new List<Flight>();
         public IList<RoundTrip> RoundTrips { get; set; } = new List<RoundTrip>();
+        public IList<ConnectingFlight> ConnectingFlights { get; set; } = new List<ConnectingFlight>();
 
-        // Filtrele din formular
+        // Form Filters
         [BindProperty(SupportsGet = true)]
         public Guid? DepartureAirportId { get; set; }
 
@@ -37,7 +38,7 @@ namespace Proiect_Licenta.Pages
         public bool WithLayover { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public bool IsRoundTrip { get; set; } = false; // Proprietatea nouă pentru checkbox
+        public bool IsRoundTrip { get; set; } = false;
 
         [BindProperty(SupportsGet = true)]
         public decimal? MaxPrice { get; set; }
@@ -46,7 +47,11 @@ namespace Proiect_Licenta.Pages
         [DataType(DataType.Date)]
         public DateTime? SelectedDate { get; set; }
 
-        // Proprietăți pentru paginare
+        [BindProperty(SupportsGet = true)]
+        [DataType(DataType.Date)]
+        public DateTime? ReturnDate { get; set; }
+
+        // Pagination Properties
         [BindProperty(SupportsGet = true)]
         public int CurrentPage { get; set; } = 1;
         public int TotalPages { get; set; }
@@ -61,12 +66,10 @@ namespace Proiect_Licenta.Pages
         {
             if (CurrentPage < 1) CurrentPage = 1;
 
-            // Încărcăm aeroporturile pentru popularea inițială sau fallback
             Airports = await _db.Airports.OrderBy(a => a.City).ToListAsync();
-
             DateTime now = DateTime.Now;
 
-            // 1. EXTRACTIE ZBORURI DUS (OUTBOUND)
+            // 1. BASE OUTBOUND QUERY
             var outboundQuery = _db.Flights
                 .Include(f => f.DepartureAirport)
                 .Include(f => f.ArrivalAirport)
@@ -92,37 +95,42 @@ namespace Proiect_Licenta.Pages
 
             var matchingOutboundFlights = await outboundQuery.ToListAsync();
 
-            // 2. LOGICĂ GENERARE DUS-ÎNTORS SAU DOAR DUS
+            // 2. ROUND-TRIP LOGIC
             if (IsRoundTrip && DepartureAirportId.HasValue && ArrivalAirportId.HasValue)
             {
-                // Căutăm zborurile de întoarcere (inversând aeroporturile selectate)
                 var returnQuery = _db.Flights
                     .Include(f => f.DepartureAirport)
                     .Include(f => f.ArrivalAirport)
                     .Include(f => f.Aircraft)
                     .Include(f => f.Airline).ThenInclude(a => a.User)
                     .Where(f => f.DepartureAirportId == ArrivalAirportId.Value &&
-                                f.ArrivalAirportId == DepartureAirportId.Value)
+                                 f.ArrivalAirportId == DepartureAirportId.Value)
                     .AsQueryable();
 
-                var matchingReturnFlights = await returnQuery.ToListAsync();
+                if (ReturnDate.HasValue)
+                {
+                    DateTime startOfReturn = ReturnDate.Value.Date;
+                    DateTime endOfReturn = startOfReturn.AddDays(1).AddTicks(-1);
+                    returnQuery = returnQuery.Where(f => f.DepartureTime >= startOfReturn && f.DepartureTime <= endOfReturn);
+                }
+                else
+                {
+                    if (matchingOutboundFlights.Any())
+                    {
+                        var minOutboundArrival = matchingOutboundFlights.Min(f => f.ArrivalTime);
+                        returnQuery = returnQuery.Where(f => f.DepartureTime > minOutboundArrival);
+                    }
+                }
 
+                var matchingReturnFlights = await returnQuery.ToListAsync();
                 var dynamicPairs = new List<RoundTrip>();
+
                 foreach (var outbound in matchingOutboundFlights)
                 {
-                    // Zborul de întoarcere trebuie să plece după ce zborul de dus a aterizat
-                    var validReturns = matchingReturnFlights
-                        .Where(ret => ret.DepartureTime > outbound.ArrivalTime);
-
+                    var validReturns = matchingReturnFlights.Where(ret => ret.DepartureTime > outbound.ArrivalTime);
                     foreach (var inbound in validReturns)
                     {
-                        var roundTrip = new RoundTrip
-                        {
-                            OutboundFlight = outbound,
-                            ReturnFlight = inbound
-                        };
-
-                        // Verificăm filtrul de preț maxim aplicat pe prețul total redus al pachetului
+                        var roundTrip = new RoundTrip { OutboundFlight = outbound, ReturnFlight = inbound };
                         if (!MaxPrice.HasValue || roundTrip.TotalPrice <= MaxPrice.Value)
                         {
                             dynamicPairs.Add(roundTrip);
@@ -130,8 +138,7 @@ namespace Proiect_Licenta.Pages
                     }
                 }
 
-                int totalPairsCount = dynamicPairs.Count;
-                TotalPages = (int)Math.Ceiling(totalPairsCount / (double)PageSize);
+                TotalPages = (int)Math.Ceiling(dynamicPairs.Count / (double)PageSize);
                 if (TotalPages == 0) TotalPages = 1;
 
                 RoundTrips = dynamicPairs
@@ -139,28 +146,89 @@ namespace Proiect_Licenta.Pages
                     .Skip((CurrentPage - 1) * PageSize)
                     .Take(PageSize)
                     .ToList();
-
-                // Golim lista de zboruri simple pentru siguranța interfeței
-                Flights = new List<Flight>();
             }
+            // 3. ONE-WAY / LAYOVER FALLBACK LOGIC
             else
             {
-                // Modul standard: Doar Dus
                 if (MaxPrice.HasValue)
                     outboundQuery = outboundQuery.Where(f => f.Price <= MaxPrice.Value);
 
-                int totalSingleCount = outboundQuery.Count();
-                TotalPages = (int)Math.Ceiling(totalSingleCount / (double)PageSize);
-                if (TotalPages == 0) TotalPages = 1;
+                var directFlights = await outboundQuery.ToListAsync();
 
-                Flights = await outboundQuery
-                    .OrderBy(f => f.DepartureTime)
-                    .Skip((CurrentPage - 1) * PageSize)
-                    .Take(PageSize)
-                    .ToListAsync();
+                // If we found direct flights, show them!
+                if (directFlights.Any())
+                {
+                    TotalPages = (int)Math.Ceiling(directFlights.Count / (double)PageSize);
+                    if (TotalPages == 0) TotalPages = 1;
 
-                // Golim lista de round trips
-                RoundTrips = new List<RoundTrip>();
+                    Flights = directFlights
+                        .OrderBy(f => f.DepartureTime)
+                        .Skip((CurrentPage - 1) * PageSize)
+                        .Take(PageSize)
+                        .ToList();
+                }
+                // FALLBACK: No direct flights. Let's look for layovers.
+                else if (WithLayover && DepartureAirportId.HasValue && ArrivalAirportId.HasValue && SelectedDate.HasValue)
+                {
+                    DateTime startOfDay = SelectedDate.Value.Date;
+                    DateTime endOfDay = startOfDay.AddDays(1).AddTicks(-1);
+
+                    var firstLegs = await _db.Flights
+                        .Include(f => f.DepartureAirport)
+                        .Include(f => f.ArrivalAirport)
+                        .Include(f => f.Aircraft)
+                        .Include(f => f.Airline).ThenInclude(a => a.User)
+                        .Where(f => f.DepartureAirportId == DepartureAirportId.Value 
+                                 && f.DepartureTime >= startOfDay 
+                                 && f.DepartureTime <= endOfDay)
+                        .ToListAsync();
+
+                    var secondLegs = await _db.Flights
+                        .Include(f => f.DepartureAirport)
+                        .Include(f => f.ArrivalAirport)
+                        .Include(f => f.Aircraft)
+                        .Include(f => f.Airline).ThenInclude(a => a.User)
+                        .Where(f => f.ArrivalAirportId == ArrivalAirportId.Value 
+                                 && f.DepartureTime >= startOfDay)
+                        .ToListAsync();
+
+                    var foundLayovers = new List<ConnectingFlight>();
+
+                    foreach (var leg1 in firstLegs)
+                    {
+                        foreach (var leg2 in secondLegs)
+                        {
+                            if (leg1.ArrivalAirportId == leg2.DepartureAirportId)
+                            {
+                                TimeSpan layoverTime = leg2.DepartureTime - leg1.ArrivalTime;
+
+                                // Layover must be between 1 and 12 hours
+                                if (layoverTime.TotalHours >= 1 && layoverTime.TotalHours <= 12)
+                                {
+                                    var connectingFlight = new ConnectingFlight { Leg1 = leg1, Leg2 = leg2 };
+                                    if (!MaxPrice.HasValue || connectingFlight.TotalPrice <= MaxPrice.Value)
+                                    {
+                                        foundLayovers.Add(connectingFlight);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    TotalPages = (int)Math.Ceiling(foundLayovers.Count / (double)PageSize);
+                    if (TotalPages == 0) TotalPages = 1;
+
+                    ConnectingFlights = foundLayovers
+                        .OrderBy(l => l.Leg1.DepartureTime)
+                        .Skip((CurrentPage - 1) * PageSize)
+                        .Take(PageSize)
+                        .ToList();
+                }
+                else
+                {
+                    TotalPages = 1;
+                    Flights = new List<Flight>();
+                }
             }
 
             await HydrateSelectionLabels();

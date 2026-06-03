@@ -31,6 +31,7 @@ namespace Proiect_Licenta.Services
                 UserId = user.Id,
                 Name = chosen.Name,
                 Description = chosen.Description,
+                DiscountPercent = chosen.DiscountPercent,
                 // Generăm un cod scurt de 8 caractere, Uppercase
                 Code = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()
             };
