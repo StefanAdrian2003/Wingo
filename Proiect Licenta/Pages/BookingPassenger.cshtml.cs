@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Proiect_Licenta.Data;
 using Proiect_Licenta.Models;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace Proiect_Licenta.Pages
@@ -19,35 +20,60 @@ namespace Proiect_Licenta.Pages
         }
 
         public Flight Flight { get; set; }
+        public Flight? ReturnFlight { get; set; }
 
-        // Seats that were taken by someone else between selection and confirmation
-        [TempData]
-        public string ConflictedSeatsJson { get; set; }
+        public BookingSessionDto? Session { get; set; }
 
+        // ADD THESE
         public List<string> ConflictedSeats { get; set; } = new();
+        public List<string> ConflictedSeatsReturn { get; set; } = new();
 
-        public async Task<IActionResult> OnGetAsync(Guid id)
+        private string BookingKey =>
+              $"Booking:{User.FindFirstValue(ClaimTypes.NameIdentifier)}";
+
+        public async Task<IActionResult> OnGetAsync(Guid id, Guid? returnId)
         {
             Flight = await LoadFlight(id);
             if (Flight == null) return NotFound();
 
-            // Restore conflicted seats warning if redirected back
-            if (!string.IsNullOrEmpty(ConflictedSeatsJson))
-                ConflictedSeats = JsonSerializer.Deserialize<List<string>>(ConflictedSeatsJson) ?? new();
+            if (returnId.HasValue)
+            {
+                ReturnFlight = await LoadFlight(returnId.Value);
+                if (ReturnFlight == null) return NotFound();
+            }
+
+            var sessionJson = TempData.Peek(BookingKey)?.ToString();
+
+            if (!string.IsNullOrEmpty(sessionJson))
+            {
+                Session = JsonSerializer.Deserialize<BookingSessionDto>(sessionJson);
+            }
+
+            if (Session != null)
+            {
+                // restore conflict messages
+                ConflictedSeats = Session.ConflictedSeats;
+                ConflictedSeatsReturn = Session.ConflictedSeatsReturn;
+
+                // clear them so they are shown only once
+                Session.ConflictedSeats.Clear();
+                Session.ConflictedSeatsReturn.Clear();
+
+                TempData[BookingKey] =
+                    JsonSerializer.Serialize(Session);
+            }
 
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(Guid id, [FromForm] string selectedSeats)
+        public async Task<IActionResult> OnPostAsync(Guid id, Guid? returnId,
+                                                     [FromForm] string selectedSeats,
+                                                     [FromForm] string? returnSeats)
         {
-            if (string.IsNullOrWhiteSpace(selectedSeats))
-            {
-                ModelState.AddModelError("", "Please select at least one seat.");
-                Flight = await LoadFlight(id);
-                return Page();
-            }
-
             var seatIds = JsonSerializer.Deserialize<List<Guid>>(selectedSeats);
+            var returnSeatIds = returnSeats != null
+                ? JsonSerializer.Deserialize<List<Guid>>(returnSeats) ?? new()
+                : new List<Guid>();
 
             if (seatIds == null || seatIds.Count == 0)
             {
@@ -56,14 +82,39 @@ namespace Proiect_Licenta.Pages
                 return Page();
             }
 
-            // Store session data in TempData for next page
+            if (returnId.HasValue && returnSeatIds.Count != seatIds.Count)
+            {
+                ModelState.AddModelError("",
+                    $"Please select the same number of seats for both flights.");
+
+                Flight = await LoadFlight(id);
+                ReturnFlight = await LoadFlight(returnId.Value);
+
+                // KEEP SESSION (important fix)
+                TempData[BookingKey] = JsonSerializer.Serialize(new BookingSessionDto
+                {
+                    FlightId = id,
+                    ReturnFlightId = returnId,
+                    SelectedSeatIds = seatIds,
+                    ReturnSeatIds = returnSeatIds,
+                    ConflictedSeats = Session?.ConflictedSeats ?? new(),
+                    ConflictedSeatsReturn = Session?.ConflictedSeatsReturn ?? new()
+                });
+
+                return Page();
+            }
+
             var session = new BookingSessionDto
             {
                 FlightId = id,
-                SelectedSeatIds = seatIds
+                ReturnFlightId = returnId,
+                SelectedSeatIds = seatIds,
+                ReturnSeatIds = returnSeatIds,
+                ConflictedSeats = Session?.ConflictedSeats ?? new(),
+                ConflictedSeatsReturn = Session?.ConflictedSeatsReturn ?? new()
             };
 
-            TempData["BookingSession"] = JsonSerializer.Serialize(session);
+            TempData[BookingKey] = JsonSerializer.Serialize(session);
 
             return RedirectToPage("/BookingBaggage");
         }
@@ -81,5 +132,4 @@ namespace Proiect_Licenta.Pages
                 .FirstOrDefaultAsync(f => f.Id == id);
         }
     }
-
 }

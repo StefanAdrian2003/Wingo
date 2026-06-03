@@ -301,3 +301,46 @@
     font-weight: 800;
     color: #2e7d32;
 }
+
+
+/* Container positioning for the actions wrapper */
+.booking-card {
+    position: relative; /* Allows absolute positioning of the cancel button inside it */
+}
+
+.booking-actions {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+}
+
+/* The actual Cancel Button styling */
+.btn-cancel {
+    background-color: #fff1f1; /* Soft, light red background */
+    color: #dc3545; /* Crisp red text */
+    border: 1px solid #fbc4c4; /* Subtle red border */
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 20px; /* Pill-shaped button */
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    /* Hover and active states */
+    .btn-cancel:hover {
+        background-color: #dc3545; /* Flips to solid red */
+        color: #ffffff; /* White text */
+        border-color: #dc3545;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+        transform: translateY(-1px); /* Slight lift effect */
+    }
+
+    .btn-cancel:active {
+        transform: translateY(0); /* Pushes down when clicked */
+        box-shadow: none;
+    }

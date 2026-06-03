@@ -30,8 +30,21 @@
             var flight = booking.Flight;
             var totalPrice = booking.Tickets.Sum(t => t.Price);
             var isPast = flight.DepartureTime < DateTime.UtcNow;
+            var status = isPast ? "past" : "upcoming";
 
-            <div class="booking-card @(isPast ? "past" : "upcoming")">
+            <div class="booking-card @(status)">
+                @if (status == "upcoming")
+                {
+                    <div class="booking-actions">
+                        <form method="post" asp-page-handler="Cancel" asp-route-id="@booking.Id"
+                              onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                            <button type="submit" class="btn-cancel">
+                                <span style="font-size: 1rem; line-height: 1;">✕</span> Cancel Booking
+                            </button>
+                        </form>
+                    </div>
+                }
+                
 
                 <div class="booking-card-top">
                     <span class="status-badge @(isPast ? "past" : "upcoming")">
@@ -42,10 +55,12 @@
                     </span>
                 </div>
 
+                <img src="@flight.Airline.LogoUrl"
+                     alt="@flight.Airline.Name"
+                     class="airline-logo" />
+
                 <div class="flight-route-row">
-                    <img src="@flight.Airline.LogoUrl"
-                         alt="@flight.Airline.Name"
-                         class="airline-logo" />
+                    
 
                     <div class="route-info">
                         <div class="route-airports">

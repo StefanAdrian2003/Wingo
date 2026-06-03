@@ -405,3 +405,13 @@
     .btn-continue:active {
         transform: translateY(0);
     }
+
+
+.baggage-card.return-card {
+    border-color: #d8b4fe;
+    background: #fdf4ff;
+}
+
+    .baggage-card.return-card .card-header {
+        border-bottom-color: #e9d5ff;
+    }

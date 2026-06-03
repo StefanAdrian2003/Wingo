@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Proiect_Licenta.Data;
 using Proiect_Licenta.Models;
 using System.Text.Json;
+using System.Security.Claims;
 
 namespace Proiect_Licenta.Pages
 {
@@ -22,10 +23,6 @@ namespace Proiect_Licenta.Pages
         public List<Seat> SelectedSeats { get; set; } = new();
         public BookingSessionDto Session { get; set; }
 
-        public static readonly decimal CabinPrice = 0m;
-        public static readonly decimal Checked20Price = 25m;
-        public static readonly decimal Checked32Price = 40m;
-        public static readonly decimal ExtraPrice = 35m;
 
         public decimal SeatTotal { get; set; }
         public decimal BaggageTotal { get; set; }
@@ -38,9 +35,20 @@ namespace Proiect_Licenta.Pages
             { TravelClass.First,    3.5m }
         };
 
+
+
+        public Flight? ReturnFlight { get; set; }
+        public List<Seat> ReturnSeats { get; set; } = new();
+
+        public decimal ReturnSeatTotal { get; set; }
+        public decimal ReturnBaggageTotal { get; set; }
+
+        private string BookingKey =>
+             $"Booking:{User.FindFirstValue(ClaimTypes.NameIdentifier)}";
+
         public async Task<IActionResult> OnGetAsync()
         {
-            var json = TempData.Peek("BookingSession") as string;
+            var json = TempData.Peek(BookingKey)?.ToString();
             if (string.IsNullOrEmpty(json))
                 return RedirectToPage("/Index");
 
@@ -51,7 +59,7 @@ namespace Proiect_Licenta.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
-            var json = TempData.Peek("BookingSession") as string;
+            var json = TempData.Peek(BookingKey)?.ToString();
             if (string.IsNullOrEmpty(json))
                 return RedirectToPage("/Index");
 
@@ -67,16 +75,39 @@ namespace Proiect_Licenta.Pages
                 .Select(fs => fs.Seat.SeatNumber)
                 .ToListAsync();
 
-            if (conflictedSeats.Any())
+            var returnConflictedSeats = new List<string>();
+
+            if (Session.IsRoundTrip)
             {
-                // seats were taken — send user back to seat picker with warning
-                TempData["ConflictedSeatsJson"] = JsonSerializer.Serialize(conflictedSeats);
-                TempData.Remove("BookingSession");
-                return RedirectToPage("/BookingPassenger", new { id = Session.FlightId });
+                returnConflictedSeats = await _context.FlightSeats
+                    .Include(fs => fs.Seat)
+                    .Where(fs =>
+                        fs.FlightId == Session.ReturnFlightId &&
+                        Session.ReturnSeatIds.Contains(fs.SeatId) &&
+                        fs.TicketId != null)
+                    .Select(fs => fs.Seat.SeatNumber)
+                    .ToListAsync();
+            }
+
+            if (conflictedSeats.Any() || returnConflictedSeats.Any())
+            {
+                Session.ConflictedSeats = conflictedSeats;
+                Session.ConflictedSeatsReturn = returnConflictedSeats;
+
+                TempData[BookingKey] =
+                    JsonSerializer.Serialize(Session);
+
+                return RedirectToPage(
+                    "/BookingPassenger",
+                    new
+                    {
+                        id = Session.FlightId,
+                        returnId = Session.ReturnFlightId
+                    });
             }
 
             // all seats still available — proceed to mock pay
-            TempData["BookingSession"] = json; // keep session alive
+            TempData[BookingKey] = json; // keep session alive
             return RedirectToPage("/MockPay");
         }
 
@@ -93,11 +124,46 @@ namespace Proiect_Licenta.Pages
                 .Where(s => session.SelectedSeatIds.Contains(s.Id))
                 .ToListAsync();
 
-            SeatTotal = SelectedSeats.Sum(s =>
-                Math.Round(Flight!.Price * Multipliers[s.SeatSection.TravelClass], 2));
 
-            BaggageTotal = session.Baggage?.Sum(b => b.TotalBaggagePrice) ?? 0m;
-            GrandTotal = SeatTotal + BaggageTotal;
+            if (session.IsRoundTrip)
+            {
+                ReturnFlight = await _context.Flights
+                    .Include(f => f.Airline)
+                    .Include(f => f.DepartureAirport)
+                    .Include(f => f.ArrivalAirport)
+                    .FirstOrDefaultAsync(f => f.Id == session.ReturnFlightId);
+
+                ReturnSeats = await _context.Seats
+                    .Include(s => s.SeatSection)
+                    .Where(s => session.ReturnSeatIds.Contains(s.Id))
+                    .ToListAsync();
+            }
+
+            SeatTotal = SelectedSeats.Sum(s =>
+                Math.Round(
+                    Flight!.Price *
+                    Multipliers[s.SeatSection.TravelClass], 2));
+
+            ReturnSeatTotal = ReturnFlight == null
+                ? 0
+                : ReturnSeats.Sum(s =>
+                    Math.Round(
+                        ReturnFlight.Price *
+                        Multipliers[s.SeatSection.TravelClass], 2));
+
+            BaggageTotal =
+                (session.Baggage?.Sum(b => b.TotalBaggagePrice) ?? 0m);
+
+            ReturnBaggageTotal =
+                (session.ReturnBaggage?.Sum(b => b.TotalBaggagePrice) ?? 0m);
+
+
+
+            GrandTotal =
+                SeatTotal +
+                ReturnSeatTotal +
+                BaggageTotal +
+                ReturnBaggageTotal;
         }
     }
 }

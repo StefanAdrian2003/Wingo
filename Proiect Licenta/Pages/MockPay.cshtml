@@ -20,7 +20,6 @@
         <div class="pay-panel">
 
             <div class="page-header">
-                <a asp-page="/BookingReview" class="back-link">← Back</a>
                 <h2 class="page-title">Payment</h2>
             </div>
 
@@ -56,48 +55,27 @@
 
                 <div class="form-group">
                     <label class="form-label">Cardholder Name</label>
-                    <input type="text"
-                           id="cardHolder"
-                           class="form-input"
-                           placeholder="Name on card"
-                           maxlength="30"
-                           autocomplete="cc-name"
-                           required />
+                    <input type="text" id="cardHolder" class="form-input"
+                           placeholder="Name on card" maxlength="30" required />
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Card Number</label>
-                    <input type="text"
-                           id="cardNumber"
-                           class="form-input"
-                           placeholder="1234 5678 9012 3456"
-                           maxlength="19"
-                           autocomplete="cc-number"
-                           inputmode="numeric"
-                           required />
+                    <input type="text" id="cardNumber" class="form-input"
+                           placeholder="1234 5678 9012 3456" maxlength="19" required />
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Expiry Date</label>
-                        <input type="text"
-                               id="cardExpiry"
-                               class="form-input"
-                               placeholder="MM/YY"
-                               maxlength="5"
-                               autocomplete="cc-exp"
-                               inputmode="numeric"
-                               required />
+                        <input type="text" id="cardExpiry" class="form-input"
+                               placeholder="MM/YY" maxlength="5" required />
                     </div>
+
                     <div class="form-group">
                         <label class="form-label">CVV</label>
-                        <input type="text"
-                               id="cardCvv"
-                               class="form-input cvv-input"
-                               placeholder="•••"
-                               maxlength="3"
-                               inputmode="numeric"
-                               required />
+                        <input type="text" id="cardCvv" class="form-input cvv-input"
+                               placeholder="•••" maxlength="3" required />
                     </div>
                 </div>
 
@@ -116,16 +94,16 @@
             <div class="summary-sticky">
                 <h3 class="summary-title">Order Summary</h3>
 
+                <!-- OUTBOUND -->
                 <div class="flight-mini">
-                    <img src="@Model.Flight.Airline.LogoUrl" class="mini-logo" />
                     <div class="flight-mini-info">
-                        <span class="flight-num">@Model.Flight.FlightNumber</span>
+                        <span class="flight-num">
+                            @Model.Flight.FlightNumber
+                        </span>
+
                         <span class="flight-route">
                             @Model.Flight.DepartureAirport.IATACode →
                             @Model.Flight.ArrivalAirport.IATACode
-                        </span>
-                        <span class="flight-date">
-                            @Model.Flight.DepartureTime.ToString("dd MMM yyyy, HH:mm")
                         </span>
                     </div>
                 </div>
@@ -141,25 +119,57 @@
                     var bagPrice = baggage?.TotalBaggagePrice ?? 0m;
 
                     <div class="order-line">
-                        <div class="order-line-left">
-                            <span class="seat-chip @travelClass.ToString().ToLower()">@seat.SeatNumber</span>
-                            <div class="order-line-detail">
-                                <span>@travelClass Class</span>
-                                @if (baggage != null && baggage.BaggageType != "None")
-                                {
-                                    <span class="bag-tag">
-                                        + @(baggage.BaggageType == "Cabin" ? "Cabin bag" :
-                                                                        baggage.BaggageType == "Checked20" ? "20kg bag" : "32kg bag")
-                            </span>
-                                                        }
-                                @if (baggage?.HasExtraBag == true)
-                                {
-                                    <span class="bag-tag">+ Extra bag</span>
-                                }
-                            </div>
-                        </div>
-                        <span class="order-line-price">€@(seatPrice + bagPrice)</span>
+                        <span class="seat-chip @travelClass.ToString().ToLower()">
+                            @seat.SeatNumber
+                        </span>
+
+                        <span>@travelClass Class</span>
+
+                        <span class="order-line-price">
+                            €@(seatPrice + bagPrice)
+                        </span>
                     </div>
+                }
+
+                @* ───── RETURN FLIGHT ───── *@
+                @if (Model.Session?.ReturnFlightId != null && Model.ReturnSeats.Any())
+                {
+                    <div class="summary-divider"></div>
+
+                    <div class="flight-mini">
+                        <div class="flight-mini-info">
+                            <span class="flight-num">
+                                @Model.ReturnFlight.FlightNumber
+                            </span>
+
+                            <span class="flight-route">
+                                @Model.ReturnFlight.DepartureAirport.IATACode →
+                                @Model.ReturnFlight.ArrivalAirport.IATACode
+                            </span>
+                        </div>
+                    </div>
+
+
+                    @for (int i = 0; i < Model.ReturnSeats.Count; i++)
+                    {
+                        var seat = Model.ReturnSeats[i];
+                        var travelClass = seat.SeatSection.TravelClass;
+                        var seatPrice = Math.Round(Model.ReturnFlight.Price * multipliers[travelClass], 2);
+                        var baggage = Model.Session.ReturnBaggage?.ElementAtOrDefault(i);
+                        var bagPrice = baggage?.TotalBaggagePrice ?? 0m;
+
+                        <div class="order-line">
+                            <span class="seat-chip @travelClass.ToString().ToLower()">
+                                @seat.SeatNumber
+                            </span>
+
+                            <span>@travelClass Class</span>
+
+                            <span class="order-line-price">
+                                €@(seatPrice + bagPrice)
+                            </span>
+                        </div>
+                    }
                 }
 
                 <div class="summary-divider"></div>
