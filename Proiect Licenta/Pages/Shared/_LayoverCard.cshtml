@@ -84,8 +84,9 @@
 
         <a asp-page="/BookingPassenger"
            asp-route-id="@Model.Leg1.Id"
-           asp-route-returnId="@Model.Leg2.Id"
-           class="reserve-btn btn btn-warning px-4 py-2 fw-bold shadow-sm">
+           asp-route-returnId="@Guid.Empty"
+           asp-route-leg2Id="@Model.Leg2.Id"
+           class="reserve-btn btn btn-warning">
             Book Layover
         </a>
     </div>

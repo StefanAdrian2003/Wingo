@@ -22,8 +22,14 @@ namespace Proiect_Licenta.Pages
         public Flight Flight { get; set; }
         public List<Seat> SelectedSeats { get; set; } = new();
 
+        public Flight? Leg2Flight { get; set; }
+        public List<Seat> Leg2Seats { get; set; } = new();
+
         public Flight? ReturnFlight { get; set; }
         public List<Seat> ReturnSeats { get; set; } = new();
+
+        public Flight? ReturnLeg2Flight { get; set; }
+        public List<Seat> ReturnLeg2Seats { get; set; } = new();
 
         public BookingSessionDto Session { get; set; }
 
@@ -39,41 +45,43 @@ namespace Proiect_Licenta.Pages
 
             Session = JsonSerializer.Deserialize<BookingSessionDto>(json)!;
 
-            Flight = await _context.Flights
-                .Include(f => f.Airline)
-                .Include(f => f.DepartureAirport)
-                .Include(f => f.ArrivalAirport)
-                .FirstOrDefaultAsync(f => f.Id == Session.FlightId);
-
+            Flight = await LoadFlight(Session.FlightId);
             if (Flight == null) return NotFound();
 
-            SelectedSeats = await _context.Seats
-                .Include(s => s.SeatSection)
-                .Where(s => Session.SelectedSeatIds.Contains(s.Id))
-                .ToListAsync();
+            SelectedSeats = await LoadSeats(Session.SelectedSeatIds);
 
-            if (Session.IsRoundTrip && Session.ReturnSeatIds.Any())
+            if (Session.Leg2FlightId.HasValue)
             {
-                ReturnFlight = await _context.Flights
-                    .Include(f => f.Airline)
-                    .Include(f => f.DepartureAirport)
-                    .Include(f => f.ArrivalAirport)
-                    .FirstOrDefaultAsync(f => f.Id == Session.ReturnFlightId);
+                Leg2Flight = await LoadFlight(Session.Leg2FlightId.Value);
+                Leg2Seats = await LoadSeats(Session.Leg2SeatIds);
+            }
 
-                ReturnSeats = await _context.Seats
-                    .Include(s => s.SeatSection)
-                    .Where(s => Session.ReturnSeatIds.Contains(s.Id))
-                    .ToListAsync();
+            bool hasRealReturn = Session.ReturnFlightId.HasValue && Session.ReturnFlightId.Value != Guid.Empty;
+            if (hasRealReturn)
+            {
+                ReturnFlight = await LoadFlight(Session.ReturnFlightId!.Value);
+                ReturnSeats = await LoadSeats(Session.ReturnSeatIds);
+
+                if (Session.ReturnLeg2FlightId.HasValue)
+                {
+                    ReturnLeg2Flight = await LoadFlight(Session.ReturnLeg2FlightId.Value);
+                    ReturnLeg2Seats = await LoadSeats(Session.ReturnLeg2SeatIds);
+                }
             }
 
             return Page();
         }
 
+
         public async Task<IActionResult> OnPostAsync(
-            [FromForm] List<string> baggageTypes,
-            [FromForm] List<bool> hasExtraBags,
-            [FromForm] List<string> returnBaggageTypes,
-            [FromForm] List<bool> returnHasExtraBags)
+    [FromForm] List<string> baggageTypes,
+    [FromForm] List<bool> hasExtraBags,
+    [FromForm] List<string> leg2BaggageTypes,
+    [FromForm] List<bool> leg2HasExtraBags,
+    [FromForm] List<string> returnBaggageTypes,
+    [FromForm] List<bool> returnHasExtraBags,
+    [FromForm] List<string> retLeg2BaggageTypes,
+    [FromForm] List<bool> retLeg2HasExtraBags)
         {
             var json = TempData.Peek(BookingKey)?.ToString();
             if (string.IsNullOrEmpty(json))
@@ -81,21 +89,34 @@ namespace Proiect_Licenta.Pages
 
             Session = JsonSerializer.Deserialize<BookingSessionDto>(json)!;
 
-            SelectedSeats = await _context.Seats
-                .Include(s => s.SeatSection)
-                .Where(s => Session.SelectedSeatIds.Contains(s.Id))
-                .ToListAsync();
-
-            ReturnSeats = await _context.Seats
-                .Include(s => s.SeatSection)
-                .Where(s => Session.ReturnSeatIds.Contains(s.Id))
-                .ToListAsync();
+            SelectedSeats = await LoadSeats(Session.SelectedSeatIds);
+            Leg2Seats = await LoadSeats(Session.Leg2SeatIds);
+            ReturnSeats = await LoadSeats(Session.ReturnSeatIds);
+            ReturnLeg2Seats = await LoadSeats(Session.ReturnLeg2SeatIds);
 
             Session.Baggage = BuildBaggage(SelectedSeats, baggageTypes, hasExtraBags);
+            Session.Leg2Baggage = BuildBaggage(Leg2Seats, leg2BaggageTypes, leg2HasExtraBags);
             Session.ReturnBaggage = BuildBaggage(ReturnSeats, returnBaggageTypes, returnHasExtraBags);
+            Session.ReturnLeg2Baggage = BuildBaggage(ReturnLeg2Seats, retLeg2BaggageTypes, retLeg2HasExtraBags);
 
             TempData[BookingKey] = JsonSerializer.Serialize(Session);
             return RedirectToPage("/BookingReview");
+        }
+
+        private async Task<Flight?> LoadFlight(Guid id) =>
+            await _context.Flights
+                .Include(f => f.Airline)
+                .Include(f => f.DepartureAirport)
+                .Include(f => f.ArrivalAirport)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+        private async Task<List<Seat>> LoadSeats(List<Guid> ids)
+        {
+            if (!ids.Any()) return new List<Seat>();
+            return await _context.Seats
+                .Include(s => s.SeatSection)
+                .Where(s => ids.Contains(s.Id))
+                .ToListAsync();
         }
 
         private List<BaggageSelectionDto> BuildBaggage(

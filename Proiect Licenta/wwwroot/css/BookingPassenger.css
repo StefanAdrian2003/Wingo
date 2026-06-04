@@ -1,67 +1,46 @@
-﻿/* ═══════════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════════════════════════
    BOOKING PASSENGER — BookingPassenger.css
-   Two-column: scrollable seat map + sticky panel
-   ═══════════════════════════════════════════════ */
+   Full-screen layout · outbound/return side-by-side · layover stacked
+   ═══════════════════════════════════════════════════════════════ */
 
-/* ── LAYOUT ── */
+/* ── PAGE FILL ── */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+.booking-page {
+    min-height: 100vh;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    background: #f0f4f8;
+}
+
+/* ── OUTER LAYOUT: [outbound col] [return col?] [summary panel] ── */
 .booking-layout {
     display: flex;
     gap: 1.5rem;
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1.5rem;
+    max-width: 100%;
     align-items: flex-start;
 }
 
-/* ── LEFT: SEAT MAP ── */
-.seat-map-panel {
+/* ── MAP COLUMNS ── */
+.maps-column {
     flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* When both columns exist, equal width */
+.outbound-column,
+.return-column {
+    flex: 1 1 0;
     min-width: 0;
 }
 
-.page-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.2rem;
-}
-
-.back-link {
-    font-size: 0.85rem;
-    color: #1a73e8;
-    text-decoration: none;
-    white-space: nowrap;
-}
-
-    .back-link:hover {
-        text-decoration: underline;
-    }
-
-.flight-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #1a1a2e;
-}
-
-.mini-logo {
-    height: 22px;
-    object-fit: contain;
-}
-
-.route-mini {
-    color: #888;
-    font-weight: 400;
-    font-size: 0.8rem;
-}
-
-/* conflict warning */
+/* ── CONFLICT / VALIDATION ALERT ── */
 .conflict-alert {
     background: #fff3cd;
     border: 1px solid #ffc107;
@@ -72,18 +51,23 @@
     margin-bottom: 1rem;
 }
 
+/* ── MAP TITLE ── */
 .map-title {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #1a1a2e;
-    margin-bottom: 0.5rem;
+    margin: 0.3rem 0 0.5rem 0;
 }
+
+    .map-title.return-title {
+        color: #6a1b9a;
+    }
 
 /* ── LEGEND ── */
 .legend {
     display: flex;
     gap: 1.2rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
 }
 
 .legend-item {
@@ -100,11 +84,11 @@
     border-radius: 3px;
 }
 
-    .leg-dot.available {
+    .leg-dot.outbound-avail {
         background: #4caf50;
     }
 
-    .leg-dot.selected {
+    .leg-dot.outbound-sel {
         background: #1a73e8;
     }
 
@@ -112,6 +96,98 @@
         background: #e53935;
         opacity: 0.6;
     }
+
+/* ── FLIGHT SEGMENT DIVIDER ── */
+.flight-segment-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0.8rem 0 0.5rem 0;
+}
+
+    .flight-segment-divider.outbound {
+        background: #e8f5e9;
+        border: 1px solid #a5d6a7;
+    }
+
+    .flight-segment-divider.return {
+        background: #f3e5f5;
+        border: 1px solid #ce93d8;
+        color: #4a148c;
+    }
+
+.mini-logo {
+    height: 22px;
+    object-fit: contain;
+}
+
+.route-mini {
+    color: #888;
+    font-weight: 400;
+    font-size: 0.8rem;
+    margin-left: auto;
+}
+
+.leg-badge {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: #1a73e8;
+    color: #fff;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-left: 0.4rem;
+}
+
+.return-leg-badge {
+    background: #9c27b0;
+}
+
+/* ── LAYOVER CONNECTOR ── */
+.layover-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 0;
+    position: relative;
+}
+
+    .layover-connector::before,
+    .layover-connector::after {
+        content: '';
+        flex: 1;
+        height: 2px;
+        background: repeating-linear-gradient( 90deg, #a5d6a7 0, #a5d6a7 6px, transparent 6px, transparent 12px );
+    }
+
+.layover-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #2e7d32;
+    background: #e8f5e9;
+    border: 1px dashed #81c784;
+    border-radius: 20px;
+    padding: 3px 10px;
+    white-space: nowrap;
+    margin: 0 0.6rem;
+}
+
+.return-layover-badge {
+    color: #6a1b9a;
+    background: #f3e5f5;
+    border-color: #ce93d8;
+}
+
+.return-layover::before,
+.return-layover::after {
+    background: repeating-linear-gradient( 90deg, #ce93d8 0, #ce93d8 6px, transparent 6px, transparent 12px );
+}
 
 /* ── AIRCRAFT WRAPPER ── */
 .aircraft-wrap {
@@ -124,7 +200,7 @@
     align-items: center;
     overflow-x: auto;
     width: fit-content;
-    margin: 0 auto;
+    margin: 0 auto 1rem auto;
 }
 
 .aircraft-nose {
@@ -193,6 +269,36 @@
     color: #383d41;
 }
 
+/* ── CABIN STATS ── */
+.cabin-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+    .stat-item.total {
+        background: #e8eaf6;
+        color: #3949ab;
+    }
+
+    .stat-item.avail {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .stat-item.taken {
+        background: #fdecea;
+        color: #c62828;
+    }
+
 /* ── SEAT ROW ── */
 .seat-row {
     display: flex;
@@ -236,7 +342,7 @@
     color: #888;
 }
 
-/* ── SEAT BUTTON ── */
+/* ── SEAT BUTTON BASE ── */
 .seat {
     width: 32px;
     height: 30px;
@@ -255,6 +361,7 @@
     outline: none;
 }
 
+    /* ── OUTBOUND / LEG2 (green family) ── */
     .seat.available {
         background: #4caf50;
     }
@@ -264,12 +371,45 @@
             box-shadow: 0 3px 8px rgba(76,175,80,0.4);
         }
 
-    .seat.selected {
-        background: #1a73e8 !important;
-        transform: scale(1.1);
-        box-shadow: 0 3px 10px rgba(26,115,232,0.5);
+        .seat.available.selected {
+            background: #1a73e8 !important;
+            transform: scale(1.1);
+            box-shadow: 0 3px 10px rgba(26,115,232,0.5);
+        }
+
+    /* Leg-2 outbound uses a slightly different green shade so passengers can distinguish */
+    .seat.leg2-available {
+        background: #00897b; /* teal-green */
     }
 
+        .seat.leg2-available:hover {
+            transform: scale(1.18);
+            box-shadow: 0 3px 8px rgba(0,137,123,0.4);
+        }
+
+        .seat.leg2-available.selected {
+            background: #004d40 !important;
+            transform: scale(1.1);
+            box-shadow: 0 3px 10px rgba(0,77,64,0.5);
+        }
+
+    /* ── RETURN (purple family) ── */
+    .seat.return-available {
+        background: #9c27b0;
+    }
+
+        .seat.return-available:hover {
+            transform: scale(1.18);
+            box-shadow: 0 3px 8px rgba(156,39,176,0.4);
+        }
+
+        .seat.return-available.selected {
+            background: #4a0072 !important;
+            transform: scale(1.1);
+            box-shadow: 0 3px 10px rgba(74,0,114,0.5);
+        }
+
+    /* ── TAKEN & CONFLICTED ── */
     .seat.taken {
         background: #e53935;
         opacity: 0.55;
@@ -294,7 +434,7 @@
 
 /* ── RIGHT: SUMMARY PANEL ── */
 .summary-panel {
-    width: 300px;
+    width: 280px;
     flex-shrink: 0;
 }
 
@@ -317,7 +457,6 @@
     border-bottom: 2px solid #f0f0f0;
 }
 
-/* empty state */
 .summary-empty {
     display: flex;
     flex-direction: column;
@@ -368,16 +507,32 @@
     color: #fff;
 }
 
-    .seat-chip.Economy {
+    .seat-chip.economy {
         background: #4caf50;
     }
 
-    .seat-chip.Business {
+    .seat-chip.business {
         background: #1a73e8;
     }
 
-    .seat-chip.First {
+    .seat-chip.first {
         background: #f59e0b;
+    }
+
+    /* Override chip color for return legs */
+    .seat-chip.ret,
+    .seat-chip.ret.economy,
+    .seat-chip.ret.business,
+    .seat-chip.ret.first {
+        background: #9c27b0;
+    }
+
+    /* Override for leg2 outbound */
+    .seat-chip.leg2,
+    .seat-chip.leg2.economy,
+    .seat-chip.leg2.business,
+    .seat-chip.leg2.first {
+        background: #00897b;
     }
 
 .seat-class {
@@ -456,96 +611,17 @@
         transform: translateY(0);
     }
 
-/* ── CABIN STATS ROW ── */
-.cabin-stats {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
-}
-
-.stat-item {
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 20px;
-}
-
-    .stat-item.total {
-        background: #e8eaf6;
-        color: #3949ab;
+/* ── RESPONSIVE: stack columns on narrow screens ── */
+@media (max-width: 900px) {
+    .booking-layout {
+        flex-direction: column;
     }
 
-    .stat-item.avail {
-        background: #e8f5e9;
-        color: #2e7d32;
+    .summary-panel {
+        width: 100%;
     }
 
-    .stat-item.taken {
-        background: #fdecea;
-        color: #c62828;
+    .summary-sticky {
+        position: static;
     }
-
-
-.flight-segment-divider {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #f0f7ff;
-    border: 1px solid #c5ddf9;
-    border-radius: 8px;
-    padding: 0.6rem 1rem;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #1a1a2e;
-    margin: 1.5rem 0 1rem 0;
-}
-
-.seat.return-available {
-    background: #9c27b0;
-}
-
-    .seat.return-available:hover {
-        transform: scale(1.18);
-        box-shadow: 0 3px 8px rgba(156,39,176,0.4);
-    }
-
-    .seat.return-available.selected {
-        background: #6a1b9a !important;
-        transform: scale(1.1);
-    }
-
-
-
-
-/* ── RETURN FLIGHT SEATS ── */
-.seat.return-available {
-    background: #9c27b0; /* light purple — available */
-}
-
-    .seat.return-available:hover {
-        transform: scale(1.18);
-        box-shadow: 0 3px 8px rgba(156,39,176,0.4);
-    }
-
-    .seat.return-available.selected {
-        background: #4a0072 !important; /* dark purple — chosen */
-        transform: scale(1.1);
-        box-shadow: 0 3px 10px rgba(74,0,114,0.5);
-    }
-
-/* ── RETURN CABIN STATS ── */
-.flight-segment-divider.return ~ .aircraft-wrap .stat-item.total {
-    background: #f3e8ff;
-    color: #6a1b9a;
-}
-
-.flight-segment-divider.return ~ .aircraft-wrap .stat-item.avail {
-    background: #e9d5ff;
-    color: #9c27b0;
-}
-
-.flight-segment-divider.return ~ .aircraft-wrap .stat-item.taken {
-    background: #fdecea;
-    color: #c62828;
 }

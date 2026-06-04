@@ -75,11 +75,11 @@
         </div>
 
         <a asp-page="/BookingPassenger"
-           asp-route-out1="@Model.OutboundJourney.Leg1.Id"
-           asp-route-out2="@Model.OutboundJourney.Leg2.Id"
-           asp-route-ret1="@Model.ReturnJourney.Leg1.Id"
-           asp-route-ret2="@Model.ReturnJourney.Leg2.Id"
-           class="reserve-btn btn btn-primary px-4 py-2 fw-bold shadow-sm">
+           asp-route-id="@Model.OutboundJourney.Leg1.Id"
+           asp-route-leg2Id="@Model.OutboundJourney.Leg2.Id"
+           asp-route-returnId="@Model.ReturnJourney.Leg1.Id"
+           asp-route-retLeg2Id="@Model.ReturnJourney.Leg2.Id"
+           class="reserve-btn btn btn-primary">
             Book Round-Trip Bundle
         </a>
     </div>

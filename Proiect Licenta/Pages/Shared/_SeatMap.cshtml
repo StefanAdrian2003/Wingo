@@ -1,0 +1,102 @@
+﻿@using Proiect_Licenta.Models
+@model SeatMapViewModel
+@{
+    var flightId = Model.FlightId;
+    var basePrice = Model.BasePrice;
+    var multipliers = Model.Multipliers;
+}
+
+<div class="aircraft-wrap">
+    <div class="aircraft-nose"></div>
+
+    @foreach (var seatSection in Model.Flight.Aircraft.SeatSections.OrderBy(ss => ss.StartRow))
+    {
+        var blocks = seatSection.Layout.Split('-');
+        var multiplier = multipliers[seatSection.TravelClass];
+        var sectionPrice = Math.Round(basePrice * multiplier, 2);
+
+        var seatLookup = seatSection.Seats
+        .GroupBy(s => s.SeatNumber)
+        .ToDictionary(g => g.Key, g => g.First());
+
+        int totalSeatsInSection = seatLookup.Count;
+        int availableSeatsInSection = seatLookup.Values
+        .Count(s => s.FlightSeats.FirstOrDefault(fs => fs.FlightId == flightId)?.TicketId == null);
+        int takenSeatsInSection = totalSeatsInSection - availableSeatsInSection;
+
+        <div class="cabin-section @seatSection.TravelClass.ToString().ToLower()">
+
+            <div class="cabin-label-row">
+                <span class="cabin-label">@seatSection.TravelClass Class</span>
+                <span class="cabin-price">from €@sectionPrice</span>
+            </div>
+
+            <div class="cabin-stats">
+                <span class="stat-item total">🪑 @totalSeatsInSection seats total</span>
+                <span class="stat-item avail">✅ @availableSeatsInSection available</span>
+                <span class="stat-item taken">❌ @takenSeatsInSection taken</span>
+            </div>
+
+            <div class="seat-row header-row">
+                <span class="row-num"></span>
+                @foreach (var block in blocks)
+                {
+                    <span class="seat-block-header">
+                        @foreach (char letter in block)
+                        {
+                            <span class="col-label">@letter</span>
+                        }
+                    </span>
+                    if (block != blocks.Last())
+                    {
+                        <span class="aisle-header"></span>
+                    }
+                }
+            </div>
+
+            @for (int row = seatSection.StartRow; row <= seatSection.EndRow; row++)
+            {
+                <div class="seat-row">
+                    <span class="row-num">@row</span>
+                    @foreach (var block in blocks)
+                    {
+                        <span class="seat-block">
+                            @foreach (char letter in block)
+                            {
+                                var seatNum = $"{row}{letter}";
+                                if (!seatLookup.ContainsKey(seatNum)) { continue; }
+
+                                var seat = seatLookup[seatNum];
+                                var flightSeat = seat.FlightSeats.FirstOrDefault(fs => fs.FlightId == flightId);
+                                bool isTaken = flightSeat?.TicketId != null;
+                                bool isSelected = Model.Preselected.Contains(seat.Id);
+
+                                var cssClass = isTaken ? "seat taken"
+                                : isSelected ? $"seat {Model.CssAvailable} selected"
+                                : $"seat {Model.CssAvailable}";
+
+                                <button type="button"
+                                        class="@cssClass"
+                                        data-seat-id="@seat.Id"
+                                        data-seat-number="@seatNum"
+                                        data-price="@sectionPrice"
+                                        data-class="@seatSection.TravelClass"
+                                        data-flight="@Model.DataFlight"
+                                        @(isTaken ? "disabled" : "")
+                                        title="@seatNum — €@sectionPrice">
+                                    @seatNum
+                                </button>
+                            }
+                        </span>
+                        if (block != blocks.Last())
+                        {
+                            <span class="aisle"></span>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <div class="aircraft-tail"></div>
+</div>

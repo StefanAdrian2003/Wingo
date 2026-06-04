@@ -14,12 +14,22 @@
     decimal outboundSeatsTotal = Model.SelectedSeats.Sum(s =>
         Math.Round(basePrice * multipliers[s.SeatSection.TravelClass], 2));
 
+    decimal leg2SeatsTotal = Model.Leg2Flight != null
+        ? Model.Leg2Seats.Sum(s =>
+            Math.Round(Model.Leg2Flight.Price * multipliers[s.SeatSection.TravelClass], 2))
+        : 0m;
+
     decimal returnSeatsTotal = Model.ReturnFlight != null
         ? Model.ReturnSeats.Sum(s =>
             Math.Round(Model.ReturnFlight.Price * multipliers[s.SeatSection.TravelClass], 2))
         : 0m;
 
-    decimal allSeatsTotal = outboundSeatsTotal + returnSeatsTotal;
+    decimal retLeg2SeatsTotal = Model.ReturnLeg2Flight != null
+        ? Model.ReturnLeg2Seats.Sum(s =>
+            Math.Round(Model.ReturnLeg2Flight.Price * multipliers[s.SeatSection.TravelClass], 2))
+        : 0m;
+
+    decimal allSeatsTotal = outboundSeatsTotal + leg2SeatsTotal + returnSeatsTotal + retLeg2SeatsTotal;
 }
 
 <link rel="stylesheet" href="~/css/BookingBaggage.css" asp-append-version="true" />
@@ -45,14 +55,25 @@
             <form method="post" id="baggageForm">
                 @Html.AntiForgeryToken()
 
+                @if (Model.Leg2Flight != null)
+                {
+                    <div class="flight-segment-divider outbound" style="margin: 0 0 1rem;">
+                        <img src="@Model.Flight.Airline.LogoUrl" class="mini-logo" />
+                        <span>@Model.Flight.FlightNumber</span>
+                        <span class="route-mini">
+                            @Model.Flight.DepartureAirport.IATACode → @Model.Flight.ArrivalAirport.IATACode
+                        </span>
+                        <span class="leg-badge">Leg 1</span>
+                    </div>
+                }
+
                 @for (int i = 0; i < Model.SelectedSeats.Count; i++)
                 {
                     var seat = Model.SelectedSeats[i];
                     var travelClass = seat.SeatSection.TravelClass;
                     var seatPrice = Math.Round(basePrice * multipliers[travelClass], 2);
 
-                    <div class="baggage-card" data-index="@i" data-seat-price="@seatPrice">
-
+                    <div class="baggage-card outbound-card" data-index="ob@i" data-seat-price="@seatPrice">
                         <div class="card-header">
                             <div class="passenger-info">
                                 <span class="passenger-label">Passenger @(i + 1)</span>
@@ -64,14 +85,11 @@
                         </div>
 
                         <div class="baggage-options">
-                            <label class="baggage-option" data-baggage-price="0">
+                            <label class="baggage-option selected" data-baggage-price="0">
                                 <input type="radio" name="baggageTypes[@i]" value="None" checked class="baggage-radio" />
                                 <div class="option-content">
                                     <span class="option-icon">🚫</span>
-                                    <div class="option-text">
-                                        <span class="option-name">No Baggage</span>
-                                        <span class="option-desc">Personal item only</span>
-                                    </div>
+                                    <div class="option-text"><span class="option-name">No Baggage</span><span class="option-desc">Personal item only</span></div>
                                     <span class="option-price free">FREE</span>
                                 </div>
                             </label>
@@ -79,10 +97,7 @@
                                 <input type="radio" name="baggageTypes[@i]" value="Cabin" class="baggage-radio" />
                                 <div class="option-content">
                                     <span class="option-icon">🎒</span>
-                                    <div class="option-text">
-                                        <span class="option-name">Cabin Bag</span>
-                                        <span class="option-desc">Up to 10kg, fits overhead</span>
-                                    </div>
+                                    <div class="option-text"><span class="option-name">Cabin Bag</span><span class="option-desc">Up to 10kg, fits overhead</span></div>
                                     <span class="option-price free">FREE</span>
                                 </div>
                             </label>
@@ -90,10 +105,7 @@
                                 <input type="radio" name="baggageTypes[@i]" value="Checked20" class="baggage-radio" />
                                 <div class="option-content">
                                     <span class="option-icon">🧳</span>
-                                    <div class="option-text">
-                                        <span class="option-name">Checked Bag 20kg</span>
-                                        <span class="option-desc">Standard hold luggage</span>
-                                    </div>
+                                    <div class="option-text"><span class="option-name">Checked Bag 20kg</span><span class="option-desc">Standard hold luggage</span></div>
                                     <span class="option-price">+€25.00</span>
                                 </div>
                             </label>
@@ -101,10 +113,7 @@
                                 <input type="radio" name="baggageTypes[@i]" value="Checked32" class="baggage-radio" />
                                 <div class="option-content">
                                     <span class="option-icon">📦</span>
-                                    <div class="option-text">
-                                        <span class="option-name">Checked Bag 32kg</span>
-                                        <span class="option-desc">Large hold luggage</span>
-                                    </div>
+                                    <div class="option-text"><span class="option-name">Checked Bag 32kg</span><span class="option-desc">Large hold luggage</span></div>
                                     <span class="option-price">+€40.00</span>
                                 </div>
                             </label>
@@ -114,19 +123,101 @@
                             <label class="extra-bag-label">
                                 <input type="checkbox" name="hasExtraBags[@i]" value="true" class="extra-checkbox" data-extra-price="35" />
                                 <span class="extra-icon">➕</span>
-                                <div class="extra-text">
-                                    <span class="extra-name">Extra Bag</span>
-                                    <span class="extra-desc">1 additional checked bag, max 23kg</span>
-                                </div>
+                                <div class="extra-text"><span class="extra-name">Extra Bag</span><span class="extra-desc">1 additional checked bag, max 23kg</span></div>
                                 <span class="extra-price">+€35.00</span>
                             </label>
                             <input type="hidden" name="hasExtraBags[@i]" value="false" />
                         </div>
 
                         <div class="card-subtotal">
-                            Baggage subtotal: <span class="subtotal-value" id="subtotal-@i">€0.00</span>
+                            Baggage subtotal: <span class="subtotal-value" id="subtotal-ob@i">€0.00</span>
                         </div>
                     </div>
+                }
+
+                @if (Model.Leg2Flight != null && Model.Leg2Seats.Any())
+                {
+                    <div class="layover-connector">
+                        <span class="layover-badge">🔁 Layover · connecting flight</span>
+                    </div>
+
+                    <div class="flight-segment-divider outbound" style="margin: 0 0 1rem;">
+                        <img src="@Model.Leg2Flight.Airline.LogoUrl" class="mini-logo" />
+                        <span>@Model.Leg2Flight.FlightNumber</span>
+                        <span class="route-mini">
+                            @Model.Leg2Flight.DepartureAirport.IATACode → @Model.Leg2Flight.ArrivalAirport.IATACode
+                        </span>
+                        <span class="leg-badge">Leg 2</span>
+                    </div>
+
+                    var leg2Price = Model.Leg2Flight.Price;
+                    @for (int i = 0; i < Model.Leg2Seats.Count; i++)
+                    {
+                        var seat = Model.Leg2Seats[i];
+                        var travelClass = seat.SeatSection.TravelClass;
+                        var seatPrice = Math.Round(leg2Price * multipliers[travelClass], 2);
+
+                        <div class="baggage-card leg2-card" data-index="leg2@i" data-seat-price="@seatPrice">
+                            <div class="card-header">
+                                <div class="passenger-info">
+                                    <span class="passenger-label">Passenger @(i + 1)</span>
+                                    <span class="seat-badge @travelClass.ToString().ToLower()">
+                                        Seat @seat.SeatNumber — @travelClass
+                                    </span>
+                                </div>
+                                <span class="seat-ticket-price">€@seatPrice</span>
+                            </div>
+
+                            <div class="baggage-options">
+                                <label class="baggage-option selected" data-baggage-price="0">
+                                    <input type="radio" name="leg2BaggageTypes[@i]" value="None" checked class="baggage-radio" />
+                                    <div class="option-content">
+                                        <span class="option-icon">🚫</span>
+                                        <div class="option-text"><span class="option-name">No Baggage</span><span class="option-desc">Personal item only</span></div>
+                                        <span class="option-price free">FREE</span>
+                                    </div>
+                                </label>
+                                <label class="baggage-option" data-baggage-price="0">
+                                    <input type="radio" name="leg2BaggageTypes[@i]" value="Cabin" class="baggage-radio" />
+                                    <div class="option-content">
+                                        <span class="option-icon">🎒</span>
+                                        <div class="option-text"><span class="option-name">Cabin Bag</span><span class="option-desc">Up to 10kg, fits overhead</span></div>
+                                        <span class="option-price free">FREE</span>
+                                    </div>
+                                </label>
+                                <label class="baggage-option" data-baggage-price="25">
+                                    <input type="radio" name="leg2BaggageTypes[@i]" value="Checked20" class="baggage-radio" />
+                                    <div class="option-content">
+                                        <span class="option-icon">🧳</span>
+                                        <div class="option-text"><span class="option-name">Checked Bag 20kg</span><span class="option-desc">Standard hold luggage</span></div>
+                                        <span class="option-price">+€25.00</span>
+                                    </div>
+                                </label>
+                                <label class="baggage-option" data-baggage-price="40">
+                                    <input type="radio" name="leg2BaggageTypes[@i]" value="Checked32" class="baggage-radio" />
+                                    <div class="option-content">
+                                        <span class="option-icon">📦</span>
+                                        <div class="option-text"><span class="option-name">Checked Bag 32kg</span><span class="option-desc">Large hold luggage</span></div>
+                                        <span class="option-price">+€40.00</span>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="extra-bag-row">
+                                <label class="extra-bag-label">
+                                    <input type="checkbox" name="leg2HasExtraBags[@i]" value="true" class="extra-checkbox" data-extra-price="35" />
+                                    <span class="extra-icon">➕</span>
+                                    <div class="extra-text"><span class="extra-name">Extra Bag</span><span class="extra-desc">1 additional checked bag, max 23kg</span></div>
+                                    <span class="extra-price">+€35.00</span>
+                                </label>
+                                <input type="hidden" name="leg2HasExtraBags[@i]" value="false" />
+                            </div>
+
+                            <div class="card-subtotal">
+                                Baggage subtotal: <span class="subtotal-value" id="subtotal-leg2@i">€0.00</span>
+                            </div>
+                        </div>
+                    }
                 }
 
                 @if (Model.ReturnFlight != null && Model.ReturnSeats.Any())
@@ -137,15 +228,20 @@
                         <span class="route-mini">
                             @Model.ReturnFlight.DepartureAirport.IATACode → @Model.ReturnFlight.ArrivalAirport.IATACode
                         </span>
+                        @if (Model.ReturnLeg2Flight != null)
+                        {
+                            <span class="leg-badge">Leg 1</span>
+                        }
                     </div>
 
+                    var retPrice = Model.ReturnFlight.Price;
                     @for (int i = 0; i < Model.ReturnSeats.Count; i++)
                     {
                         var seat = Model.ReturnSeats[i];
                         var travelClass = seat.SeatSection.TravelClass;
-                        var seatPrice = Math.Round(Model.ReturnFlight.Price * multipliers[travelClass], 2);
+                        var seatPrice = Math.Round(retPrice * multipliers[travelClass], 2);
 
-                        <div class="baggage-card return-card" data-index="r@i" data-seat-price="@seatPrice">
+                        <div class="baggage-card return-card" data-index="ret@i" data-seat-price="@seatPrice">
                             <div class="card-header">
                                 <div class="passenger-info">
                                     <span class="passenger-label">Return Passenger @(i + 1)</span>
@@ -202,7 +298,92 @@
                             </div>
 
                             <div class="card-subtotal">
-                                Baggage subtotal: <span class="subtotal-value" id="subtotal-r@i">€0.00</span>
+                                Baggage subtotal: <span class="subtotal-value" id="subtotal-ret@i">€0.00</span>
+                            </div>
+                        </div>
+                    }
+                }
+
+                @if (Model.ReturnLeg2Flight != null && Model.ReturnLeg2Seats.Any())
+                {
+                    <div class="layover-connector return-layover">
+                        <span class="layover-badge return-layover-badge">🔁 Layover · connecting flight</span>
+                    </div>
+
+                    <div class="flight-segment-divider return" style="margin: 0 0 1rem;">
+                        <img src="@Model.ReturnLeg2Flight.Airline.LogoUrl" class="mini-logo" />
+                        <span>@Model.ReturnLeg2Flight.FlightNumber</span>
+                        <span class="route-mini">
+                            @Model.ReturnLeg2Flight.DepartureAirport.IATACode → @Model.ReturnLeg2Flight.ArrivalAirport.IATACode
+                        </span>
+                        <span class="leg-badge return-leg-badge">Leg 2</span>
+                    </div>
+
+                    var retLeg2Price = Model.ReturnLeg2Flight.Price;
+                    @for (int i = 0; i < Model.ReturnLeg2Seats.Count; i++)
+                    {
+                        var seat = Model.ReturnLeg2Seats[i];
+                        var travelClass = seat.SeatSection.TravelClass;
+                        var seatPrice = Math.Round(retLeg2Price * multipliers[travelClass], 2);
+
+                        <div class="baggage-card retleg2-card" data-index="retleg2@i" data-seat-price="@seatPrice">
+                            <div class="card-header">
+                                <div class="passenger-info">
+                                    <span class="passenger-label">Return Passenger @(i + 1)</span>
+                                    <span class="seat-badge @travelClass.ToString().ToLower()">
+                                        Seat @seat.SeatNumber — @travelClass
+                                    </span>
+                                </div>
+                                <span class="seat-ticket-price">€@seatPrice</span>
+                            </div>
+
+                            <div class="baggage-options">
+                                <label class="baggage-option selected" data-baggage-price="0">
+                                    <input type="radio" name="retLeg2BaggageTypes[@i]" value="None" checked class="baggage-radio" />
+                                    <div class="option-content">
+                                        <span class="option-icon">🚫</span>
+                                        <div class="option-text"><span class="option-name">No Baggage</span><span class="option-desc">Personal item only</span></div>
+                                        <span class="option-price free">FREE</span>
+                                    </div>
+                                </label>
+                                <label class="baggage-option" data-baggage-price="0">
+                                    <input type="radio" name="retLeg2BaggageTypes[@i]" value="Cabin" class="baggage-radio" />
+                                    <div class="option-content">
+                                        <span class="option-icon">🎒</span>
+                                        <div class="option-text"><span class="option-name">Cabin Bag</span><span class="option-desc">Up to 10kg, fits overhead</span></div>
+                                        <span class="option-price free">FREE</span>
+                                    </div>
+                                </label>
+                                <label class="baggage-option" data-baggage-price="25">
+                                    <input type="radio" name="retLeg2BaggageTypes[@i]" value="Checked20" class="baggage-radio" />
+                                    <div class="option-content">
+                                        <span class="option-icon">🧳</span>
+                                        <div class="option-text"><span class="option-name">Checked Bag 20kg</span><span class="option-desc">Standard hold luggage</span></div>
+                                        <span class="option-price">+€25.00</span>
+                                    </div>
+                                </label>
+                                <label class="baggage-option" data-baggage-price="40">
+                                    <input type="radio" name="retLeg2BaggageTypes[@i]" value="Checked32" class="baggage-radio" />
+                                    <div class="option-content">
+                                        <span class="option-icon">📦</span>
+                                        <div class="option-text"><span class="option-name">Checked Bag 32kg</span><span class="option-desc">Large hold luggage</span></div>
+                                        <span class="option-price">+€40.00</span>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="extra-bag-row">
+                                <label class="extra-bag-label">
+                                    <input type="checkbox" name="retLeg2HasExtraBags[@i]" value="true" class="extra-checkbox" data-extra-price="35" />
+                                    <span class="extra-icon">➕</span>
+                                    <div class="extra-text"><span class="extra-name">Extra Bag</span><span class="extra-desc">1 additional checked bag, max 23kg</span></div>
+                                    <span class="extra-price">+€35.00</span>
+                                </label>
+                                <input type="hidden" name="retLeg2HasExtraBags[@i]" value="false" />
+                            </div>
+
+                            <div class="card-subtotal">
+                                Baggage subtotal: <span class="subtotal-value" id="subtotal-retleg2@i">€0.00</span>
                             </div>
                         </div>
                     }
@@ -210,7 +391,6 @@
 
                 <button type="submit" id="hiddenSubmit" style="display:none;"></button>
             </form>
-
         </div>
 
         <div class="summary-panel">
@@ -220,25 +400,52 @@
                 <div class="summary-section">
                     <div class="summary-section-label">
                         @(Model.ReturnFlight != null ? "Outbound Seats" : "Seats")
-                    </div>
-                    <div id="seatSummaryList">
-                        @for (int i = 0; i < Model.SelectedSeats.Count; i++)
+                        @if (Model.Leg2Flight != null)
                         {
-                            var seat = Model.SelectedSeats[i];
+                            <span class="leg-badge" style="font-size:0.7rem;">Leg 1</span>
+                        }
+                    </div>
+                    @for (int i = 0; i < Model.SelectedSeats.Count; i++)
+                    {
+                        var seat = Model.SelectedSeats[i];
+                        var travelClass = seat.SeatSection.TravelClass;
+                        var seatPrice = Math.Round(basePrice * multipliers[travelClass], 2);
+                        <div class="summary-line">
+                            <span class="summary-seat-chip @travelClass.ToString().ToLower()">@seat.SeatNumber</span>
+                            <span class="summary-line-price">€@seatPrice</span>
+                        </div>
+                    }
+                </div>
+
+                @if (Model.Leg2Flight != null && Model.Leg2Seats.Any())
+                {
+                    <div class="summary-section">
+                        <div class="summary-section-label">
+                            Outbound Seats <span class="leg-badge" style="font-size:0.7rem;">Leg 2</span>
+                        </div>
+                        @for (int i = 0; i < Model.Leg2Seats.Count; i++)
+                        {
+                            var seat = Model.Leg2Seats[i];
                             var travelClass = seat.SeatSection.TravelClass;
-                            var seatPrice = Math.Round(basePrice * multipliers[travelClass], 2);
+                            var seatPrice = Math.Round(Model.Leg2Flight.Price * multipliers[travelClass], 2);
                             <div class="summary-line">
                                 <span class="summary-seat-chip @travelClass.ToString().ToLower()">@seat.SeatNumber</span>
                                 <span class="summary-line-price">€@seatPrice</span>
                             </div>
                         }
                     </div>
-                </div>
+                }
 
                 @if (Model.ReturnFlight != null && Model.ReturnSeats.Any())
                 {
                     <div class="summary-section">
-                        <div class="summary-section-label" style="color:#9c27b0;">Return Seats</div>
+                        <div class="summary-section-label" style="color:#9c27b0;">
+                            Return Seats
+                            @if (Model.ReturnLeg2Flight != null)
+                            {
+                                <span class="leg-badge" style="font-size:0.7rem;">Leg 1</span>
+                            }
+                        </div>
                         @for (int i = 0; i < Model.ReturnSeats.Count; i++)
                         {
                             var seat = Model.ReturnSeats[i];
@@ -252,25 +459,55 @@
                     </div>
                 }
 
+                @if (Model.ReturnLeg2Flight != null && Model.ReturnLeg2Seats.Any())
+                {
+                    <div class="summary-section">
+                        <div class="summary-section-label" style="color:#9c27b0;">
+                            Return Seats <span class="leg-badge" style="font-size:0.7rem;">Leg 2</span>
+                        </div>
+                        @for (int i = 0; i < Model.ReturnLeg2Seats.Count; i++)
+                        {
+                            var seat = Model.ReturnLeg2Seats[i];
+                            var travelClass = seat.SeatSection.TravelClass;
+                            var seatPrice = Math.Round(Model.ReturnLeg2Flight.Price * multipliers[travelClass], 2);
+                            <div class="summary-line">
+                                <span class="summary-seat-chip @travelClass.ToString().ToLower()" style="background:#9c27b0;">@seat.SeatNumber</span>
+                                <span class="summary-line-price">€@seatPrice</span>
+                            </div>
+                        }
+                    </div>
+                }
+
                 <div class="summary-section">
                     <div class="summary-section-label">Baggage</div>
                     <div id="baggageSummaryList">
                         @for (int i = 0; i < Model.SelectedSeats.Count; i++)
                         {
-                            <div class="summary-line" id="baggage-summary-@i">
+                            <div class="summary-line" id="baggage-summary-ob@i">
                                 <span class="summary-bag-label">Seat @Model.SelectedSeats[i].SeatNumber</span>
-                                <span class="summary-line-price" id="bag-price-@i">€0.00</span>
+                                <span class="summary-line-price" id="bag-price-ob@i">€0.00</span>
                             </div>
                         }
-                        @if (Model.ReturnFlight != null)
+                        @for (int i = 0; i < Model.Leg2Seats.Count; i++)
                         {
-                            @for (int i = 0; i < Model.ReturnSeats.Count; i++)
-                            {
-                                <div class="summary-line" id="baggage-summary-r@i">
-                                    <span class="summary-bag-label" style="color:#9c27b0;">↩ Seat @Model.ReturnSeats[i].SeatNumber</span>
-                                    <span class="summary-line-price" id="bag-price-r@i">€0.00</span>
-                                </div>
-                            }
+                            <div class="summary-line" id="baggage-summary-leg2@i">
+                                <span class="summary-bag-label">L2 Seat @Model.Leg2Seats[i].SeatNumber</span>
+                                <span class="summary-line-price" id="bag-price-leg2@i">€0.00</span>
+                            </div>
+                        }
+                        @for (int i = 0; i < Model.ReturnSeats.Count; i++)
+                        {
+                            <div class="summary-line" id="baggage-summary-ret@i">
+                                <span class="summary-bag-label" style="color:#9c27b0;">↩ Seat @Model.ReturnSeats[i].SeatNumber</span>
+                                <span class="summary-line-price" id="bag-price-ret@i">€0.00</span>
+                            </div>
+                        }
+                        @for (int i = 0; i < Model.ReturnLeg2Seats.Count; i++)
+                        {
+                            <div class="summary-line" id="baggage-summary-retleg2@i">
+                                <span class="summary-bag-label" style="color:#9c27b0;">↩ L2 Seat @Model.ReturnLeg2Seats[i].SeatNumber</span>
+                                <span class="summary-line-price" id="bag-price-retleg2@i">€0.00</span>
+                            </div>
                         }
                     </div>
                 </div>
@@ -296,7 +533,6 @@
                 <button type="button" class="btn-continue" onclick="document.getElementById('hiddenSubmit').click()">
                     Continue to Review →
                 </button>
-
             </div>
         </div>
 
@@ -305,13 +541,7 @@
 
 @section Scripts {
     <script>
-        const seatPrices = [@Html.Raw(string.Join(",", Model.SelectedSeats.Select(s =>
-                    Math.Round(basePrice * multipliers[s.SeatSection.TravelClass], 2))))];
-
-    const returnSeatPrices = [@Html.Raw(string.Join(",", Model.ReturnSeats.Select(s =>
-                Math.Round((Model.ReturnFlight?.Price ?? 0) * multipliers[s.SeatSection.TravelClass], 2))))];
-
-    const totalSeatsAmount = [...seatPrices, ...returnSeatPrices].reduce((a, b) => a + b, 0);
+        const totalSeatsAmount = @allSeatsTotal;
 
         function recalculate() {
             let totalBaggage = 0;
@@ -323,7 +553,9 @@
                 const subtotalEl = document.getElementById(`subtotal-${index}`);
                 const bagPriceEl = document.getElementById(`bag-price-${index}`);
 
-                let bagPrice = radio ? parseFloat(radio.closest('.baggage-option').dataset.baggagePrice) : 0;
+                let bagPrice = radio
+                    ? parseFloat(radio.closest('.baggage-option').dataset.baggagePrice)
+                    : 0;
                 if (extra && extra.checked) bagPrice += 35;
 
                 totalBaggage += bagPrice;
@@ -352,6 +584,6 @@
             radio.closest('.baggage-option').classList.add('selected');
         });
 
-            recalculate();
+        recalculate();
     </script>
 }

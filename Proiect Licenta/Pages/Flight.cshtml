@@ -7,7 +7,6 @@
     {
         { "DepartureAirportId", Model.DepartureAirportId?.ToString() ?? "" },
         { "ArrivalAirportId", Model.ArrivalAirportId?.ToString() ?? "" },
-        { "WithLayover", Model.WithLayover.ToString().ToLower() },
         { "IsRoundTrip", Model.IsRoundTrip.ToString().ToLower() },
         { "MaxPrice", Model.MaxPrice?.ToString() ?? "" },
         { "SelectedDate", Model.SelectedDate?.ToString("yyyy-MM-dd") ?? "" },
@@ -58,11 +57,6 @@
                 <input asp-for="ReturnDate" type="date" class="form-control" id="returnDateInput" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
 
-            <div class="form-check mb-3">
-                <input asp-for="WithLayover" class="form-check-input" type="checkbox" id="withLayoverCheck" />
-                <label asp-for="WithLayover" class="form-check-label">Allow 1-Stop Layovers</label>
-            </div>
-
             <div class="mb-3">
                 <label>Maximum Price (€)</label>
                 <input asp-for="MaxPrice" type="number" min="0" class="form-control" placeholder="Ex: 300" />
@@ -77,14 +71,26 @@
     <div class="flights-container background">
         <h2>Available Flights</h2>
 
-        @if (!Model.Flights.Any() && !Model.RoundTrips.Any() && !Model.ConnectingFlights.Any())
+        @* FIX: RoundTripConnectings was missing from the empty-state check, so layover
+               round-trip results caused "No flights found" to always display. *@
+        @if (!Model.Flights.Any() && !Model.RoundTrips.Any() && !Model.ConnectingFlights.Any() && !Model.RoundTripConnectings.Any())
         {
             <p class="text-center py-4">No flights found.</p>
         }
         else
         {
             <div class="flight-list">
-                @if (Model.IsRoundTrip && Model.RoundTrips.Any())
+                @if (Model.IsRoundTrip && Model.RoundTripConnectings.Any())
+                {
+                    <div class="alert alert-info text-center mb-4">
+                        No direct round trips found — showing 1-stop options instead.
+                    </div>
+                    @foreach (var combo in Model.RoundTripConnectings)
+                    {
+                        <partial name="_RoundTripLayoverCard" model="combo" />
+                    }
+                }
+                else if (Model.IsRoundTrip && Model.RoundTrips.Any())
                 {
                     @foreach (var roundTrip in Model.RoundTrips)
                     {
@@ -103,7 +109,6 @@
                     <div class="alert alert-info text-center mb-4">
                         <i class="bi bi-info-circle"></i> We couldn't find any direct flights, but we found these 1-stop layover options!
                     </div>
-
                     @foreach (var connectingFlight in Model.ConnectingFlights)
                     {
                         <partial name="_LayoverCard" model="connectingFlight" />
@@ -182,17 +187,13 @@
             const $returnDateWrapper = $('#returnDateWrapper');
             const $departureDateInput = $('input[name="SelectedDate"]');
             const $returnDateInput = $('#returnDateInput');
-            const $withLayoverCheck = $('#withLayoverCheck');
 
             function toggleReturnDateVisibility() {
                 if ($isRoundTripCheck.is(':checked')) {
                     $returnDateWrapper.slideDown(200);
-                    // Disable layover option when searching round trips to prevent complex UI clashes
-                    $withLayoverCheck.prop('checked', false).prop('disabled', true);
                 } else {
                     $returnDateWrapper.slideUp(200);
                     $returnDateInput.val('');
-                    $withLayoverCheck.prop('disabled', false);
                 }
             }
 

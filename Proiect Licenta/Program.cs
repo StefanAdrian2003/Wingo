@@ -143,6 +143,7 @@ using (var scope = app.Services.CreateScope())
         }
 
         await CompanySeeder.SeedCompaniesAsync(context, userManager);
+        await TestLayoverSeeder.SeedAsync(context, userManager);
     }
     catch (Exception ex)
     {

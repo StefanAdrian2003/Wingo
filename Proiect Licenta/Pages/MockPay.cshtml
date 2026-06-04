@@ -14,11 +14,48 @@
 
 <link rel="stylesheet" href="~/css/MockPay.css" asp-append-version="true" />
 
+<style>
+    .passenger-item-block {
+        margin-bottom: 14px;
+    }
+
+    .baggage-sub-line {
+        padding-left: 38px;
+        margin-top: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .baggage-icon {
+        font-size: 0.95rem;
+        margin-right: 6px;
+    }
+
+    .secondary-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .item-description {
+        flex-grow: 1;
+        text-align: left;
+        margin-left: 8px;
+    }
+
+    .flight-segment-header {
+        margin-top: 12px;
+        margin-bottom: 8px;
+        background-color: #f8f9fa;
+        padding: 6px 10px;
+        border-radius: 4px;
+    }
+</style>
+
 <div class="background">
     <div class="pay-layout">
 
         <div class="pay-panel">
-
             <div class="page-header">
                 <h2 class="page-title">Payment</h2>
             </div>
@@ -81,111 +118,198 @@
 
                 <div class="voucher-box">
                     <label>Voucher</label>
-
                     <select asp-for="SelectedVoucherId">
                         <option value="">No voucher</option>
-
                         @foreach (var v in Model.UserVouchers)
                         {
-                            <option value="@v.Id"
-                                    data-discount="@v.DiscountPercent">
+                            <option value="@v.Id" data-discount="@v.DiscountPercent">
                                 @v.Name - @v.DiscountPercent%
                             </option>
                         }
                     </select>
                 </div>
 
-
                 <div class="secure-note">
                     🔒 This is a demo — no real payment is processed
                 </div>
 
                 <button type="submit" class="btn-pay" id="payBtn">
-                    Pay 
+                    Pay
                 </button>
             </form>
-
         </div>
-
 
         <div class="order-summary">
             <div class="summary-sticky">
                 <h3 class="summary-title">Order Summary</h3>
 
-                <!-- OUTBOUND -->
-                <div class="flight-mini">
-                    <div class="flight-mini-info">
-                        <span class="flight-num">
-                            @Model.Flight.FlightNumber
-                        </span>
-
-                        <span class="flight-route">
-                            @Model.Flight.DepartureAirport.IATACode →
-                            @Model.Flight.ArrivalAirport.IATACode
-                        </span>
-                    </div>
-                </div>
-
-                <div class="summary-divider"></div>
-
-                @for (int i = 0; i < Model.SelectedSeats.Count; i++)
+                @if (Model.Flight != null && Model.SelectedSeats.Any())
                 {
-                    var seat = Model.SelectedSeats[i];
-                    var travelClass = seat.SeatSection.TravelClass;
-                    var seatPrice = Math.Round(Model.Flight.Price * multipliers[travelClass], 2);
-                    var baggage = Model.Session.Baggage?.ElementAtOrDefault(i);
-                    var bagPrice = baggage?.TotalBaggagePrice ?? 0m;
-
-                    <div class="order-line">
-                        <span class="seat-chip @travelClass.ToString().ToLower()">
-                            @seat.SeatNumber
-                        </span>
-
-                        <span>@travelClass Class</span>
-
-                        <span class="order-line-price">
-                            €@(seatPrice + bagPrice)
-                        </span>
-                    </div>
-                }
-
-                @* ───── RETURN FLIGHT ───── *@
-                @if (Model.Session?.ReturnFlightId != null && Model.ReturnSeats.Any())
-                {
-                    <div class="summary-divider"></div>
-
-                    <div class="flight-mini">
+                    <div class="flight-mini flight-segment-header">
                         <div class="flight-mini-info">
-                            <span class="flight-num">
-                                @Model.ReturnFlight.FlightNumber
-                            </span>
-
+                            <span class="flight-num">@Model.Flight.FlightNumber</span>
                             <span class="flight-route">
-                                @Model.ReturnFlight.DepartureAirport.IATACode →
-                                @Model.ReturnFlight.ArrivalAirport.IATACode
+                                @Model.Flight.DepartureAirport.IATACode → @Model.Flight.ArrivalAirport.IATACode
                             </span>
                         </div>
                     </div>
 
+                    @for (int i = 0; i < Model.SelectedSeats.Count; i++)
+                    {
+                        var seat = Model.SelectedSeats[i];
+                        var travelClass = seat.SeatSection.TravelClass;
+                        var seatPrice = Math.Round(Model.Flight.Price * multipliers[travelClass], 2);
+                        var baggage = Model.Session?.Baggage?.ElementAtOrDefault(i);
+                        var bagPrice = baggage?.TotalBaggagePrice ?? 0m;
+
+                        <div class="passenger-item-block">
+                            <div class="order-line">
+                                <span class="seat-chip @travelClass.ToString().ToLower()">
+                                    @seat.SeatNumber
+                                </span>
+                                <span class="item-description">@travelClass Class Seat</span>
+                                <span class="order-line-price">€@seatPrice</span>
+                            </div>
+
+                            @if (bagPrice > 0)
+                            {
+                                <div class="baggage-sub-line">
+                                    <div>
+                                        <span class="baggage-icon">🧳</span>
+                                        <span class="secondary-text">Checked Baggage Add-on</span>
+                                    </div>
+                                    <span class="secondary-text">+€@bagPrice</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+
+                @if (Model.Leg2Flight != null && Model.Leg2Seats.Any())
+                {
+                    <div class="summary-divider"></div>
+                    <div class="flight-mini flight-segment-header">
+                        <div class="flight-mini-info">
+                            <span class="flight-num">@Model.Leg2Flight.FlightNumber</span>
+                            <span class="flight-route">
+                                @Model.Leg2Flight.DepartureAirport.IATACode → @Model.Leg2Flight.ArrivalAirport.IATACode
+                            </span>
+                        </div>
+                    </div>
+
+                    @for (int i = 0; i < Model.Leg2Seats.Count; i++)
+                    {
+                        var seat = Model.Leg2Seats[i];
+                        var travelClass = seat.SeatSection.TravelClass;
+                        var seatPrice = Math.Round(Model.Leg2Flight.Price * multipliers[travelClass], 2);
+                        var baggage = Model.Session?.Leg2Baggage?.ElementAtOrDefault(i);
+                        var bagPrice = baggage?.TotalBaggagePrice ?? 0m;
+
+                        <div class="passenger-item-block">
+                            <div class="order-line">
+                                <span class="seat-chip @travelClass.ToString().ToLower()">
+                                    @seat.SeatNumber
+                                </span>
+                                <span class="item-description">@travelClass Class Seat</span>
+                                <span class="order-line-price">€@seatPrice</span>
+                            </div>
+
+                            @if (bagPrice > 0)
+                            {
+                                <div class="baggage-sub-line">
+                                    <div>
+                                        <span class="baggage-icon">🧳</span>
+                                        <span class="secondary-text">Checked Baggage Add-on</span>
+                                    </div>
+                                    <span class="secondary-text">+€@bagPrice</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+
+                @if (Model.ReturnFlight != null && Model.ReturnSeats.Any())
+                {
+                    <div class="summary-divider"></div>
+                    <div class="flight-mini flight-segment-header">
+                        <div class="flight-mini-info">
+                            <span class="flight-num">@Model.ReturnFlight.FlightNumber</span>
+                            <span class="flight-route">
+                                @Model.ReturnFlight.DepartureAirport.IATACode → @Model.ReturnFlight.ArrivalAirport.IATACode
+                            </span>
+                        </div>
+                    </div>
 
                     @for (int i = 0; i < Model.ReturnSeats.Count; i++)
                     {
                         var seat = Model.ReturnSeats[i];
                         var travelClass = seat.SeatSection.TravelClass;
                         var seatPrice = Math.Round(Model.ReturnFlight.Price * multipliers[travelClass], 2);
-                        var baggage = Model.Session.ReturnBaggage?.ElementAtOrDefault(i);
+                        var baggage = Model.Session?.ReturnBaggage?.ElementAtOrDefault(i);
                         var bagPrice = baggage?.TotalBaggagePrice ?? 0m;
 
-                        <div class="order-line">
-                            <span class="seat-chip @travelClass.ToString().ToLower()">
-                                @seat.SeatNumber
-                            </span>
+                        <div class="passenger-item-block">
+                            <div class="order-line">
+                                <span class="seat-chip @travelClass.ToString().ToLower()">
+                                    @seat.SeatNumber
+                                </span>
+                                <span class="item-description">@travelClass Class Seat</span>
+                                <span class="order-line-price">€@seatPrice</span>
+                            </div>
 
-                            <span>@travelClass Class</span>
+                            @if (bagPrice > 0)
+                            {
+                                <div class="baggage-sub-line">
+                                    <div>
+                                        <span class="baggage-icon">🧳</span>
+                                        <span class="secondary-text">Checked Baggage Add-on</span>
+                                    </div>
+                                    <span class="secondary-text">+€@bagPrice</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
 
-                            <span class="order-line-price">
-                                €@(seatPrice + bagPrice)
+                @if (Model.ReturnLeg2Flight != null && Model.ReturnLeg2Seats.Any())
+                {
+                    <div class="summary-divider"></div>
+                    <div class="flight-mini flight-segment-header">
+                        <div class="flight-mini-info">
+                            <span class="flight-num">@Model.ReturnLeg2Flight.FlightNumber</span>
+                            <span class="flight-route">
+                                @Model.ReturnLeg2Flight.DepartureAirport.IATACode → @Model.ReturnLeg2Flight.ArrivalAirport.IATACode
                             </span>
+                        </div>
+                    </div>
+
+                    @for (int i = 0; i < Model.ReturnLeg2Seats.Count; i++)
+                    {
+                        var seat = Model.ReturnLeg2Seats[i];
+                        var travelClass = seat.SeatSection.TravelClass;
+                        var seatPrice = Math.Round(Model.ReturnLeg2Flight.Price * multipliers[travelClass], 2);
+                        var baggage = Model.Session?.ReturnLeg2Baggage?.ElementAtOrDefault(i);
+                        var bagPrice = baggage?.TotalBaggagePrice ?? 0m;
+
+                        <div class="passenger-item-block">
+                            <div class="order-line">
+                                <span class="seat-chip @travelClass.ToString().ToLower()">
+                                    @seat.SeatNumber
+                                </span>
+                                <span class="item-description">@travelClass Class Seat</span>
+                                <span class="order-line-price">€@seatPrice</span>
+                            </div>
+
+                            @if (bagPrice > 0)
+                            {
+                                <div class="baggage-sub-line">
+                                    <div>
+                                        <span class="baggage-icon">🧳</span>
+                                        <span class="secondary-text">Checked Baggage Add-on</span>
+                                    </div>
+                                    <span class="secondary-text">+€@bagPrice</span>
+                                </div>
+                            }
                         </div>
                     }
                 }
@@ -196,27 +320,19 @@
                 {
                     <div class="discount-row">
                         <span>Voucher discount</span>
-                        <span class="discount-amount">
-                            -€@Model.DiscountAmount
-                        </span>
+                        <span class="discount-amount">-€@Model.DiscountAmount</span>
                     </div>
-
                     <div class="summary-divider"></div>
                 }
 
-
-                <div id="voucherDiscountRow"
-                     class="discount-row"
-                     style="display:none;">
+                <div id="voucherDiscountRow" class="discount-row" style="display:none;">
                     <span>Voucher discount</span>
-                    <span id="voucherDiscountAmount"
-                          class="discount-amount"></span>
+                    <span id="voucherDiscountAmount" class="discount-amount"></span>
                 </div>
 
                 <div class="grand-total-row">
                     <span>Total</span>
-                    <span id="grandTotalAmount"
-                          class="grand-total-amount">
+                    <span id="grandTotalAmount" class="grand-total-amount">
                         €@Model.GrandTotal
                     </span>
                 </div>
@@ -262,45 +378,27 @@
         });
 
         // ── VOUCHER PREVIEW ──
-        const voucherSelect =
-            document.querySelector('[name="SelectedVoucherId"]');
-
-        const totalAmount = @Model.GrandTotal;
+        const voucherSelect = document.querySelector('[name="SelectedVoucherId"]');
+        const totalElement = document.getElementById('grandTotalAmount');
+        const baseTotal = parseFloat('@Model.GrandTotal'.replace(',', '.'));
 
         voucherSelect.addEventListener('change', function () {
-
-            const selectedOption =
-                this.options[this.selectedIndex];
-
-            const discountPercent =
-                parseInt(selectedOption.dataset.discount || 0);
-
-            const discountAmount =
-                (totalAmount * discountPercent / 100).toFixed(2);
-
-            const finalTotal =
-                (totalAmount - discountAmount).toFixed(2);
-
-            const discountRow =
-                document.getElementById('voucherDiscountRow');
-
-            const totalElement =
-                document.getElementById('grandTotalAmount');
+            const selectedOption = this.options[this.selectedIndex];
+            const discountPercent = parseInt(selectedOption.dataset.discount || 0);
 
             if (discountPercent > 0) {
+                document.getElementById('voucherDiscountRow').style.display = 'flex';
 
-                discountRow.style.display = 'flex';
+                const discountAmount = (baseTotal * discountPercent / 100);
+                const finalTotal = baseTotal - discountAmount;
 
-                document.getElementById('voucherDiscountAmount')
-                    .textContent = '-€' + discountAmount;
+                document.getElementById('voucherDiscountAmount').textContent =
+                    '-€' + discountAmount.toFixed(2);
 
-                totalElement.textContent = '€' + finalTotal;
-            }
-            else {
-
-                discountRow.style.display = 'none';
-
-                totalElement.textContent = '€' + totalAmount.toFixed(2);
+                totalElement.textContent = '€' + finalTotal.toFixed(2);
+            } else {
+                document.getElementById('voucherDiscountRow').style.display = 'none';
+                totalElement.textContent = '€' + baseTotal.toFixed(2);
             }
         });
 

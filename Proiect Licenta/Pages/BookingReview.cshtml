@@ -48,6 +48,45 @@
             </div>
         </div>
 
+
+
+        @if (Model.Leg2Flight != null)
+        {
+            <div class="review-card flight-card">
+                <div class="review-card-title">
+                    <img src="@Model.Leg2Flight.Airline.LogoUrl" class="airline-logo-sm" />
+                    <span>@Model.Leg2Flight.FlightNumber — @Model.Leg2Flight.Airline.Name</span>
+                </div>
+
+                <div class="route-row">
+                    <div class="route-point">
+                        <span class="iata">@Model.Leg2Flight.DepartureAirport.IATACode</span>
+                        <span class="airport-small">@Model.Leg2Flight.DepartureAirport.City</span>
+                        <span class="time-bold">@Model.Leg2Flight.DepartureTime.ToString("HH:mm")</span>
+                        <span class="date-small">@Model.Leg2Flight.DepartureTime.ToString("dd MMM yyyy")</span>
+                    </div>
+
+                    <div class="route-mid">
+                        <span class="duration-label">
+                            @($"{Model.Leg2Flight.DurationMinutes / 60}h {Model.Leg2Flight.DurationMinutes % 60}m")
+                        </span>
+                        <div class="route-line">
+                            <span class="plane-icon">✈</span>
+                        </div>
+                    </div>
+
+                    <div class="route-point right">
+                        <span class="iata">@Model.Leg2Flight.ArrivalAirport.IATACode</span>
+                        <span class="airport-small">@Model.Leg2Flight.ArrivalAirport.City</span>
+                        <span class="time-bold">@Model.Leg2Flight.ArrivalTime.ToString("HH:mm")</span>
+                        <span class="date-small">@Model.Leg2Flight.ArrivalTime.ToString("dd MMM yyyy")</span>
+                    </div>
+                </div>
+            </div>
+        }
+
+
+
         @if (Model.ReturnFlight != null)
         {
             <div class="review-card flight-card">
@@ -82,6 +121,44 @@
                 </div>
             </div>
         }
+
+
+
+        @if (Model.ReturnLeg2Flight != null)
+        {
+            <div class="review-card flight-card">
+                <div class="review-card-title">
+                    <img src="@Model.ReturnLeg2Flight.Airline.LogoUrl" class="airline-logo-sm" />
+                    <span>@Model.ReturnLeg2Flight.FlightNumber — @Model.ReturnLeg2Flight.Airline.Name</span>
+                </div>
+
+                <div class="route-row">
+                    <div class="route-point">
+                        <span class="iata">@Model.ReturnLeg2Flight.DepartureAirport.IATACode</span>
+                        <span class="airport-small">@Model.ReturnLeg2Flight.DepartureAirport.City</span>
+                        <span class="time-bold">@Model.ReturnLeg2Flight.DepartureTime.ToString("HH:mm")</span>
+                        <span class="date-small">@Model.ReturnLeg2Flight.DepartureTime.ToString("dd MMM yyyy")</span>
+                    </div>
+
+                    <div class="route-mid">
+                        <span class="duration-label">
+                            @($"{Model.ReturnLeg2Flight.DurationMinutes / 60}h {Model.ReturnLeg2Flight.DurationMinutes % 60}m")
+                        </span>
+                        <div class="route-line">
+                            <span class="plane-icon">✈</span>
+                        </div>
+                    </div>
+
+                    <div class="route-point right">
+                        <span class="iata">@Model.ReturnLeg2Flight.ArrivalAirport.IATACode</span>
+                        <span class="airport-small">@Model.ReturnLeg2Flight.ArrivalAirport.City</span>
+                        <span class="time-bold">@Model.ReturnLeg2Flight.ArrivalTime.ToString("HH:mm")</span>
+                        <span class="date-small">@Model.ReturnLeg2Flight.ArrivalTime.ToString("dd MMM yyyy")</span>
+                    </div>
+                </div>
+            </div>
+        }
+
 
         <div class="review-card">
             <div class="review-card-title">🎫 Tickets (@Model.SelectedSeats.Count)</div>
@@ -151,6 +228,95 @@
                 }
             }
         </div>
+
+
+
+
+        @if (Model.Leg2Seats.Any())
+        {
+            <div class="review-card">
+                <div class="review-card-title">
+                    🎫 Connection Tickets (@Model.Leg2Seats.Count)
+                </div>
+
+                @for (int i = 0; i < Model.Leg2Seats.Count; i++)
+                {
+                    var seat = Model.Leg2Seats[i];
+                    var travelClass = seat.SeatSection.TravelClass;
+                    var seatPrice = Math.Round(Model.Leg2Flight!.Price * multipliers[travelClass], 2);
+
+                    var baggage = Model.Session.Leg2Baggage?.ElementAtOrDefault(i);
+                    var bagPrice = baggage?.TotalBaggagePrice ?? 0m;
+                    var ticketTotal = seatPrice + bagPrice;
+
+                    <div class="ticket-row">
+                        <div class="ticket-left">
+
+                            <div class="ticket-header">
+                                <span class="passenger-num">Passenger @(i + 1)</span>
+                                <span class="seat-chip @travelClass.ToString().ToLower()">
+                                    Seat @seat.SeatNumber
+                                </span>
+                                <span class="class-label">@travelClass Class</span>
+                            </div>
+
+                            <div class="ticket-details">
+                                <div class="detail-line">
+                                    <span class="detail-label">Seat price</span>
+                                    <span class="detail-value">€@seatPrice</span>
+                                </div>
+
+                                @if (baggage != null && baggage.BaggageType != "None")
+                                {
+                                    <div class="detail-line">
+                                        <span class="detail-label">
+                                            @(baggage.BaggageType == "Cabin"
+                                                                            ? "🎒 Cabin bag"
+                                                                            : baggage.BaggageType == "Checked20"
+                                                                            ? "🧳 Checked 20kg"
+                                                                            : "📦 Checked 32kg")
+                                                                                            </span>
+                                                                                            <span class="detail-value">
+                                            @(baggage.BaggageType == "Cabin"
+                                                                            ? "FREE"
+                                                                            : baggage.BaggageType == "Checked20"
+                                                                            ? "+€25.00"
+                                                                            : "+€40.00")
+                            </span>
+                        </div>
+                                                }
+                                else
+                                {
+                                    <div class="detail-line">
+                                        <span class="detail-label">🚫 No baggage</span>
+                                        <span class="detail-value">FREE</span>
+                                    </div>
+                                }
+
+                                @if (baggage != null && baggage.HasExtraBag)
+                                {
+                                    <div class="detail-line">
+                                        <span class="detail-label">➕ Extra bag</span>
+                                        <span class="detail-value">+€35.00</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="ticket-total">
+                            <span class="ticket-total-label">Ticket total</span>
+                            <span class="ticket-total-amount">€@ticketTotal</span>
+                        </div>
+                    </div>
+
+                    @if (i < Model.Leg2Seats.Count - 1)
+                    {
+                        <div class="ticket-divider"></div>
+                    }
+                }
+            </div>
+        }
+
 
 
         @if (Model.ReturnSeats.Any())
@@ -273,14 +439,143 @@
         }
 
 
+        @if (Model.ReturnLeg2Seats.Any())
+        {
+            <div class="review-card">
+                <div class="review-card-title">
+                    ↩ Return Connection Tickets (@Model.ReturnLeg2Seats.Count)
+                </div>
+
+                @for (int i = 0; i < Model.ReturnLeg2Seats.Count; i++)
+                {
+                    var seat = Model.ReturnLeg2Seats[i];
+                    var travelClass = seat.SeatSection.TravelClass;
+                    var seatPrice = Math.Round(
+                    Model.ReturnLeg2Flight!.Price *
+                    multipliers[travelClass], 2);
+
+                    var baggage =
+                    Model.Session.ReturnLeg2Baggage?
+                    .ElementAtOrDefault(i);
+
+                    var bagPrice =
+                    baggage?.TotalBaggagePrice ?? 0m;
+
+                    var ticketTotal =
+                    seatPrice + bagPrice;
+
+                    <div class="ticket-row">
+                        <div class="ticket-left">
+
+                            <div class="ticket-header">
+                                <span class="passenger-num">
+                                    Return Passenger @(i + 1)
+                                </span>
+
+                                <span class="seat-chip @travelClass.ToString().ToLower()">
+                                    Seat @seat.SeatNumber
+                                </span>
+
+                                <span class="class-label">
+                                    @travelClass Class
+                                </span>
+                            </div>
+
+                            <div class="ticket-details">
+
+                                <div class="detail-line">
+                                    <span class="detail-label">
+                                        Seat price
+                                    </span>
+                                    <span class="detail-value">
+                                        €@seatPrice
+                                    </span>
+                                </div>
+
+                                @if (baggage != null && baggage.BaggageType != "None")
+                                {
+                                    <div class="detail-line">
+                                        <span class="detail-label">
+                                            @(baggage.BaggageType == "Cabin"
+                                                                            ? "🎒 Cabin bag"
+                                                                            : baggage.BaggageType == "Checked20"
+                                                                            ? "🧳 Checked 20kg"
+                                                                            : "📦 Checked 32kg")
+                                                                                            </span>
+
+                                        <span class="detail-value">
+                                            @(baggage.BaggageType == "Cabin"
+                                                                            ? "FREE"
+                                                                            : baggage.BaggageType == "Checked20"
+                                                                            ? "+€25.00"
+                                                                            : "+€40.00")
+                            </span>
+                        </div>
+                                                }
+                                else
+                                {
+                                    <div class="detail-line">
+                                        <span class="detail-label">
+                                            🚫 No baggage
+                                        </span>
+                                        <span class="detail-value">
+                                            FREE
+                                        </span>
+                                    </div>
+                                }
+
+                                @if (baggage != null && baggage.HasExtraBag)
+                                {
+                                    <div class="detail-line">
+                                        <span class="detail-label">
+                                            ➕ Extra bag
+                                        </span>
+                                        <span class="detail-value">
+                                            +€35.00
+                                        </span>
+                                    </div>
+                                }
+
+                            </div>
+                        </div>
+
+                        <div class="ticket-total">
+                            <span class="ticket-total-label">
+                                Ticket total
+                            </span>
+
+                            <span class="ticket-total-amount">
+                                €@ticketTotal
+                            </span>
+                        </div>
+                    </div>
+
+                    @if (i < Model.ReturnLeg2Seats.Count - 1)
+                    {
+                        <div class="ticket-divider"></div>
+                    }
+                }
+            </div>
+        }
+
+
 
 
         <div class="review-card totals-card">
             <div class="review-card-title">💰 Price Breakdown</div>
+
             <div class="total-line">
                 <span>Outbound Seats</span>
                 <span>€@Model.SeatTotal</span>
             </div>
+
+            @if (Model.Leg2Flight != null)
+            {
+                <div class="total-line">
+                    <span>Outbound Connection Seats</span>
+                    <span>€@Model.Leg2SeatTotal</span>
+                </div>
+            }
 
             @if (Model.ReturnFlight != null)
             {
@@ -290,10 +585,26 @@
                 </div>
             }
 
+            @if (Model.ReturnLeg2Flight != null)
+            {
+                <div class="total-line">
+                    <span>Return Connection Seats</span>
+                    <span>€@Model.ReturnLeg2SeatTotal</span>
+                </div>
+            }
+
             <div class="total-line">
                 <span>Outbound Baggage</span>
                 <span>€@Model.BaggageTotal</span>
             </div>
+
+            @if (Model.Leg2Flight != null)
+            {
+                <div class="total-line">
+                    <span>Outbound Connection Baggage</span>
+                    <span>€@Model.Leg2BaggageTotal</span>
+                </div>
+            }
 
             @if (Model.ReturnFlight != null)
             {
@@ -302,7 +613,17 @@
                     <span>€@Model.ReturnBaggageTotal</span>
                 </div>
             }
+
+            @if (Model.ReturnLeg2Flight != null)
+            {
+                <div class="total-line">
+                    <span>Return Connection Baggage</span>
+                    <span>€@Model.ReturnLeg2BaggageTotal</span>
+                </div>
+            }
+
             <div class="total-divider"></div>
+
             <div class="total-line grand">
                 <span>Total</span>
                 <span class="grand-value">€@Model.GrandTotal</span>

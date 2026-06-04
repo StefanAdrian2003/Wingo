@@ -3,11 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Proiect_Licenta.Data;
 using Proiect_Licenta.Models;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Proiect_Licenta.Pages
 {
@@ -21,217 +17,199 @@ namespace Proiect_Licenta.Pages
         }
 
         public IList<Airport> Airports { get; set; } = new List<Airport>();
-
-        // Lists for storing the results sent to HTML
         public IList<Flight> Flights { get; set; } = new List<Flight>();
         public IList<RoundTrip> RoundTrips { get; set; } = new List<RoundTrip>();
         public IList<ConnectingFlight> ConnectingFlights { get; set; } = new List<ConnectingFlight>();
+        public IList<RoundTripConnecting> RoundTripConnectings { get; set; } = new List<RoundTripConnecting>();
 
-        // Form Filters
-        [BindProperty(SupportsGet = true)]
-        public Guid? DepartureAirportId { get; set; }
+        [BindProperty(SupportsGet = true)] public Guid? DepartureAirportId { get; set; }
+        [BindProperty(SupportsGet = true)] public Guid? ArrivalAirportId { get; set; }
+        [BindProperty(SupportsGet = true)] public bool IsRoundTrip { get; set; } = false;
+        [BindProperty(SupportsGet = true)] public decimal? MaxPrice { get; set; }
+        [BindProperty(SupportsGet = true)][DataType(DataType.Date)] public DateTime? SelectedDate { get; set; }
+        [BindProperty(SupportsGet = true)][DataType(DataType.Date)] public DateTime? ReturnDate { get; set; }
 
-        [BindProperty(SupportsGet = true)]
-        public Guid? ArrivalAirportId { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public bool WithLayover { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public bool IsRoundTrip { get; set; } = false;
-
-        [BindProperty(SupportsGet = true)]
-        public decimal? MaxPrice { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        [DataType(DataType.Date)]
-        public DateTime? SelectedDate { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        [DataType(DataType.Date)]
-        public DateTime? ReturnDate { get; set; }
-
-        // Pagination Properties
-        [BindProperty(SupportsGet = true)]
-        public int CurrentPage { get; set; } = 1;
+        [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
         public int TotalPages { get; set; }
         public int PageSize { get; set; } = 10;
         public bool HasPreviousPage => CurrentPage > 1;
         public bool HasNextPage => CurrentPage < TotalPages;
 
-        public string SelectedDepartureName { get; set; }
-        public string SelectedArrivalName { get; set; }
+        public string SelectedDepartureName { get; set; } = "";
+        public string SelectedArrivalName { get; set; } = "";
 
         public async Task OnGetAsync()
         {
             if (CurrentPage < 1) CurrentPage = 1;
 
-            Airports = await _db.Airports.OrderBy(a => a.City).ToListAsync();
-            DateTime now = DateTime.Now;
+            DateTime nowUtc = DateTime.UtcNow;
 
-            // 1. BASE OUTBOUND QUERY
             var outboundQuery = _db.Flights
                 .Include(f => f.DepartureAirport)
                 .Include(f => f.ArrivalAirport)
                 .Include(f => f.Aircraft)
                 .Include(f => f.Airline).ThenInclude(a => a.User)
-                .Where(f => f.DepartureTime >= now)
+                .Where(f => f.DepartureTime >= nowUtc)
                 .AsQueryable();
 
             if (DepartureAirportId.HasValue)
                 outboundQuery = outboundQuery.Where(f => f.DepartureAirportId == DepartureAirportId.Value);
-
             if (ArrivalAirportId.HasValue)
                 outboundQuery = outboundQuery.Where(f => f.ArrivalAirportId == ArrivalAirportId.Value);
-
             if (SelectedDate.HasValue)
             {
-                DateTime startOfDay = SelectedDate.Value.Date;
-                DateTime endOfDay = startOfDay.AddDays(1).AddTicks(-1);
-                if (startOfDay == now.Date) startOfDay = now;
-
-                outboundQuery = outboundQuery.Where(f => f.DepartureTime >= startOfDay && f.DepartureTime <= endOfDay);
+                var start = SelectedDate.Value.Date;
+                var end = start.AddDays(1).AddTicks(-1);
+                if (start <= nowUtc.Date) start = nowUtc;
+                outboundQuery = outboundQuery.Where(f => f.DepartureTime >= start && f.DepartureTime <= end);
             }
+            if (MaxPrice.HasValue)
+                outboundQuery = outboundQuery.Where(f => f.Price <= MaxPrice.Value);
 
-            var matchingOutboundFlights = await outboundQuery.ToListAsync();
+            var directOutbound = await outboundQuery.ToListAsync();
 
-            // 2. ROUND-TRIP LOGIC
             if (IsRoundTrip && DepartureAirportId.HasValue && ArrivalAirportId.HasValue)
             {
-                var returnQuery = _db.Flights
-                    .Include(f => f.DepartureAirport)
-                    .Include(f => f.ArrivalAirport)
-                    .Include(f => f.Aircraft)
-                    .Include(f => f.Airline).ThenInclude(a => a.User)
-                    .Where(f => f.DepartureAirportId == ArrivalAirportId.Value &&
-                                 f.ArrivalAirportId == DepartureAirportId.Value)
-                    .AsQueryable();
-
-                if (ReturnDate.HasValue)
+                if (directOutbound.Any())
                 {
-                    DateTime startOfReturn = ReturnDate.Value.Date;
-                    DateTime endOfReturn = startOfReturn.AddDays(1).AddTicks(-1);
-                    returnQuery = returnQuery.Where(f => f.DepartureTime >= startOfReturn && f.DepartureTime <= endOfReturn);
+                    // Direct outbound exists → look for a direct return.
+                    var returnQuery = _db.Flights
+                        .Include(f => f.DepartureAirport)
+                        .Include(f => f.ArrivalAirport)
+                        .Include(f => f.Aircraft)
+                        .Include(f => f.Airline).ThenInclude(a => a.User)
+                        .Where(f => f.DepartureAirportId == ArrivalAirportId.Value &&
+                                    f.ArrivalAirportId == DepartureAirportId.Value)
+                        .AsQueryable();
+
+                    if (ReturnDate.HasValue)
+                    {
+                        var rs = ReturnDate.Value.Date;
+                        var re = rs.AddDays(1).AddTicks(-1);
+                        returnQuery = returnQuery.Where(f => f.DepartureTime >= rs && f.DepartureTime <= re);
+                    }
+                    else
+                    {
+                        var minArrival = directOutbound.Min(f => f.ArrivalTime);
+                        returnQuery = returnQuery.Where(f => f.DepartureTime > minArrival);
+                    }
+
+                    var directReturn = await returnQuery.ToListAsync();
+                    var pairs = new List<RoundTrip>();
+
+                    foreach (var outbound in directOutbound)
+                        foreach (var ret in directReturn.Where(r => r.DepartureTime > outbound.ArrivalTime))
+                        {
+                            var rt = new RoundTrip { OutboundFlight = outbound, ReturnFlight = ret };
+                            if (!MaxPrice.HasValue || rt.TotalPrice <= MaxPrice.Value)
+                                pairs.Add(rt);
+                        }
+
+                    TotalPages = Math.Max(1, (int)Math.Ceiling(pairs.Count / (double)PageSize));
+                    RoundTrips = pairs
+                        .OrderBy(r => r.OutboundFlight.DepartureTime)
+                        .Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
                 }
                 else
                 {
-                    if (matchingOutboundFlights.Any())
-                    {
-                        var minOutboundArrival = matchingOutboundFlights.Min(f => f.ArrivalTime);
-                        returnQuery = returnQuery.Where(f => f.DepartureTime > minOutboundArrival);
-                    }
-                }
+                    // No direct outbound → layover round trip.
+                    var outboundLayovers = await BuildLayovers(
+                        DepartureAirportId.Value, ArrivalAirportId.Value, SelectedDate, nowUtc);
 
-                var matchingReturnFlights = await returnQuery.ToListAsync();
-                var dynamicPairs = new List<RoundTrip>();
+                    // KEY FIX: pass ReturnDate directly (may be null).
+                    // When null, BuildLayovers skips the date window and just requires
+                    // departure after nowUtc — so D+5 return flights are found correctly.
+                    // The old code passed SelectedDate.AddDays(1) which created a D+2
+                    // window, completely missing flights seeded on D+5.
+                    var returnLayovers = await BuildLayovers(
+                        ArrivalAirportId.Value, DepartureAirportId.Value, ReturnDate, nowUtc);
 
-                foreach (var outbound in matchingOutboundFlights)
-                {
-                    var validReturns = matchingReturnFlights.Where(ret => ret.DepartureTime > outbound.ArrivalTime);
-                    foreach (var inbound in validReturns)
-                    {
-                        var roundTrip = new RoundTrip { OutboundFlight = outbound, ReturnFlight = inbound };
-                        if (!MaxPrice.HasValue || roundTrip.TotalPrice <= MaxPrice.Value)
+                    var combos = new List<RoundTripConnecting>();
+                    foreach (var ol in outboundLayovers)
+                        foreach (var rl in returnLayovers.Where(r => r.Leg1.DepartureTime > ol.Leg2.ArrivalTime))
                         {
-                            dynamicPairs.Add(roundTrip);
+                            var combo = new RoundTripConnecting { OutboundJourney = ol, ReturnJourney = rl };
+                            if (!MaxPrice.HasValue || combo.TotalPrice <= MaxPrice.Value)
+                                combos.Add(combo);
                         }
-                    }
+
+                    TotalPages = Math.Max(1, (int)Math.Ceiling(combos.Count / (double)PageSize));
+                    RoundTripConnectings = combos
+                        .OrderBy(c => c.OutboundJourney.Leg1.DepartureTime)
+                        .Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
                 }
-
-                TotalPages = (int)Math.Ceiling(dynamicPairs.Count / (double)PageSize);
-                if (TotalPages == 0) TotalPages = 1;
-
-                RoundTrips = dynamicPairs
-                    .OrderBy(rt => rt.OutboundFlight.DepartureTime)
-                    .Skip((CurrentPage - 1) * PageSize)
-                    .Take(PageSize)
-                    .ToList();
             }
-            // 3. ONE-WAY / LAYOVER FALLBACK LOGIC
             else
             {
-                if (MaxPrice.HasValue)
-                    outboundQuery = outboundQuery.Where(f => f.Price <= MaxPrice.Value);
-
-                var directFlights = await outboundQuery.ToListAsync();
-
-                // If we found direct flights, show them!
-                if (directFlights.Any())
+                // One-way: direct first, then auto-fallback to layovers.
+                if (directOutbound.Any())
                 {
-                    TotalPages = (int)Math.Ceiling(directFlights.Count / (double)PageSize);
-                    if (TotalPages == 0) TotalPages = 1;
-
-                    Flights = directFlights
+                    TotalPages = Math.Max(1, (int)Math.Ceiling(directOutbound.Count / (double)PageSize));
+                    Flights = directOutbound
                         .OrderBy(f => f.DepartureTime)
-                        .Skip((CurrentPage - 1) * PageSize)
-                        .Take(PageSize)
-                        .ToList();
+                        .Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
                 }
-                // FALLBACK: No direct flights. Let's look for layovers.
-                else if (WithLayover && DepartureAirportId.HasValue && ArrivalAirportId.HasValue && SelectedDate.HasValue)
+                else if (DepartureAirportId.HasValue && ArrivalAirportId.HasValue)
                 {
-                    DateTime startOfDay = SelectedDate.Value.Date;
-                    DateTime endOfDay = startOfDay.AddDays(1).AddTicks(-1);
+                    var layovers = await BuildLayovers(
+                        DepartureAirportId.Value, ArrivalAirportId.Value, SelectedDate, nowUtc);
 
-                    var firstLegs = await _db.Flights
-                        .Include(f => f.DepartureAirport)
-                        .Include(f => f.ArrivalAirport)
-                        .Include(f => f.Aircraft)
-                        .Include(f => f.Airline).ThenInclude(a => a.User)
-                        .Where(f => f.DepartureAirportId == DepartureAirportId.Value 
-                                 && f.DepartureTime >= startOfDay 
-                                 && f.DepartureTime <= endOfDay)
-                        .ToListAsync();
+                    if (MaxPrice.HasValue)
+                        layovers = layovers.Where(l => l.TotalPrice <= MaxPrice.Value).ToList();
 
-                    var secondLegs = await _db.Flights
-                        .Include(f => f.DepartureAirport)
-                        .Include(f => f.ArrivalAirport)
-                        .Include(f => f.Aircraft)
-                        .Include(f => f.Airline).ThenInclude(a => a.User)
-                        .Where(f => f.ArrivalAirportId == ArrivalAirportId.Value 
-                                 && f.DepartureTime >= startOfDay)
-                        .ToListAsync();
-
-                    var foundLayovers = new List<ConnectingFlight>();
-
-                    foreach (var leg1 in firstLegs)
-                    {
-                        foreach (var leg2 in secondLegs)
-                        {
-                            if (leg1.ArrivalAirportId == leg2.DepartureAirportId)
-                            {
-                                TimeSpan layoverTime = leg2.DepartureTime - leg1.ArrivalTime;
-
-                                // Layover must be between 1 and 12 hours
-                                if (layoverTime.TotalHours >= 1 && layoverTime.TotalHours <= 12)
-                                {
-                                    var connectingFlight = new ConnectingFlight { Leg1 = leg1, Leg2 = leg2 };
-                                    if (!MaxPrice.HasValue || connectingFlight.TotalPrice <= MaxPrice.Value)
-                                    {
-                                        foundLayovers.Add(connectingFlight);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    TotalPages = (int)Math.Ceiling(foundLayovers.Count / (double)PageSize);
-                    if (TotalPages == 0) TotalPages = 1;
-
-                    ConnectingFlights = foundLayovers
+                    TotalPages = Math.Max(1, (int)Math.Ceiling(layovers.Count / (double)PageSize));
+                    ConnectingFlights = layovers
                         .OrderBy(l => l.Leg1.DepartureTime)
-                        .Skip((CurrentPage - 1) * PageSize)
-                        .Take(PageSize)
-                        .ToList();
+                        .Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
                 }
                 else
                 {
                     TotalPages = 1;
-                    Flights = new List<Flight>();
                 }
             }
 
             await HydrateSelectionLabels();
+        }
+
+        private async Task<List<ConnectingFlight>> BuildLayovers(
+            Guid fromId, Guid toId, DateTime? date, DateTime nowUtc)
+        {
+            IQueryable<Flight> leg1Query = _db.Flights
+                .Include(f => f.DepartureAirport).Include(f => f.ArrivalAirport)
+                .Include(f => f.Aircraft).Include(f => f.Airline).ThenInclude(a => a.User)
+                .Where(f => f.DepartureAirportId == fromId && f.DepartureTime >= nowUtc);
+
+            if (date.HasValue)
+            {
+                // Only apply a day window when the user explicitly picked a date.
+                var start = date.Value.Date;
+                var end = start.AddDays(1).AddTicks(-1);
+                if (start <= nowUtc.Date) start = nowUtc;
+                leg1Query = leg1Query.Where(f => f.DepartureTime >= start && f.DepartureTime <= end);
+            }
+
+            var firstLegs = await leg1Query.ToListAsync();
+            if (!firstLegs.Any()) return new List<ConnectingFlight>();
+
+            var earliestLeg1Arrival = firstLegs.Min(f => f.ArrivalTime);
+
+            var secondLegs = await _db.Flights
+                .Include(f => f.DepartureAirport).Include(f => f.ArrivalAirport)
+                .Include(f => f.Aircraft).Include(f => f.Airline).ThenInclude(a => a.User)
+                .Where(f => f.ArrivalAirportId == toId &&
+                            f.DepartureTime >= earliestLeg1Arrival)
+                .ToListAsync();
+
+            var result = new List<ConnectingFlight>();
+            foreach (var leg1 in firstLegs)
+                foreach (var leg2 in secondLegs.Where(l => l.DepartureAirportId == leg1.ArrivalAirportId))
+                {
+                    var layover = leg2.DepartureTime - leg1.ArrivalTime;
+                    if (layover.TotalMinutes >= 45 && layover.TotalHours <= 12)
+                        result.Add(new ConnectingFlight { Leg1 = leg1, Leg2 = leg2 });
+                }
+
+            return result;
         }
 
         private async Task HydrateSelectionLabels()

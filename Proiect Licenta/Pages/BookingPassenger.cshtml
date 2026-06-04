@@ -1,4 +1,4 @@
-﻿@page "{id:guid}/{returnId:guid?}"
+﻿@page "{id:guid}/{returnId:guid?}/{leg2Id:guid?}/{retLeg2Id:guid?}"
 @using Proiect_Licenta.Models
 @using System.Text.Json
 @model Proiect_Licenta.Pages.BookingPassengerModel
@@ -7,7 +7,9 @@
     var flightId = Model.Flight.Id;
 
     var preselectedSeats = Model.Session?.SelectedSeatIds ?? new List<Guid>();
+    var preselectedLeg2Seats = Model.Session?.Leg2SeatIds ?? new List<Guid>();
     var preselectedReturnSeats = Model.Session?.ReturnSeatIds ?? new List<Guid>();
+    var preselectedRetLeg2Seats = Model.Session?.ReturnLeg2SeatIds ?? new List<Guid>();
 
     var basePrice = Model.Flight.Price;
 
@@ -17,22 +19,17 @@
         { TravelClass.Business, 2.2m },
         { TravelClass.First,    3.5m }
     };
+
+    bool hasReturn = Model.ReturnFlight != null;
+    bool hasLayover = Model.Leg2Flight != null;
 }
 
 <link rel="stylesheet" href="~/css/BookingPassenger.css" asp-append-version="true" />
 
-<div class="background">
+<div class="booking-page">
     <div class="booking-layout">
 
-        <div class="seat-map-panel">
-
-            <div class="flight-segment-divider">
-                <img src="@Model.Flight.Airline.LogoUrl" class="mini-logo" />
-                <span>@Model.Flight.FlightNumber</span>
-                <span class="route-mini">
-                    @Model.Flight.DepartureAirport.IATACode → @Model.Flight.ArrivalAirport.IATACode
-                </span>
-            </div>
+        <div class="maps-column outbound-column">
 
             @if (Model.ConflictedSeats.Any())
             {
@@ -53,115 +50,83 @@
                 </div>
             }
 
-            <h2 class="map-title">Choose Your Seats</h2>
+            <div class="flight-segment-divider outbound">
+                <img src="@Model.Flight.Airline.LogoUrl" class="mini-logo" />
+                <span>@Model.Flight.FlightNumber</span>
+                <span class="route-mini">
+                    @Model.Flight.DepartureAirport.IATACode → @Model.Flight.ArrivalAirport.IATACode
+                </span>
+                @if (hasLayover)
+                {
+                    <span class="leg-badge">Leg 1</span>
+                }
+            </div>
+
+            <h2 class="map-title">@(hasReturn ? "Outbound Seats" : "Choose Your Seats")</h2>
 
             <div class="legend">
-                <span class="legend-item"><span class="leg-dot available"></span>Available</span>
-                <span class="legend-item"><span class="leg-dot selected"></span>Selected</span>
+                <span class="legend-item"><span class="leg-dot outbound-avail"></span>Available</span>
+                <span class="legend-item"><span class="leg-dot outbound-sel"></span>Selected</span>
                 <span class="legend-item"><span class="leg-dot taken"></span>Taken</span>
             </div>
 
-            <div class="aircraft-wrap">
-                <div class="aircraft-nose"></div>
+            @await Html.PartialAsync("_SeatMap", new SeatMapViewModel
+            {
+                Flight = Model.Flight,
+                        FlightId = flightId,
+                        BasePrice = basePrice,
+                        Multipliers = multipliers,
+                        Preselected = preselectedSeats,
+                        DataFlight = "outbound",
+                        CssAvailable = "available"
+                        })
 
-                @foreach (var seatSection in Model.Flight.Aircraft.SeatSections.OrderBy(ss => ss.StartRow))
+            @if (hasLayover)
+            {
+                var leg2FlightId = Model.Leg2Flight!.Id;
+                var leg2BasePrice = Model.Leg2Flight.Price;
+
+                <div class="layover-connector">
+                    <span class="layover-badge">🔁 Layover · connecting flight</span>
+                </div>
+
+                <div class="flight-segment-divider outbound">
+                    <img src="@Model.Leg2Flight.Airline.LogoUrl" class="mini-logo" />
+                    <span>@Model.Leg2Flight.FlightNumber</span>
+                    <span class="route-mini">
+                        @Model.Leg2Flight.DepartureAirport.IATACode → @Model.Leg2Flight.ArrivalAirport.IATACode
+                    </span>
+                    <span class="leg-badge">Leg 2</span>
+                </div>
+
+                @await Html.PartialAsync("_SeatMap", new SeatMapViewModel
                 {
-                    var blocks = seatSection.Layout.Split('-');
-                    var multiplier = multipliers[seatSection.TravelClass];
-                    var sectionPrice = Math.Round(basePrice * multiplier, 2);
+                    Flight = Model.Leg2Flight,
+                        FlightId = leg2FlightId,
+                        BasePrice = leg2BasePrice,
+                        Multipliers = multipliers,
+                        Preselected = preselectedLeg2Seats,
+                        DataFlight = "leg2",
+                        CssAvailable = "leg2-available"
+                        })
 
-                    var seatLookup = seatSection.Seats
-                    .GroupBy(s => s.SeatNumber)
-                    .ToDictionary(g => g.Key, g => g.First());
-
-                    int totalSeatsInSection = seatLookup.Count;
-                    int availableSeatsInSection = seatLookup.Values
-                    .Count(s => s.FlightSeats.FirstOrDefault(fs => fs.FlightId == flightId)?.TicketId == null);
-                    int takenSeatsInSection = totalSeatsInSection - availableSeatsInSection;
-
-                    <div class="cabin-section @seatSection.TravelClass.ToString().ToLower()">
-
-                        <div class="cabin-label-row">
-                            <span class="cabin-label">@seatSection.TravelClass Class</span>
-                            <span class="cabin-price">from €@sectionPrice</span>
-                        </div>
-
-                        <div class="cabin-stats">
-                            <span class="stat-item total">🪑 @totalSeatsInSection seats total</span>
-                            <span class="stat-item avail">✅ @availableSeatsInSection available</span>
-                            <span class="stat-item taken">❌ @takenSeatsInSection taken</span>
-                        </div>
-
-                        <div class="seat-row header-row">
-                            <span class="row-num"></span>
-                            @foreach (var block in blocks)
-                            {
-                                <span class="seat-block-header">
-                                    @foreach (char letter in block)
-                                    {
-                                        <span class="col-label">@letter</span>
-                                    }
-                                </span>
-                                if (block != blocks.Last())
-                                {
-                                    <span class="aisle-header"></span>
-                                }
-                            }
-                        </div>
-
-                        @for (int row = seatSection.StartRow; row <= seatSection.EndRow; row++)
-                        {
-                            <div class="seat-row">
-                                <span class="row-num">@row</span>
-                                @foreach (var block in blocks)
-                                {
-                                    <span class="seat-block">
-                                        @foreach (char letter in block)
-                                        {
-                                            var seatNum = $"{row}{letter}";
-                                            if (!seatLookup.ContainsKey(seatNum)) { continue; }
-
-                                            var seat = seatLookup[seatNum];
-                                            var flightSeat = seat.FlightSeats.FirstOrDefault(fs => fs.FlightId == flightId);
-                                            bool isTaken = flightSeat?.TicketId != null;
-                                            bool isConflicted = Model.ConflictedSeats.Contains(seatNum);
-                                            bool isSelected = preselectedSeats.Contains(seat.Id);
-
-                                            var cssClass = isTaken ? "seat taken"
-                                            : isSelected ? "seat available selected"
-                                            : "seat available";
-
-                                            if (isConflicted) cssClass += " conflicted";
-
-                                            <button type="button"
-                                                    class="@cssClass"
-                                                    data-seat-id="@seat.Id"
-                                                    data-seat-number="@seatNum"
-                                                    data-price="@sectionPrice"
-                                                    data-class="@seatSection.TravelClass"
-                                                    data-flight="outbound"
-                                                    @(isTaken ? "disabled" : "")
-                                                    title="@seatNum — €@sectionPrice">
-                                                @seatNum
-                                            </button>
-                                        }
-                                    </span>
-                                    if (block != blocks.Last())
-                                    {
-                                        <span class="aisle"></span>
-                                    }
-                                }
-                            </div>
-                        }
+                @if (Model.ConflictedLeg2Seats.Any())
+                {
+                    <div class="conflict-alert">
+                        ⚠️ Outbound connection seats taken:
+                        <strong>@string.Join(", ", Model.ConflictedLeg2Seats)</strong>.
+                        Please select different seats.
                     </div>
                 }
+            }
+        </div>
 
-                <div class="aircraft-tail"></div>
-            </div>
+        @if (hasReturn)
+        {
+            var returnFlightId = Model.ReturnFlight!.Id;
+            var returnBasePrice = Model.ReturnFlight.Price;
 
-            @if (Model.ReturnFlight != null)
-            {
-
+            <div class="maps-column return-column">
 
                 @if (Model.ConflictedSeatsReturn.Any())
                 {
@@ -172,18 +137,19 @@
                     </div>
                 }
 
-                var returnFlightId = Model.ReturnFlight.Id;
-                var returnBasePrice = Model.ReturnFlight.Price;
-
                 <div class="flight-segment-divider return">
                     <img src="@Model.ReturnFlight.Airline.LogoUrl" class="mini-logo" />
                     <span>@Model.ReturnFlight.FlightNumber</span>
                     <span class="route-mini">
                         @Model.ReturnFlight.DepartureAirport.IATACode → @Model.ReturnFlight.ArrivalAirport.IATACode
                     </span>
+                    @if (Model.ReturnLeg2Flight != null)
+                    {
+                        <span class="leg-badge">Leg 1</span>
+                    }
                 </div>
 
-                <h2 class="map-title">Choose Your Seats</h2>
+                <h2 class="map-title return-title">Return Seats</h2>
 
                 <div class="legend">
                     <span class="legend-item"><span class="leg-dot" style="background:#9c27b0"></span>Available</span>
@@ -191,97 +157,57 @@
                     <span class="legend-item"><span class="leg-dot taken"></span>Taken</span>
                 </div>
 
-                <div class="aircraft-wrap">
-                    <div class="aircraft-nose"></div>
+                @await Html.PartialAsync("_SeatMap", new SeatMapViewModel
+                {
+                    Flight = Model.ReturnFlight,
+                        FlightId = returnFlightId,
+                        BasePrice = returnBasePrice,
+                        Multipliers = multipliers,
+                        Preselected = preselectedReturnSeats,
+                        DataFlight = "return",
+                        CssAvailable = "return-available"
+                        })
 
-                    @foreach (var seatSection in Model.ReturnFlight.Aircraft.SeatSections.OrderBy(ss => ss.StartRow))
+            @if (Model.ReturnLeg2Flight != null)
+                {
+                    var retLeg2FlightId = Model.ReturnLeg2Flight.Id;
+                    var retLeg2BasePrice = Model.ReturnLeg2Flight.Price;
+
+                    <div class="layover-connector return-layover">
+                        <span class="layover-badge return-layover-badge">🔁 Layover · connecting flight</span>
+                    </div>
+
+                    <div class="flight-segment-divider return">
+                        <img src="@Model.ReturnLeg2Flight.Airline.LogoUrl" class="mini-logo" />
+                        <span>@Model.ReturnLeg2Flight.FlightNumber</span>
+                        <span class="route-mini">
+                            @Model.ReturnLeg2Flight.DepartureAirport.IATACode → @Model.ReturnLeg2Flight.ArrivalAirport.IATACode
+                        </span>
+                        <span class="leg-badge return-leg-badge">Leg 2</span>
+                    </div>
+
+                    @await Html.PartialAsync("_SeatMap", new SeatMapViewModel
                     {
-                        var blocks = seatSection.Layout.Split('-');
-                        var multiplier = multipliers[seatSection.TravelClass];
-                        var sectionPrice = Math.Round(returnBasePrice * multiplier, 2);
+                        Flight = Model.ReturnLeg2Flight,
+                        FlightId = retLeg2FlightId,
+                        BasePrice = retLeg2BasePrice,
+                        Multipliers = multipliers,
+                        Preselected = preselectedRetLeg2Seats,
+                        DataFlight = "retLeg2",
+                        CssAvailable = "return-available"
+                        })
 
-                        var seatLookup = seatSection.Seats
-                        .GroupBy(s => s.SeatNumber)
-                        .ToDictionary(g => g.Key, g => g.First());
-
-                        int totalSeatsInSection = seatLookup.Count;
-                        int availableSeatsInSection = seatLookup.Values
-                        .Count(s => s.FlightSeats.FirstOrDefault(fs => fs.FlightId == returnFlightId)?.TicketId == null);
-                        int takenSeatsInSection = totalSeatsInSection - availableSeatsInSection;
-
-                        <div class="cabin-section @seatSection.TravelClass.ToString().ToLower()">
-                            <div class="cabin-label-row">
-                                <span class="cabin-label">@seatSection.TravelClass Class</span>
-                                <span class="cabin-price">from €@sectionPrice</span>
-                            </div>
-                            <div class="cabin-stats">
-                                <span class="stat-item total">🪑 @totalSeatsInSection seats total</span>
-                                <span class="stat-item avail">✅ @availableSeatsInSection available</span>
-                                <span class="stat-item taken">❌ @takenSeatsInSection taken</span>
-                            </div>
-                            <div class="seat-row header-row">
-                                <span class="row-num"></span>
-                                @foreach (var block in blocks)
-                                {
-                                    <span class="seat-block-header">
-                                        @foreach (char letter in block)
-                                        {
-                                            <span class="col-label">@letter</span>
-                                        }
-                                    </span>
-                                    if (block != blocks.Last())
-                                    {
-                                        <span class="aisle-header"></span>
-                                    }
-                                }
-                            </div>
-                            @for (int row = seatSection.StartRow; row <= seatSection.EndRow; row++)
-                            {
-                                <div class="seat-row">
-                                    <span class="row-num">@row</span>
-                                    @foreach (var block in blocks)
-                                    {
-                                        <span class="seat-block">
-                                            @foreach (char letter in block)
-                                            {
-                                                var seatNum = $"{row}{letter}";
-                                                if (!seatLookup.ContainsKey(seatNum)) { continue; }
-                                                var seat = seatLookup[seatNum];
-                                                var flightSeat = seat.FlightSeats.FirstOrDefault(fs => fs.FlightId == returnFlightId);
-                                                bool isTaken = flightSeat?.TicketId != null;
-                                                bool isSelected = preselectedReturnSeats.Contains(seat.Id);
-
-                                                var cssClass = isTaken ? "seat taken"
-                                                : isSelected ? "seat return-available selected"
-                                                : "seat return-available";
-
-                                                <button type="button"
-                                                        class="@cssClass"
-                                                        data-seat-id="@seat.Id"
-                                                        data-seat-number="@seatNum"
-                                                        data-price="@sectionPrice"
-                                                        data-class="@seatSection.TravelClass"
-                                                        data-flight="return"
-                                                        @(isTaken ? "disabled" : "")
-                                                        title="@seatNum — €@sectionPrice">
-                                                    @seatNum
-                                                </button>
-                                            }
-                                        </span>
-                                        if (block != blocks.Last())
-                                        {
-                                            <span class="aisle"></span>
-                                        }
-                                    }
-                                </div>
-                            }
+                    @if (Model.ConflictedReturnLeg2Seats.Any())
+                    {
+                        <div class="conflict-alert">
+                            ⚠️ Return connection seats taken:
+                            <strong>@string.Join(", ", Model.ConflictedReturnLeg2Seats)</strong>.
+                            Please select different seats.
                         </div>
                     }
-                    <div class="aircraft-tail"></div>
-                </div>
-            }
-
-        </div>
+                }
+            </div>
+        }
 
         <div class="summary-panel" id="summaryPanel">
             <div class="summary-sticky">
@@ -302,12 +228,18 @@
                         <span class="total-amount" id="totalAmount">€0.00</span>
                     </div>
 
-                    <form method="post" asp-route-id="@Model.Flight.Id"
-                          asp-route-returnId="@Model.ReturnFlight?.Id" id="bookingForm">
+                    <form method="post"
+                          asp-route-id="@Model.Flight.Id"
+                          asp-route-returnId="@Model.ReturnFlight?.Id"
+                          asp-route-leg2Id="@Model.Leg2Flight?.Id"
+                          asp-route-retLeg2Id="@Model.ReturnLeg2Flight?.Id"
+                          id="bookingForm">
 
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="selectedSeats" id="selectedSeatsInput" />
+                        <input type="hidden" name="leg2Seats" id="leg2SeatsInput" />
                         <input type="hidden" name="returnSeats" id="returnSeatsInput" />
+                        <input type="hidden" name="retLeg2Seats" id="retLeg2SeatsInput" />
                         <button type="submit" class="btn-continue">
                             Continue to Baggage →
                         </button>
@@ -321,163 +253,148 @@
 
 @section Scripts {
     <script>
-        const initialSelectedSeats = @Html.Raw(JsonSerializer.Serialize(Model.Session?.SelectedSeatIds ?? new List<Guid>()));
-        const initialReturnSeats   = @Html.Raw(JsonSerializer.Serialize(Model.Session?.ReturnSeatIds ?? new List<Guid>()));
+        const initialSelectedSeats  = @Html.Raw(JsonSerializer.Serialize(Model.Session?.SelectedSeatIds ?? new List<Guid>()));
+        const initialLeg2Seats      = @Html.Raw(JsonSerializer.Serialize(Model.Session?.Leg2SeatIds ?? new List<Guid>()));
+        const initialReturnSeats    = @Html.Raw(JsonSerializer.Serialize(Model.Session?.ReturnSeatIds ?? new List<Guid>()));
+        const initialRetLeg2Seats   = @Html.Raw(JsonSerializer.Serialize(Model.Session?.ReturnLeg2SeatIds ?? new List<Guid>()));
     </script>
 
     <script>
-        const selectedSeats       = new Map(); // outbound
-        const selectedReturnSeats = new Map(); // return
+        const selectedSeats       = new Map(); // outbound leg1
+        const selectedLeg2Seats   = new Map(); // outbound leg2
+        const selectedReturnSeats = new Map(); // return  leg1
+        const selectedRetLeg2Seats= new Map(); // return  leg2
 
         window.onload = () => {
-            // Target elements using specific data-flight types to prevent overlap bugs
-            initialSelectedSeats.forEach(id => {
-                const btn = document.querySelector(`[data-seat-id="${id}"][data-flight="outbound"]`);
-                if (!btn) return;
-
-                selectedSeats.set(id, {
-                    number: btn.dataset.seatNumber,
-                    price: parseFloat(btn.dataset.price),
-                    travelClass: btn.dataset.class,
-                    isReturn: false
-                });
-
-                btn.classList.add('selected');
-            });
-
-            initialReturnSeats.forEach(id => {
-                const btn = document.querySelector(`[data-seat-id="${id}"][data-flight="return"]`);
-                if (!btn) return;
-
-                selectedReturnSeats.set(id, {
-                    number: btn.dataset.seatNumber,
-                    price: parseFloat(btn.dataset.price),
-                    travelClass: btn.dataset.class,
-                    isReturn: true
-                });
-
-                btn.classList.add('selected');
-            });
-
+            restoreSeats(initialSelectedSeats,  'outbound', selectedSeats);
+            restoreSeats(initialLeg2Seats,      'leg2',     selectedLeg2Seats);
+            restoreSeats(initialReturnSeats,    'return',   selectedReturnSeats);
+            restoreSeats(initialRetLeg2Seats,   'retLeg2',  selectedRetLeg2Seats);
             renderPanel();
         };
 
+        function restoreSeats(ids, flightType, map) {
+            ids.forEach(id => {
+                const btn = document.querySelector(`[data-seat-id="${id}"][data-flight="${flightType}"]`);
+                if (!btn) return;
+                map.set(id, {
+                    number: btn.dataset.seatNumber,
+                    price: parseFloat(btn.dataset.price),
+                    travelClass: btn.dataset.class,
+                    flightType
+                });
+                btn.classList.add('selected');
+            });
+        }
+
         document.querySelectorAll('.seat.available').forEach(btn => {
-            btn.addEventListener('click', () => toggleSeat(btn, false));
+            btn.addEventListener('click', () => toggleSeat(btn, 'outbound'));
+        });
+        document.querySelectorAll('.seat.leg2-available').forEach(btn => {
+            btn.addEventListener('click', () => toggleSeat(btn, 'leg2'));
         });
         document.querySelectorAll('.seat.return-available').forEach(btn => {
-            btn.addEventListener('click', () => toggleSeat(btn, true));
+            btn.addEventListener('click', () => {
+                const ft = btn.dataset.flight; // 'return' or 'retLeg2'
+                toggleSeat(btn, ft);
+            });
         });
 
-        function toggleSeat(btn, isReturn) {
-            const map = isReturn ? selectedReturnSeats : selectedSeats;
-            const id          = btn.dataset.seatId;
-            const number      = btn.dataset.seatNumber;
-            const price       = parseFloat(btn.dataset.price);
-            const travelClass = btn.dataset.class;
+        function mapForType(ft) {
+            if (ft === 'outbound') return selectedSeats;
+            if (ft === 'leg2')     return selectedLeg2Seats;
+            if (ft === 'return')   return selectedReturnSeats;
+            if (ft === 'retLeg2')  return selectedRetLeg2Seats;
+        }
+
+        function toggleSeat(btn, flightType) {
+            const map = mapForType(flightType);
+            const id  = btn.dataset.seatId;
 
             if (map.has(id)) {
                 map.delete(id);
                 btn.classList.remove('selected');
             } else {
-                map.set(id, { number, price, travelClass, isReturn });
+                map.set(id, {
+                    number: btn.dataset.seatNumber,
+                    price: parseFloat(btn.dataset.price),
+                    travelClass: btn.dataset.class,
+                    flightType
+                });
                 btn.classList.add('selected');
             }
             renderPanel();
         }
 
         function renderPanel() {
-            const empty = document.getElementById('summaryEmpty');
-            const seatsDiv = document.getElementById('summarySeats');
-            const seatList = document.getElementById('seatList');
-            const totalEl = document.getElementById('totalAmount');
+            const empty      = document.getElementById('summaryEmpty');
+            const seatsDiv   = document.getElementById('summarySeats');
+            const seatList   = document.getElementById('seatList');
+            const totalEl    = document.getElementById('totalAmount');
 
-            const outboundInput = document.getElementById('selectedSeatsInput');
-            const returnInput = document.getElementById('returnSeatsInput');
+            const outboundInput  = document.getElementById('selectedSeatsInput');
+            const leg2Input      = document.getElementById('leg2SeatsInput');
+            const returnInput    = document.getElementById('returnSeatsInput');
+            const retLeg2Input   = document.getElementById('retLeg2SeatsInput');
 
-            if (selectedSeats.size === 0 && selectedReturnSeats.size === 0) {
-                empty.style.display = 'flex';
+            const total = selectedSeats.size + selectedLeg2Seats.size +
+                          selectedReturnSeats.size + selectedRetLeg2Seats.size;
+
+            if (total === 0) {
+                empty.style.display  = 'flex';
                 seatsDiv.style.display = 'none';
-
-                outboundInput.value = "[]";
-                returnInput.value = "[]";
+                outboundInput.value = '[]'; leg2Input.value = '[]';
+                returnInput.value   = '[]'; retLeg2Input.value = '[]';
                 return;
             }
 
-            empty.style.display = 'none';
+            empty.style.display  = 'none';
             seatsDiv.style.display = 'block';
 
             let html = '';
-            let total = 0;
+            let runningTotal = 0;
 
-            const outboundIds = [];
-            const returnIds = [];
+            const outboundIds  = [];
+            const leg2Ids      = [];
+            const returnIds    = [];
+            const retLeg2Ids   = [];
 
-            // OUTBOUND
-            selectedSeats.forEach((seat, id) => {
-                total += seat.price;
-                outboundIds.push(id);
+            function buildLines(map, label, chipExtra, ids) {
+                map.forEach((seat, id) => {
+                    runningTotal += seat.price;
+                    ids.push(id);
+                    html += `
+                        <div class="seat-line">
+                            <div class="seat-line-left">
+                                <span class="seat-chip ${seat.travelClass.toLowerCase()} ${chipExtra}">${seat.number}</span>
+                                <span class="seat-class">${label} · ${seat.travelClass}</span>
+                            </div>
+                            <div class="seat-line-right">
+                                <span class="seat-price">€${seat.price.toFixed(2)}</span>
+                                <button type="button" class="remove-btn"
+                                        onclick="removeSeat('${id}','${seat.flightType}')">✕</button>
+                            </div>
+                        </div>`;
+                });
+            }
 
-                html += `
-                    <div class="seat-line">
-                        <div class="seat-line-left">
-                            <span class="seat-chip ${seat.travelClass.toLowerCase()}">${seat.number}</span>
-                            <span class="seat-class">Outbound ${seat.travelClass}</span>
-                        </div>
-                        <div class="seat-line-right">
-                            <span class="seat-price">€${seat.price.toFixed(2)}</span>
-                            <button type="button"
-                                    class="remove-btn"
-                                    onclick="removeSeat('${id}', false)">
-                                ✕
-                            </button>
-                        </div>
-                    </div>`;
-            });
+            buildLines(selectedSeats,        'Outbound',         '',         outboundIds);
+            buildLines(selectedLeg2Seats,     'Outbound Leg 2',  'leg2',     leg2Ids);
+            buildLines(selectedReturnSeats,   'Return',           'ret',      returnIds);
+            buildLines(selectedRetLeg2Seats,  'Return Leg 2',    'ret leg2', retLeg2Ids);
 
-            // RETURN
-            selectedReturnSeats.forEach((seat, id) => {
-                total += seat.price;
-                returnIds.push(id);
-
-                html += `
-                    <div class="seat-line">
-                        <div class="seat-line-left">
-                            <span class="seat-chip ${seat.travelClass.toLowerCase()}">${seat.number}</span>
-                            <span class="seat-class">Return ${seat.travelClass}</span>
-                        </div>
-                        <div class="seat-line-right">
-                            <span class="seat-price">€${seat.price.toFixed(2)}</span>
-                            <button type="button"
-                                    class="remove-btn"
-                                    onclick="removeSeat('${id}', true)">
-                                ✕
-                            </button>
-                        </div>
-                    </div>`;
-            });
-
-            seatList.innerHTML = html;
-            totalEl.textContent = `€${total.toFixed(2)}`;
-
-            outboundInput.value = JSON.stringify(outboundIds);
-            returnInput.value = JSON.stringify(returnIds);
+            seatList.innerHTML       = html;
+            totalEl.textContent      = `€${runningTotal.toFixed(2)}`;
+            outboundInput.value      = JSON.stringify(outboundIds);
+            leg2Input.value          = JSON.stringify(leg2Ids);
+            returnInput.value        = JSON.stringify(returnIds);
+            retLeg2Input.value       = JSON.stringify(retLeg2Ids);
         }
 
-        function removeSeat(id, isReturn) {
-            const flightType = isReturn ? 'return' : 'outbound';
+        function removeSeat(id, flightType) {
             const btn = document.querySelector(`[data-seat-id="${id}"][data-flight="${flightType}"]`);
-
-            if (btn) {
-                btn.classList.remove('selected');
-            }
-
-            if (isReturn) {
-                selectedReturnSeats.delete(id);
-            } else {
-                selectedSeats.delete(id);
-            }
-
+            if (btn) btn.classList.remove('selected');
+            mapForType(flightType)?.delete(id);
             renderPanel();
         }
     </script>
