@@ -7,6 +7,9 @@
 
 
 <link rel="stylesheet" href="~/css/Profile.css" asp-append-version="true" />
+<link rel="stylesheet"
+      href="~/css/AircraftCard.css"
+      asp-append-version="true" />
 
 
 <div class="background">
@@ -42,9 +45,72 @@
                 @foreach (var aircraft in Model.CurrentUser.Airline.Aircraft)
                 {
                     <hr />
-                    <a asp-page="/AircraftInfo" asp-route-id="@aircraft.Id" class="aircraft-link">
-                        <partial name="_AircraftCard" model="aircraft" />
-                    </a>
+
+                    <div class="aircraft-card">
+
+                        <div class="aircraft-card-header">
+
+                            <div class="aircraft-model">
+                                ✈ @aircraft.Model
+                            </div>
+
+                            @if (User.Identity != null && User.Identity.IsAuthenticated)
+                            {
+                                @if (User.Identity.Name == aircraft.Airline.User.UserName
+                                                || User.IsInRole("Admin"))
+                                {
+                                    <form method="post"
+                                          asp-page="/_Actions"
+                                          asp-page-handler="DeleteAircraft">
+
+                                        <input type="hidden"
+                                               name="aircraftId"
+                                               value="@aircraft.Id" />
+
+                                        <button type="button"
+                                                class="delete-aircraft-btn"
+                                                onclick="openDeleteModal('@aircraft.Id', 'Aircraft')">
+
+                                            ✖
+
+                                        </button>
+
+                                    </form>
+                                }
+                            }
+
+                        </div>
+                        <a asp-page="/AircraftInfo" asp-route-id="@aircraft.Id" class="aircraft-link">
+                                <div class="aircraft-card-body">
+
+                                    <div class="aircraft-info-box">
+
+                                        <span class="aircraft-label">
+                                            Seats
+                                        </span>
+
+                                        <span class="aircraft-value">
+                                            @aircraft.TotalSeats
+                                        </span>
+
+                                    </div>
+
+                                    <div class="aircraft-info-box">
+
+                                        <span class="aircraft-label">
+                                            Flights
+                                        </span>
+
+                                        <span class="aircraft-value">
+                                            @aircraft.Flights.Count
+                                        </span>
+
+                                    </div>
+
+                                </div>
+                        </a>
+                    </div>
+                    
                     <hr />
                 }
             </div>

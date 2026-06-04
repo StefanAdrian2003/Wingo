@@ -83,8 +83,26 @@ namespace Proiect_Licenta.Pages
 
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
+
+            var log = new AdminLog
+            {
+                Action = "CREATE_POST",
+                Details = $"User {user.UserName} created a post titled '{post.Title}'",
+                PerformedByUserId = user.Id,
+                PerformedByUser = user
+            };
+
+            _context.AdminLogs.Add(log);
+            await _context.SaveChangesAsync();
+
+
+
+
             await _userProgressService.AddPointsAsync(user, 50);
             await _badgeService.CheckPostingBadgesAsync(user.Id);
+
+
+
 
 
             return RedirectToPage("/Account/Manage/Profile", new { area = "Identity"}); // sau unde vrei

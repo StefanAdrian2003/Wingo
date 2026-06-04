@@ -483,6 +483,15 @@ namespace Proiect_Licenta.Pages
             _db.Reports.Add(report);
             await _db.SaveChangesAsync();
 
+
+            _db.AdminLogs.Add(new AdminLog
+            {
+                Action = "REPORT_CREATED",
+                PerformedByUserId = user.Id,
+                Details = $"{user.UserName} reported {type} {entityId}. Reason: {reason}"
+            });
+            await _db.SaveChangesAsync();
+
             TempData["StatusMessage"] = "Report submitted.";
             return Redirect(Request.Headers["Referer"].ToString());
         }
