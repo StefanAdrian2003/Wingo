@@ -425,7 +425,7 @@ namespace Proiect_Licenta.Data
                 new Badge
                 {
                     Id = Guid.Parse("20000000-0000-0000-0000-000000000100"),
-                    Name = "Legend of InfinityFit",
+                    Name = "Legend of Wingo",
                     Description = "Reached level 100",
                     Icon = "/images/level100.png"
                 },
@@ -538,7 +538,7 @@ namespace Proiect_Licenta.Data
                 new Badge
                 {
                     Id = Guid.Parse("40000000-0000-0000-0000-000000001000"),
-                    Name = "Voice of Infinity",
+                    Name = "Voice of Wingo",
                     Description = "Posted 1,000 comments",
                     Icon = "/images/comment1000.png"
                 }

@@ -7,9 +7,13 @@ using Proiect_Licenta.Data;
 using Proiect_Licenta.Models;
 using Proiect_Licenta.Services;
 using static System.Net.WebRequestMethods;
+using Microsoft.AspNetCore.Authorization;
+
+
 
 namespace Proiect_Licenta.Areas.Identity.Pages.Account.Manage
 {
+    [Authorize]
     public class ProfileModel : PageModel
     {
         private readonly UserManager<User> _userManager;

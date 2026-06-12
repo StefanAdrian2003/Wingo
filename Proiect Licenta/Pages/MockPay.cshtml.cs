@@ -125,7 +125,13 @@ namespace Proiect_Licenta.Pages
                     Session.ConflictedReturnLeg2Seats = await GetSeatNumbersAsync(takenReturnLeg2);
 
                     TempData[BookingKey] = JsonSerializer.Serialize(Session);
-                    return RedirectToPage("/BookingPassenger", new { id = Session.FlightId, returnId = Session.ReturnFlightId });
+                    return RedirectToPage("/BookingPassenger", new
+                    {
+                        id = Session.FlightId,
+                        returnId = Session.ReturnFlightId,
+                        leg2Id = Session.Leg2FlightId,
+                        retLeg2Id = Session.ReturnLeg2FlightId
+                    });
                 }
 
                 // Calculate voucher discount factors
@@ -184,7 +190,10 @@ namespace Proiect_Licenta.Pages
 
                 TempData.Remove(BookingKey);
                 TempData["StatusMessage"] = $"Booking confirmed! {SelectedSeats.Count} ticket(s) booked.";
-                return RedirectToPage("/Account/Manage/Bookings", new { area = "Identity" });
+                return RedirectToPage("/Succes", new
+                {
+                    returnUrl = Url.Page("/Account/Manage/Bookings", new { area = "Identity" })
+                });
             }
             catch
             {

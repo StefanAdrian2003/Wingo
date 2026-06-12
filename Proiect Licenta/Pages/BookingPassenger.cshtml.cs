@@ -56,10 +56,10 @@ namespace Proiect_Licenta.Pages
 
             if (Session != null)
             {
-                ConflictedSeats = Session.ConflictedSeats;
-                ConflictedLeg2Seats = Session.ConflictedLeg2Seats;
-                ConflictedSeatsReturn = Session.ConflictedSeatsReturn;
-                ConflictedReturnLeg2Seats = Session.ConflictedReturnLeg2Seats;
+                ConflictedSeats = Session.ConflictedSeats.ToList();
+                ConflictedLeg2Seats = Session.ConflictedLeg2Seats.ToList();
+                ConflictedSeatsReturn = Session.ConflictedSeatsReturn.ToList();
+                ConflictedReturnLeg2Seats = Session.ConflictedReturnLeg2Seats.ToList();
 
                 Session.ConflictedSeats.Clear();
                 Session.ConflictedLeg2Seats.Clear();
@@ -151,6 +151,7 @@ namespace Proiect_Licenta.Pages
         private async Task<Flight?> LoadFlight(Guid id)
         {
             return await _context.Flights
+                .AsNoTracking()
                 .Include(f => f.Airline)
                 .Include(f => f.DepartureAirport)
                 .Include(f => f.ArrivalAirport)

@@ -1,0 +1,23 @@
+﻿@page
+@model Proiect_Licenta.Pages.SuccesModel
+@{
+}
+
+
+<div class="background" style="text-align:center; margin-top:100px;">
+
+    <div style="font-size:100px; color:green;">
+        ✔
+    </div>
+
+    <h1 style="color:green;">Success!</h1>
+
+    <p>You will be redirected automatically in 3 seconds...</p>
+
+</div>
+
+<script>
+    setTimeout(() => {
+        window.location.href = "@Model.ReturnUrl";
+    }, 3000);
+</script>
