@@ -1,26 +1,61 @@
 ﻿@page
 @model Proiect_Licenta.Pages.AddAircraftModel
 @{
+    ViewData["Title"] = "Add Aircraft";
 }
 
-<h2>Add Aircraft</h2>
+<h2>Add Aircraft Configuration</h2>
 
-<div class="background">
+<div class="card p-4 shadow-sm">
     <form method="post">
-        <div class="form-group">
-            <label>Model</label>
-            <input asp-for="Aircraft.Model" class="form-control" />
-            <span asp-validation-for="Aircraft.Model" class="text-danger"></span>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="form-group mb-3">
+            <label class="form-label font-weight-bold">Aircraft Model Name</label>
+            <input asp-for="AircraftModelName" class="form-control" placeholder="e.g. Airbus A320" />
+            <span asp-validation-for="AircraftModelName" class="text-danger"></span>
         </div>
 
-        <div class="form-group mt-2">
-            <label>Total Seats</label>
-            <input asp-for="Aircraft.TotalSeats" type="number" class="form-control" />
-            <span asp-validation-for="Aircraft.TotalSeats" class="text-danger"></span>
+        <hr />
+        <h4>Seat Class Configurations</h4>
+        <p class="text-muted small">Leave rows at 0 if the class is not present on this aircraft.</p>
+
+        <div class="row bg-light p-2 my-2 border rounded">
+            <div class="col-md-4">
+                <label class="form-label font-weight-bold text-primary">First Class Rows</label>
+                <input asp-for="FirstClassRows" type="number" min="0" class="form-control" />
+            </div>
+            <div class="col-md-8">
+                <label class="form-label">First Class Layout</label>
+                <input asp-for="FirstClassLayout" class="form-control" placeholder="e.g. AB-CD" />
+            </div>
         </div>
 
-        <button type="submit" class="btn btn-primary mt-3">
-            Add Aircraft
+        <div class="row bg-light p-2 my-2 border rounded">
+            <div class="col-md-4">
+                <label class="form-label font-weight-bold text-success">Business Class Rows</label>
+                <input asp-for="BusinessClassRows" type="number" min="0" class="form-control" />
+            </div>
+            <div class="col-md-8">
+                <label class="form-label">Business Class Layout</label>
+                <input asp-for="BusinessClassLayout" class="form-control" placeholder="e.g. ABC-DEF" />
+            </div>
+        </div>
+
+        <div class="row bg-light p-2 my-2 border rounded">
+            <div class="col-md-4">
+                <label class="form-label font-weight-bold text-warning">Economy Class Rows</label>
+                <input asp-for="EconomyClassRows" type="number" min="0" class="form-control" />
+            </div>
+            <div class="col-md-8">
+                <label class="form-label">Economy Class Layout</label>
+                <input asp-for="EconomyClassLayout" class="form-control" placeholder="e.g. ABC-DEF" />
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-4 px-4">
+            Build & Add Aircraft
         </button>
     </form>
 </div>

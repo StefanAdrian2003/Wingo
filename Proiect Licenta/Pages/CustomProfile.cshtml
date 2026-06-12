@@ -1,14 +1,16 @@
 ﻿@page
+@using Proiect_Licenta.Models
 @model Proiect_Licenta.Pages.CustomProfileModel
-
+@{
+    ViewData["Title"] = @Model.CurrentUser.UserName;
+}
 
 <link rel="stylesheet" href="~/css/Profile.css" asp-append-version="true" />
-
 
 <div class="background">
     <h2>@Model.CurrentUser.UserName</h2>
 
-    @if(Model.CurrentUser.IsCompany)
+    @if (Model.CurrentUser.IsCompany && Model.CurrentUser.Airline != null)
     {
         <div class="company-profile">
             <img src="@Model.CurrentUser.Airline.LogoUrl" alt="Company Logo" class="company-logo" />
@@ -19,7 +21,7 @@
             <hr />
             <p><strong style="color:blue;">Aircrafts:</strong></p>
 
-            @if (!Model.CurrentUser.Airline.Aircraft.Any())
+            @if (Model.CurrentUser.Airline.Aircraft == null || !Model.CurrentUser.Airline.Aircraft.Any())
             {
                 <p>No aircrafts yet.</p>
             }
@@ -29,64 +31,119 @@
                     @foreach (var aircraft in Model.CurrentUser.Airline.Aircraft)
                     {
                         <hr />
-                        <a asp-page="/AircraftInfo" asp-route-id="@aircraft.Id" class="aircraft-link">
-                            <partial name="_AircraftCard" model="aircraft" />
-                        </a>
+
+                        <div class="aircraft-card">
+
+                            <div class="aircraft-card-header">
+
+                                <div class="aircraft-model">
+                                    ✈ @aircraft.Model
+                                </div>
+
+                                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                                {
+                                    @if (User.Identity.Name == aircraft.Airline.User.UserName
+                                                    || User.IsInRole("Admin"))
+                                    {
+                                        <form method="post"
+                                              asp-page="/_Actions"
+                                              asp-page-handler="DeleteAircraft">
+
+                                            <input type="hidden"
+                                                   name="aircraftId"
+                                                   value="@aircraft.Id" />
+
+                                            <button type="button"
+                                                    class="delete-aircraft-btn"
+                                                    onclick="openDeleteModal('@aircraft.Id', 'Aircraft')">
+
+                                                ✖
+
+                                            </button>
+
+                                        </form>
+                                    }
+                                }
+
+                            </div>
+                            <a asp-page="/AircraftInfo" asp-route-id="@aircraft.Id" class="aircraft-link">
+                                <div class="aircraft-card-body">
+
+                                    <div class="aircraft-info-box">
+
+                                        <span class="aircraft-label">
+                                            Seats
+                                        </span>
+
+                                        <span class="aircraft-value">
+                                            @aircraft.TotalSeats
+                                        </span>
+
+                                    </div>
+
+                                    <div class="aircraft-info-box">
+
+                                        <span class="aircraft-label">
+                                            Flights
+                                        </span>
+
+                                        <span class="aircraft-value">
+                                            @aircraft.Flights.Count
+                                        </span>
+
+                                    </div>
+
+                                </div>
+                            </a>
+                        </div>
+
                         <hr />
                     }
                 </div>
             }
         }
 
-
         <p><strong style="color:blue;">Flights:</strong></p>
 
         <div class="company-flights">
+            @{
+                // Flatten flights explicitly to safely run conditional check expressions
+                var allFlights = Model.CurrentUser.Airline.Aircraft?.SelectMany(ac => ac.Flights).ToList() ?? new List<Flight>();
+            }
 
-            @if (!Model.CurrentUser.Airline.Aircraft.Any())
+            @if (!allFlights.Any())
             {
-                <p>No flights yet.</p>
+                <p>No flights scheduled yet.</p>
             }
             else
             {
                 <div class="flight-grid">
-
-                    @foreach (var flight in Model.CurrentUser.Airline.Aircraft.SelectMany(ac => ac.Flights))
+                    @foreach (var flight in allFlights)
                     {
                         <div class="flight-with-bookings">
                             <partial name="_FlightCard" model="flight" />
                         </div>
                     }
-
                 </div>
             }
-
         </div>
     }
     else
     {
         <p><strong style="color:blue;">Level:</strong> <span style="color:green;">@Model.CurrentUser.Level</span></p>
 
-        @if (@Model.CurrentUser.Level > 0)
+        @if (Model.CurrentUser.Level > 0)
         {
-
-            <p>
-                <strong style="color:blue;">Points:</strong>
-                <span style="color:orange;">@Model.CurrentUser.Level</span>
-            </p>
+            <p><strong style="color:blue;">Points:</strong> <span style="color:orange;">@Model.CurrentUser.Level</span></p>
         }
         else
         {
-            <p>
-                <strong style="color:blue;">Points:</strong>
-                <span style="color:orange; font-weight:bold;">No points</span>
-            </p>
+            <p><strong style="color:blue;">Points:</strong> <span style="color:orange; font-weight:bold;">No points</span></p>
         }
-
 
         <p><strong style="color:blue;">Badges:</strong></p>
 
-        @if (@Model.CurrentUser.UserBadges.Count == 0)
+        @if (Model.CurrentUser.UserBadges == null || Model.CurrentUser.UserBadges.Count == 0)
         {
             <p>No badges yet.</p>
         }
@@ -101,40 +158,32 @@
         }
     }
 
-    
-
-
-
     <p><strong style="color:blue;">Posts:</strong></p>
 
-    @if (!Model.CurrentUser.Posts.Any())
+    @if (Model.CurrentUser.Posts == null || !Model.CurrentUser.Posts.Any())
     {
         <p>No posts yet.</p>
     }
     else
     {
         <div class="post-grid">
-
             @foreach (var post in Model.CurrentUser.Posts)
             {
                 <partial name="_PostCard" model="post" />
             }
-
         </div>
     }
-
 </div>
-
 
 <partial name="_DeleteModal" />
 
-
-
-
 <div class="modals-container-layer">
-    @foreach (var post in Model.CurrentUser.Posts)
+    @if (Model.CurrentUser.Posts != null)
     {
-        <partial name="_CommentsModal" model="post" />
+        @foreach (var post in Model.CurrentUser.Posts)
+        {
+            <partial name="_CommentsModal" model="post" />
+        }
     }
 </div>
 

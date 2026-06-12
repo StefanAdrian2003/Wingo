@@ -57,12 +57,12 @@ namespace Proiect_Licenta.Pages
                 return Unauthorized();
 
             // salvare imagine
-            string imagePath = "";
+            string imagePath = "/uploads/default-post.png";
 
             if (Input.ImageFile != null)
             {
                 var fileName = Guid.NewGuid().ToString() + Path.GetExtension(Input.ImageFile.FileName);
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads", fileName);
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", fileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {

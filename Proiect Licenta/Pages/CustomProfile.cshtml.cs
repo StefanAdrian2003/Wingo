@@ -23,6 +23,7 @@ namespace Proiect_Licenta.Pages
                 return NotFound();
 
             CurrentUser = await _db.Users
+                // Stream Route 1: Pull Airline Fleet and map target Flight Airfields
                 .Include(u => u.Airline)
                     .ThenInclude(a => a.Aircraft)
                         .ThenInclude(ac => ac.Flights)
@@ -31,10 +32,12 @@ namespace Proiect_Licenta.Pages
                     .ThenInclude(a => a.Aircraft)
                         .ThenInclude(ac => ac.Flights)
                             .ThenInclude(f => f.ArrivalAirport)
+                // Stream Route 2: Load Social Engagements separately
                 .Include(u => u.Posts)
                     .ThenInclude(p => p.Likes)
                 .Include(u => u.Posts)
                     .ThenInclude(p => p.Comments)
+                // Stream Route 3: Gamification Elements
                 .Include(u => u.UserBadges)
                     .ThenInclude(ub => ub.Badge)
                 .FirstOrDefaultAsync(u => u.UserName == username);

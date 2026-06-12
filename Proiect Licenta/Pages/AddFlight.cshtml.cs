@@ -43,7 +43,10 @@ namespace Proiect_Licenta.Pages.Flights
 
             await LoadSelectedAirportNames();
 
+            var user = await GetUserAsync();
+
             var allAircrafts = await _context.Aircrafts
+                .Where(a => a.AirlineId == user.AirlineId.Value)
                 .Include(a => a.Flights)
                 .ToListAsync();
 

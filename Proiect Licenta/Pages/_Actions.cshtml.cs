@@ -253,26 +253,33 @@ namespace Proiect_Licenta.Pages
 
             var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
 
+            // Load the entire relational target graph deep down to baggage nodes
             var flight = await _db.Flights
                 .Include(f => f.Airline)
                 .Include(f => f.Bookings)
-                .FirstOrDefaultAsync(f =>
-                    f.Id == entityId &&
-                    (f.Airline.UserId == user.Id || isAdmin));
+                    .ThenInclude(b => b.Tickets)
+                        .ThenInclude(t => t.BaggageItems)
+                .Include(f => f.FlightSeats)
+                .FirstOrDefaultAsync(f => f.Id == entityId && (f.Airline.UserId == user.Id || isAdmin));
 
             if (flight == null) return NotFound();
 
-            var relatedReports = await _db.Reports
-                        .Where(r => r.FlightId == entityId)
-                        .ToListAsync();
-
+            // 1. Unlink and resolve platform reports tied to this flight
+            var relatedReports = await _db.Reports.Where(r => r.FlightId == entityId).ToListAsync();
             foreach (var r in relatedReports)
             {
                 r.FlightId = null;
                 r.Status = ReportStatus.Resolved;
             }
 
-            foreach (var booking in flight.Bookings)
+            // 2. Separate downstream nodes into tracking lists for batch deletion operations
+            var bookingsToRemove = flight.Bookings.ToList();
+            var ticketsToRemove = flight.Bookings.SelectMany(b => b.Tickets).ToList();
+            var baggageToRemove = ticketsToRemove.SelectMany(t => t.BaggageItems).ToList();
+            var flightSeatsToRemove = flight.FlightSeats.ToList();
+
+            // 3. Notify every single customer impacted by this flight cancellation
+            foreach (var booking in bookingsToRemove)
             {
                 await _notificationService.CreateAsync(
                     receiverId: booking.UserId,
@@ -283,18 +290,36 @@ namespace Proiect_Licenta.Pages
                 );
             }
 
-            _db.Bookings.RemoveRange(flight.Bookings);
+            // 4. Delete leaf records sequentially up the tree structure to bypass foreign key locks
+            if (baggageToRemove.Any()) _db.baggageItems.RemoveRange(baggageToRemove);
+
+            // Sever internal foreign key cycles between FlightSeat and Ticket before removing them
+            foreach (var fs in flightSeatsToRemove)
+            {
+                fs.TicketId = null;
+                fs.Ticket = null;
+            }
+            // Perform intermediate save to make sure the database engine releases the record locks
+            await _db.SaveChangesAsync();
+
+            if (flightSeatsToRemove.Any()) _db.FlightSeats.RemoveRange(flightSeatsToRemove);
+            if (ticketsToRemove.Any()) _db.Tickets.RemoveRange(ticketsToRemove);
+            if (bookingsToRemove.Any()) _db.Bookings.RemoveRange(bookingsToRemove);
+
+            // 5. Delete the flight record itself
             _db.Flights.Remove(flight);
 
+            // 6. Record actions inside the Admin Logs audit ledger
             _db.AdminLogs.Add(new AdminLog
             {
                 Action = "DELETE_FLIGHT",
                 PerformedByUserId = user.Id,
                 Details = isAdmin
-                            ? $"Admin deleted flight {flight.FlightNumber}. Reason: {reason}"
-                            : $"{user.UserName} deleted flight {flight.FlightNumber}"
+                    ? $"Admin deleted flight {flight.FlightNumber}. Reason: {reason}"
+                    : $"{user.UserName} deleted flight {flight.FlightNumber}"
             });
 
+            // 7. Notify the airline company operator if actioned by an independent admin account
             if (isAdmin && flight.Airline.UserId != user.Id)
             {
                 await _notificationService.CreateAsync(
@@ -308,50 +333,53 @@ namespace Proiect_Licenta.Pages
 
             await _db.SaveChangesAsync();
 
-            TempData["StatusMessage"] = "Flight deleted successfully.";
+            TempData["StatusMessage"] = "Flight, customer tickets, and baggage selections removed completely.";
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
         public async Task<IActionResult> OnPostDeleteAircraftAsync(Guid entityId, string reason)
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-                return Unauthorized();
+            if (user == null) return Unauthorized();
 
             var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
 
-            // Încărcăm avionul împreună cu zborurile sale și rezervările aferente acelor zboruri
+            // Gather the target aircraft alongside all flights scheduled on it
             var aircraft = await _db.Aircrafts
                 .Include(a => a.Airline)
                 .Include(a => a.Flights)
-                    .ThenInclude(f => f.Bookings)
                 .FirstOrDefaultAsync(a => a.Id == entityId);
 
-            if (aircraft == null)
-                return NotFound();
+            if (aircraft == null) return NotFound();
+            if (!isAdmin && aircraft.Airline.UserId != user.Id) return Unauthorized();
 
-            if (!isAdmin && aircraft.Airline.UserId != user.Id)
-                return Unauthorized();
-
-            // 1. Extragem ID-urile tuturor zborurilor operate de acest avion
-            var flightIds = aircraft.Flights.Select(f => f.Id).ToList();
-
-            // 2. Curățăm toate rapoartele legate de aceste zboruri
-            var relatedReports = await _db.Reports
-                .Where(r => r.FlightId != null && flightIds.Contains(r.FlightId.Value))
-                .ToListAsync();
-
-            foreach (var r in relatedReports)
+            // 1. Loop and clear out all active operational flights assigned to this airframe
+            var flightsAssociated = aircraft.Flights.ToList();
+            foreach (var flight in flightsAssociated)
             {
-                r.FlightId = null;
-                r.Status = ReportStatus.Resolved;
-            }
+                // Recursively clean out child logs, baggage data lines, and client notifications 
+                // using the exact same structural cleanup rules
+                var flightId = flight.Id;
 
-            // 3. Procesăm fiecare zbor: notificăm pasagerii și colectăm rezervările pentru ștergere
-            var allBookingsToRemove = new List<Booking>();
-            foreach (var flight in aircraft.Flights)
-            {
-                foreach (var booking in flight.Bookings)
+                var relatedReports = await _db.Reports.Where(r => r.FlightId == flightId).ToListAsync();
+                foreach (var r in relatedReports)
+                {
+                    r.FlightId = null;
+                    r.Status = ReportStatus.Resolved;
+                }
+
+                var bookings = await _db.Bookings
+                    .Include(b => b.Tickets)
+                        .ThenInclude(t => t.BaggageItems)
+                    .Where(b => b.FlightId == flightId)
+                    .ToListAsync();
+
+                var tickets = bookings.SelectMany(b => b.Tickets).ToList();
+                var baggage = tickets.SelectMany(t => t.BaggageItems).ToList();
+                var flightSeats = await _db.FlightSeats.Where(fs => fs.FlightId == flightId).ToListAsync();
+
+                // Alert passengers that their itinerary is canceled due to asset decommissioning
+                foreach (var booking in bookings)
                 {
                     await _notificationService.CreateAsync(
                         receiverId: booking.UserId,
@@ -360,29 +388,40 @@ namespace Proiect_Licenta.Pages
                         message: $"The flight {flight.FlightNumber} you booked was cancelled because the aircraft is no longer available. Reason: {reason}",
                         postId: null
                     );
-                    allBookingsToRemove.Add(booking);
                 }
+
+                if (baggage.Any()) _db.baggageItems.RemoveRange(baggage);
+
+                foreach (var fs in flightSeats)
+                {
+                    fs.TicketId = null;
+                    fs.Ticket = null;
+                }
+                await _db.SaveChangesAsync(); // Flushes foreign key dependencies instantly
+
+                if (flightSeats.Any()) _db.FlightSeats.RemoveRange(flightSeats);
+                if (tickets.Any()) _db.Tickets.RemoveRange(tickets);
+                if (bookings.Any()) _db.Bookings.RemoveRange(bookings);
+
+                _db.Flights.Remove(flight);
             }
 
-            // 4. Ștergem fizic rezervările din baza de date pentru a elimina constrângerea Restrict
-            _db.Bookings.RemoveRange(allBookingsToRemove);
-            await _db.SaveChangesAsync();
-
-            // 5. Acum putem șterge în siguranță zborurile și aeronava
-            _db.Flights.RemoveRange(aircraft.Flights);
+            // 2. Delete the parent aircraft entity
+            // Note: This step cleanly drops the child Seat & SeatSection items automatically
+            // due to DeleteBehavior.Cascade declared in your Fluent API mapping!
             _db.Aircrafts.Remove(aircraft);
 
-            // 6. Adăugăm log-ul de sistem
+            // 3. Write administrative operation entry to log history ledger
             _db.AdminLogs.Add(new AdminLog
             {
                 Action = "DELETE_AIRCRAFT",
                 PerformedByUserId = user.Id,
                 Details = isAdmin
-                            ? $"Admin deleted aircraft {aircraft.Model}. Reason: {reason}"
-                            : $"{user.UserName} deleted aircraft {aircraft.Model}"
+                    ? $"Admin deleted aircraft {aircraft.Model}. Reason: {reason}"
+                    : $"{user.UserName} deleted aircraft {aircraft.Model}"
             });
 
-            // 7. Notificăm compania dacă aeronava a fost eliminată de către un admin
+            // 4. Inform the corporate user identity profile if managed out by server administrator
             if (isAdmin && aircraft.Airline.UserId != user.Id)
             {
                 await _notificationService.CreateAsync(
@@ -396,7 +435,7 @@ namespace Proiect_Licenta.Pages
 
             await _db.SaveChangesAsync();
 
-            TempData["StatusMessage"] = "Aircraft and its scheduled flights deleted successfully.";
+            TempData["StatusMessage"] = "Aircraft configurations, structural seat mappings, and all dependent scheduled flights purged successfully.";
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
