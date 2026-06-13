@@ -32,6 +32,7 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
 
         public RegisterModel(
             UserManager<User> userManager,
@@ -39,7 +40,8 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account
             SignInManager<User> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IWebHostEnvironment environment)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -48,6 +50,7 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account
             _logger = logger;
             _emailSender = emailSender;
             _context = context;
+            _environment = environment;
         }
 
         /// <summary>
@@ -119,6 +122,8 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account
             public bool IsCompany { get; set; } = false;
         }
 
+        
+
 
         public async Task OnGetAsync(string returnUrl = null)
         {
@@ -182,7 +187,17 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account
                         if (Input.LogoFile != null)
                         {
                             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(Input.LogoFile.FileName);
-                            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Logos", fileName);
+
+                            // Use _environment.WebRootPath to get the absolute path to wwwroot
+                            var logosFolder = Path.Combine(_environment.WebRootPath, "Logos");
+
+                            // CRITICAL GUARD: Ensure the folder exists on the server
+                            if (!Directory.Exists(logosFolder))
+                            {
+                                Directory.CreateDirectory(logosFolder);
+                            }
+
+                            var filePath = Path.Combine(logosFolder, fileName);
 
                             using (var stream = new FileStream(filePath, FileMode.Create))
                             {

@@ -13,11 +13,14 @@ namespace Proiect_Licenta.Pages
     {
         private readonly ApplicationDbContext _db;
         private readonly UserManager<User> _userManager;
+        private readonly IWebHostEnvironment _environment; // 1. Added dependency
 
-        public AdminDataModel(ApplicationDbContext db, UserManager<User> userManager)
+        // 2. Updated constructor to inject the web hosting environment
+        public AdminDataModel(ApplicationDbContext db, UserManager<User> userManager, IWebHostEnvironment environment)
         {
             _db = db;
             _userManager = userManager;
+            _environment = environment;
         }
 
         // USERS
@@ -133,6 +136,19 @@ namespace Proiect_Licenta.Pages
 
                     if (post != null)
                     {
+                        // --- NEW: DELETE THE PHYSICAL POST IMAGE FILE IF IT EXISTS ---
+                        if (!string.IsNullOrEmpty(post.ImagePath))
+                        {
+                            var fileName = Path.GetFileName(post.ImagePath);
+                            var filePath = Path.Combine(_environment.WebRootPath, "uploads", fileName);
+
+                            if (System.IO.File.Exists(filePath))
+                            {
+                                System.IO.File.Delete(filePath);
+                            }
+                        }
+                        // -------------------------------------------------------------
+
                         var commentIds = post.Comments.Select(c => c.Id).ToList();
 
                         // Dezlegăm toate rapoartele legate de această postare sau de comentariile ei

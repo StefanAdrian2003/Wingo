@@ -15,19 +15,22 @@ namespace Proiect_Licenta.Pages
         private readonly UserProgressService _userProgressService;
         private readonly BadgeService _badgeService;
         private readonly NotificationService _notificationService;
+        private readonly IWebHostEnvironment _environment;
 
         public _ActionsModel(
             ApplicationDbContext db,
             UserManager<User> userManager,
             UserProgressService userProgressService,
             BadgeService badgeService,
-            NotificationService notificationService)
+            NotificationService notificationService,
+            IWebHostEnvironment environment)
         {
             _db = db;
             _userManager = userManager;
             _userProgressService = userProgressService;
             _badgeService = badgeService;
             _notificationService = notificationService;
+            _environment = environment;
         }
 
         private const int POINTS_FOR_NEW_LIKE = 5;
@@ -194,6 +197,20 @@ namespace Proiect_Licenta.Pages
             if (post == null)
                 return NotFound();
 
+            // --- NEW: DELETE THE PHYSICAL IMAGE FILE ---
+            if (!string.IsNullOrEmpty(post.ImagePath))
+            {
+                // Extracts the filename (e.g., "guid.jpg") from your stored path (e.g., "/uploads/guid.jpg")
+                var fileName = Path.GetFileName(post.ImagePath);
+                var filePath = Path.Combine(_environment.WebRootPath, "uploads", fileName);
+
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+            // -------------------------------------------
+
             var commentIds = post.Comments.Select(c => c.Id).ToList();
 
             var relatedReports = await _db.Reports
@@ -206,8 +223,6 @@ namespace Proiect_Licenta.Pages
                 r.CommentId = null;
                 r.Status = ReportStatus.Resolved;
             }
-
-            await _db.SaveChangesAsync();
 
             _db.Comments.RemoveRange(post.Comments);
             _db.Likes.RemoveRange(post.Likes);
@@ -242,7 +257,7 @@ namespace Proiect_Licenta.Pages
 
             await _db.SaveChangesAsync();
 
-            TempData["StatusMessage"] = "Post deleted successfully.";
+            TempData["StatusMessage"] = "Post and image deleted successfully.";
             return Redirect(Request.Headers["Referer"].ToString());
         }
 

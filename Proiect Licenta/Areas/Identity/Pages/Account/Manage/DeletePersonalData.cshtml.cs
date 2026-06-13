@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -23,17 +25,20 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account.Manage
         private readonly SignInManager<User> _signInManager;
         private readonly ILogger<DeletePersonalDataModel> _logger;
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
 
         public DeletePersonalDataModel(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             ILogger<DeletePersonalDataModel> logger,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IWebHostEnvironment environment)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
             _context = context;
+            _environment = environment;
         }
 
         [BindProperty]
@@ -89,6 +94,9 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account.Manage
             var isCompany = await _userManager.IsInRoleAsync(user, "Company");
             var userId = await _userManager.GetUserIdAsync(user);
 
+            // Fetch company details early to evaluate the profile/logo path string if applicable
+            var airline = isCompany ? await _context.Airlines.FirstOrDefaultAsync(a => a.UserId == user.Id) : null;
+
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -115,7 +123,6 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account.Manage
                 var postIds = await _context.Posts.Where(p => p.UserId == user.Id).Select(p => p.Id).ToListAsync();
                 var commentIds = await _context.Comments.Where(c => c.UserId == user.Id || postIds.Contains(c.PostId)).Select(c => c.Id).ToListAsync();
 
-                var airline = isCompany ? await _context.Airlines.FirstOrDefaultAsync(a => a.UserId == user.Id) : null;
                 var flightIds = airline != null ? await _context.Flights.Where(f => f.AirlineId == airline.Id).Select(f => f.Id).ToListAsync() : new List<Guid>();
 
 
@@ -140,6 +147,22 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account.Manage
                 _context.Comments.RemoveRange(communityComments);
 
                 var communityPosts = await _context.Posts.Where(p => postIds.Contains(p.Id)).ToListAsync();
+
+                // Wipe physical images associated with user's posts
+                foreach (var post in communityPosts)
+                {
+                    if (!string.IsNullOrEmpty(post.ImagePath))
+                    {
+                        var postImageFileName = Path.GetFileName(post.ImagePath);
+                        var postImagePath = Path.Combine(_environment.WebRootPath, "uploads", postImageFileName);
+
+                        if (System.IO.File.Exists(postImagePath))
+                        {
+                            System.IO.File.Delete(postImagePath);
+                        }
+                    }
+                }
+
                 _context.Posts.RemoveRange(communityPosts);
 
                 var userNotifications = await _context.Notifications.Where(n => n.UserId == user.Id || n.SenderId == user.Id).ToListAsync();
@@ -248,6 +271,20 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account.Manage
 
                         var targetFleet = await _context.Aircrafts.Where(a => fleetIds.Contains(a.Id)).ToListAsync();
                         _context.Aircrafts.RemoveRange(targetFleet);
+                    }
+
+                    // --- UPDATED: WIPE PHYSICAL COMPANY LOGO VIA THE AIRLINE TABLE ---
+                    if (!string.IsNullOrEmpty(airline.LogoUrl))
+                    {
+                        var logoFileName = Path.GetFileName(airline.LogoUrl);
+
+                        // Assumes logo is stored in wwwroot/Logos. Change folder name here if it's different.
+                        var logoFilePath = Path.Combine(_environment.WebRootPath, "Logos", logoFileName);
+
+                        if (System.IO.File.Exists(logoFilePath))
+                        {
+                            System.IO.File.Delete(logoFilePath);
+                        }
                     }
 
                     _context.Airlines.Remove(airline);
