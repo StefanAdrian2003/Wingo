@@ -1,10 +1,11 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Proiect_Licenta.Data;
+using Proiect_Licenta.Data.Seeders;
 using Proiect_Licenta.Models;
 using Proiect_Licenta.Services;
-using Proiect_Licenta.Data.Seeders;
+using System.IO;                       // 🛡️ Required for Data Protection file paths
 using System.Text.RegularExpressions; // Required for CSV Quote-Safe Parser Engine
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +20,10 @@ builder.Services.AddDefaultIdentity<User>(options =>
     options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+// 🛡️ FIX FOR SHARED HOSTING: Forces Antiforgery/DataProtection keys to save to a permanent file directory
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "private", "keys")));
 
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient<CommentModerationService>();
