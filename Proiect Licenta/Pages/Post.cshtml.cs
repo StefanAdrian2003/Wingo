@@ -2,32 +2,34 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.RateLimiting; // 🛡️ Required for applying the Rate Limiting policy
 using Proiect_Licenta.Data;
 using Proiect_Licenta.Models;
 using Proiect_Licenta.Services;
 using System.ComponentModel.DataAnnotations;
-using System.IO; // Ensure this is present
+using System.IO;
 
 namespace Proiect_Licenta.Pages
 {
     [Authorize]
+    [EnableRateLimiting("fixed")] // 🛡️ Protects this specific endpoint from flood attacks/spam posting
     public class PostModel : PageModel
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
         private readonly UserProgressService _userProgressService;
         private readonly BadgeService _badgeService;
-        private readonly IWebHostEnvironment _environment; // 🛡️ Added for safe file system mapping
+        private readonly IWebHostEnvironment _environment;
 
         public PostModel(ApplicationDbContext context, UserManager<User> userManager,
                          UserProgressService userProgressService, BadgeService badgeService,
-                         IWebHostEnvironment environment) // 🛡️ Injected here
+                         IWebHostEnvironment environment)
         {
             _context = context;
             _userManager = userManager;
             _userProgressService = userProgressService;
             _badgeService = badgeService;
-            _environment = environment; // 🛡️ Assigned
+            _environment = environment;
         }
 
         [BindProperty]
@@ -67,10 +69,10 @@ namespace Proiect_Licenta.Pages
             {
                 var fileName = Guid.NewGuid().ToString() + Path.GetExtension(Input.ImageFile.FileName);
 
-                // 🛡️ Safe path selection using WebRootPath (points straight to your wwwroot folder)
+                // Safe path selection using WebRootPath (points straight to your wwwroot folder)
                 var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
 
-                // 🛡️ CRITICAL FIX: If the 'uploads' directory doesn't exist on the server, create it!
+                // If the 'uploads' directory doesn't exist on the server, create it!
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);

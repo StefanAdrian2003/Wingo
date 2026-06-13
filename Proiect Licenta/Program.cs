@@ -6,8 +6,9 @@ using Proiect_Licenta.Data;
 using Proiect_Licenta.Data.Seeders;
 using Proiect_Licenta.Models;
 using Proiect_Licenta.Services;
-using System.IO;                       // 🛡️ Required for Data Protection file paths
-using System.Text.RegularExpressions; // Required for CSV Quote-Safe Parser Engine
+using System.IO;                               // 🛡️ Required for Data Protection file paths
+using System.Text.RegularExpressions;          // Required for CSV Quote-Safe Parser Engine
+using Microsoft.AspNetCore.RateLimiting;       // 🛡️ Required for Rate Limiting middleware policies
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,18 @@ builder.Services.AddDefaultIdentity<User>(options =>
 // 🛡️ FIX FOR SHARED HOSTING: Forces Antiforgery/DataProtection keys to save to a permanent file directory
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "private", "keys")));
+
+// 🛡️ SECURITY LAYER: Configure Rate Limiting Policy (Max 20 requests per 10 seconds per user IP)
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter(policyName: "fixed", fixedOptions =>
+    {
+        fixedOptions.PermitLimit = 20;
+        fixedOptions.Window = TimeSpan.FromSeconds(10);
+        fixedOptions.QueueLimit = 0; // Reject flood traffic immediately without queuing
+    });
+});
 
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient<CommentModerationService>();
@@ -51,6 +64,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// 🛡️ ACTIVATE RATE LIMITER: Must be applied right after UseRouting and strictly before Authentication/Authorization
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
