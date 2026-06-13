@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -6,6 +6,7 @@ using Proiect_Licenta.Data;
 using Proiect_Licenta.Models;
 using Proiect_Licenta.Services;
 using System.ComponentModel.DataAnnotations;
+using System.IO; // Ensure this is present
 
 namespace Proiect_Licenta.Pages
 {
@@ -16,14 +17,17 @@ namespace Proiect_Licenta.Pages
         private readonly UserManager<User> _userManager;
         private readonly UserProgressService _userProgressService;
         private readonly BadgeService _badgeService;
+        private readonly IWebHostEnvironment _environment; // 🛡️ Added for safe file system mapping
 
         public PostModel(ApplicationDbContext context, UserManager<User> userManager,
-                         UserProgressService userProgressService, BadgeService badgeService)
+                         UserProgressService userProgressService, BadgeService badgeService,
+                         IWebHostEnvironment environment) // 🛡️ Injected here
         {
             _context = context;
             _userManager = userManager;
             _userProgressService = userProgressService;
             _badgeService = badgeService;
+            _environment = environment; // 🛡️ Assigned
         }
 
         [BindProperty]
@@ -62,7 +66,17 @@ namespace Proiect_Licenta.Pages
             if (Input.ImageFile != null)
             {
                 var fileName = Guid.NewGuid().ToString() + Path.GetExtension(Input.ImageFile.FileName);
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", fileName);
+
+                // 🛡️ Safe path selection using WebRootPath (points straight to your wwwroot folder)
+                var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+
+                // 🛡️ CRITICAL FIX: If the 'uploads' directory doesn't exist on the server, create it!
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var filePath = Path.Combine(uploadsFolder, fileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
@@ -95,17 +109,10 @@ namespace Proiect_Licenta.Pages
             _context.AdminLogs.Add(log);
             await _context.SaveChangesAsync();
 
-
-
-
             await _userProgressService.AddPointsAsync(user, 50);
             await _badgeService.CheckPostingBadgesAsync(user.Id);
 
-
-
-
-
-            return RedirectToPage("/Account/Manage/Profile", new { area = "Identity"}); // sau unde vrei
+            return RedirectToPage("/Account/Manage/Profile", new { area = "Identity" });
         }
     }
 }
