@@ -69,6 +69,18 @@
     </div>
 
     <div class="flights-container background">
+
+        @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Company"))
+        {
+            <div class="alert alert-warning d-flex align-items-center mb-4 shadow-sm" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                <div>
+                    <strong>Notice:</strong> Your account is registered as a <strong>Company</strong>.
+                    Company profiles are restricted from booking or reserving passenger flights.
+                </div>
+            </div>
+        }
+
         <h2>Available Flights</h2>
 
         @* FIX: RoundTripConnectings was missing from the empty-state check, so layover

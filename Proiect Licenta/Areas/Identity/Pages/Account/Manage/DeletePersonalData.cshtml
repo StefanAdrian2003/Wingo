@@ -1,0 +1,46 @@
+﻿@page
+@model DeletePersonalDataModel
+@{
+    ViewData["Title"] = "Delete Personal Data";
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+}
+
+<div class="background">
+    <h3>@ViewData["Title"]</h3>
+
+    <div class="alert alert-danger" role="alert">
+        <p class="mb-2">
+            <strong>⚠️ CRITICAL WARNING: Deleting this data will permanently remove your account. This action is absolute and cannot be undone or recovered!</strong>
+        </p>
+        <hr />
+        <p class="mb-1"><strong>Cascading Deletion Scope:</strong></p>
+        <ul class="mb-0 text-start">
+            <li><strong>All Users:</strong> Your social data (Posts, Likes, Notifications, Comments, and filed Reports) will be instantly erased.</li>
+            <li><strong>Passengers:</strong> All current Flight Reservations, Tickets, allocated Seats, Baggage mappings, and Vouchers will be wiped.</li>
+            <li><strong>Airlines / Companies:</strong> Your full corporate infrastructure (Airline profile, complete Aircraft Fleet, operational Flights, and active Bookings/Tickets assigned to customers) will be deleted immediately.</li>
+        </ul>
+    </div>
+
+    <div class="card border-danger shadow-sm bg-dark text-light p-4">
+        <form id="delete-user" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+            @if (Model.RequirePassword)
+            {
+                <div class="form-floating mb-4 text-dark">
+                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Please enter your password." />
+                    <label asp-for="Input.Password" class="form-label">Verify Account Password</label>
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+            }
+
+            <button class="w-100 btn btn-lg btn-danger shadow" type="submit">
+                <i class="bi bi-trash3-fill"></i> Permanently Delete Everything & Close Account
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -6,102 +6,117 @@
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 
-<h2>Create Flight</h2>
-<hr />
 
 
-<div class="background">
-    <form method="post" class="card p-3 shadow-sm">
+@if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Company"))
+{
 
-        <div class="mb-3">
-            <label>Departure Airport</label>
-            <select asp-for="DepartureAirportId" class="form-select airport-search" id="departureAirport">
-                @if (Model.DepartureAirportId != Guid.Empty)
-                {
-                    <option value="@Model.DepartureAirportId" selected>
-                        @Model.SelectedDepartureName
-                    </option>
-                }
-            </select>
-        </div>
-
-        <div class="mb-3">
-            <label>Arrival Airport</label>
-            <select asp-for="ArrivalAirportId" class="form-select airport-search" id="arrivalAirport">
-                @if (Model.ArrivalAirportId != Guid.Empty)
-                {
-                    <option value="@Model.ArrivalAirportId" selected>
-                        @Model.SelectedArrivalName
-                    </option>
-                }
-            </select>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label asp-for="DepartureTime"></label>
-                <input asp-for="DepartureTime" type="datetime-local" class="form-control" />
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <label asp-for="DurationMinutes"></label>
-                <input asp-for="DurationMinutes" type="number" class="form-control" />
-            </div>
-        </div>
-
-        <hr />
-
-        <div class="mb-3">
-            <label>Flight Number</label>
-            <input asp-for="Input.FlightNumber" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-            <label>Price</label>
-            <input asp-for="Input.Price" type="number" step="0.01" class="form-control" />
-        </div>
+    <h2>Create Flight</h2>
+    <hr />
 
 
-        <button type="submit"
-                asp-page-handler="CheckAircraft"
-                class="btn btn-primary mb-3 w-100">
-            Check Available Aircraft
-        </button>
+    <div class="background">
+        <form method="post" class="card p-3 shadow-sm">
 
-
-        @if (Model.Aircrafts.Any())
-        {
             <div class="mb-3">
-                <label>Aircraft</label>
-
-                <select asp-for="Input.AircraftId" class="form-select">
-                    <option value="">-- Select Aircraft --</option>
-
-                    @foreach (var a in Model.Aircrafts)
+                <label>Departure Airport</label>
+                <select asp-for="DepartureAirportId" class="form-select airport-search" id="departureAirport">
+                    @if (Model.DepartureAirportId != Guid.Empty)
                     {
-                        <option value="@a.Id">
-                            @a.Model (@a.TotalSeats seats)
+                        <option value="@Model.DepartureAirportId" selected>
+                            @Model.SelectedDepartureName
                         </option>
                     }
                 </select>
             </div>
+
+            <div class="mb-3">
+                <label>Arrival Airport</label>
+                <select asp-for="ArrivalAirportId" class="form-select airport-search" id="arrivalAirport">
+                    @if (Model.ArrivalAirportId != Guid.Empty)
+                    {
+                        <option value="@Model.ArrivalAirportId" selected>
+                            @Model.SelectedArrivalName
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="DepartureTime"></label>
+                    <input asp-for="DepartureTime" type="datetime-local" class="form-control" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="DurationMinutes"></label>
+                    <input asp-for="DurationMinutes" type="number" class="form-control" />
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="mb-3">
+                <label>Flight Number</label>
+                <input asp-for="Input.FlightNumber" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label>Price</label>
+                <input asp-for="Input.Price" type="number" step="0.01" class="form-control" />
+            </div>
+
+
+            <button type="submit"
+                    asp-page-handler="CheckAircraft"
+                    class="btn btn-primary mb-3 w-100">
+                Check Available Aircraft
+            </button>
+
+
+            @if (Model.Aircrafts.Any())
+            {
+                <div class="mb-3">
+                    <label>Aircraft</label>
+
+                    <select asp-for="Input.AircraftId" class="form-select">
+                        <option value="">-- Select Aircraft --</option>
+
+                        @foreach (var a in Model.Aircrafts)
+                        {
+                            <option value="@a.Id">
+                                @a.Model (@a.TotalSeats seats)
+                            </option>
+                        }
+                    </select>
+                </div>
+            }
+
+            <button type="submit"
+                    asp-page-handler="CreateFlight"
+                    class="btn btn-success w-100">
+                Create Flight
+            </button>
+
+        </form>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger mt-3">
+                <div asp-validation-summary="All"></div>
+            </div>
         }
+    </div>
+}
+else
+{
+    <div class="alert alert-danger my-4 shadow-sm">
+        <h4><i class="bi bi-shield-lock-fill"></i> Access Denied</h4>
+        <p class="mb-0">Only corporate accounts verified as an airline carrier platform can construct active scheduling routes.</p>
+    </div>
+}
 
-        <button type="submit"
-                asp-page-handler="CreateFlight"
-            class="btn btn-success w-100">
-            Create Flight
-        </button>
 
-    </form>
-
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div class="alert alert-danger mt-3">
-            <div asp-validation-summary="All"></div>
-        </div>
-    }
-</div>
 
 
 @section Scripts {

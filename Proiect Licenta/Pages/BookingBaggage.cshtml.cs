@@ -9,7 +9,7 @@ using System.Security.Claims;
 
 namespace Proiect_Licenta.Pages
 {
-    [Authorize]
+    [Authorize(Roles = "User,Admin")]
     public class BookingBaggageModel : PageModel
     {
         private readonly ApplicationDbContext _context;
@@ -19,7 +19,7 @@ namespace Proiect_Licenta.Pages
             _context = context;
         }
 
-        public Flight Flight { get; set; }
+        public Flight Flight { get; set; } = default!;
         public List<Seat> SelectedSeats { get; set; } = new();
 
         public Flight? Leg2Flight { get; set; }
@@ -31,19 +31,35 @@ namespace Proiect_Licenta.Pages
         public Flight? ReturnLeg2Flight { get; set; }
         public List<Seat> ReturnLeg2Seats { get; set; } = new();
 
-        public BookingSessionDto Session { get; set; }
+        public BookingSessionDto Session { get; set; } = default!;
 
         private string BookingKey =>
                 $"Booking:{User.FindFirstValue(ClaimTypes.NameIdentifier)}";
 
-
         public async Task<IActionResult> OnGetAsync()
         {
+            if (User.IsInRole("Company"))
+            {
+                return RedirectToPage("/Index");
+            }
             var json = TempData.Peek(BookingKey)?.ToString();
             if (string.IsNullOrEmpty(json))
                 return RedirectToPage("/Index");
 
             Session = JsonSerializer.Deserialize<BookingSessionDto>(json)!;
+
+            // ─── STATE MACHINE CHECK ───
+            // Secure gate: Blocks outside access if they skipped the passenger/seat selection step
+            if (Session.HighestAllowedStep < BookingStep.BaggageSelection)
+            {
+                return RedirectToPage("/BookingPassenger");
+            }
+
+            // Fallback rule from your original code
+            if (Session.SelectedSeatIds == null || !Session.SelectedSeatIds.Any())
+            {
+                return RedirectToPage("/BookingPassenger");
+            }
 
             Flight = await LoadFlight(Session.FlightId);
             if (Flight == null) return NotFound();
@@ -72,22 +88,28 @@ namespace Proiect_Licenta.Pages
             return Page();
         }
 
-
         public async Task<IActionResult> OnPostAsync(
-    [FromForm] List<string> baggageTypes,
-    [FromForm] List<bool> hasExtraBags,
-    [FromForm] List<string> leg2BaggageTypes,
-    [FromForm] List<bool> leg2HasExtraBags,
-    [FromForm] List<string> returnBaggageTypes,
-    [FromForm] List<bool> returnHasExtraBags,
-    [FromForm] List<string> retLeg2BaggageTypes,
-    [FromForm] List<bool> retLeg2HasExtraBags)
+            [FromForm] List<string> baggageTypes,
+            [FromForm] List<bool> hasExtraBags,
+            [FromForm] List<string> leg2BaggageTypes,
+            [FromForm] List<bool> leg2HasExtraBags,
+            [FromForm] List<string> returnBaggageTypes,
+            [FromForm] List<bool> returnHasExtraBags,
+            [FromForm] List<string> retLeg2BaggageTypes,
+            [FromForm] List<bool> retLeg2HasExtraBags)
         {
             var json = TempData.Peek(BookingKey)?.ToString();
             if (string.IsNullOrEmpty(json))
                 return RedirectToPage("/Index");
 
             Session = JsonSerializer.Deserialize<BookingSessionDto>(json)!;
+
+            // ─── STATE MACHINE CHECK ───
+            if (Session.HighestAllowedStep < BookingStep.BaggageSelection ||
+                Session.SelectedSeatIds == null || !Session.SelectedSeatIds.Any())
+            {
+                return RedirectToPage("/BookingPassenger");
+            }
 
             SelectedSeats = await LoadSeats(Session.SelectedSeatIds);
             Leg2Seats = await LoadSeats(Session.Leg2SeatIds);
@@ -98,6 +120,10 @@ namespace Proiect_Licenta.Pages
             Session.Leg2Baggage = BuildBaggage(Leg2Seats, leg2BaggageTypes, leg2HasExtraBags);
             Session.ReturnBaggage = BuildBaggage(ReturnSeats, returnBaggageTypes, returnHasExtraBags);
             Session.ReturnLeg2Baggage = BuildBaggage(ReturnLeg2Seats, retLeg2BaggageTypes, retLeg2HasExtraBags);
+
+            // ─── STATE MACHINE UPDATE ───
+            // Elevate clearance to the Review page step
+            Session.HighestAllowedStep = BookingStep.ReviewPage;
 
             TempData[BookingKey] = JsonSerializer.Serialize(Session);
             return RedirectToPage("/BookingReview");
@@ -112,7 +138,7 @@ namespace Proiect_Licenta.Pages
 
         private async Task<List<Seat>> LoadSeats(List<Guid> ids)
         {
-            if (!ids.Any()) return new List<Seat>();
+            if (ids == null || !ids.Any()) return new List<Seat>();
             return await _context.Seats
                 .Include(s => s.SeatSection)
                 .Where(s => ids.Contains(s.Id))
@@ -150,6 +176,5 @@ namespace Proiect_Licenta.Pages
             }
             return result;
         }
-
     }
 }

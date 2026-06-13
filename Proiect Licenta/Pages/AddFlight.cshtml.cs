@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using Proiect_Licenta.Models;
 
 namespace Proiect_Licenta.Pages.Flights
 {
+    [Authorize(Roles = "Company")]
     public class AddFlightModel : PageModel
     {
         private readonly ApplicationDbContext _context;

@@ -47,9 +47,15 @@
         <div class="price-bar">
             <span>Price from</span>
             <span class="price-value">€@Model.Flight.Price</span>
-            <a asp-page="/BookingPassenger" asp-route-id="@Model.Flight.Id" class="btn-book">
-                Book Now
-            </a>
+
+            @if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole("Company"))
+            {
+                <a asp-page="/BookingPassenger" asp-route-id="@Model.Flight.Id" class="btn-book">
+                    Book Now
+                </a>
+            }
+
+            
         </div>
 
         <h3 class="seatmap-title">

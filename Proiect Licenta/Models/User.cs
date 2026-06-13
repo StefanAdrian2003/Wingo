@@ -20,7 +20,7 @@ namespace Proiect_Licenta.Models
         public bool IsCompany { get; set; }
         public Guid? AirlineId { get; set; }  //BUN
         public Airline? Airline { get; set; }  //BUN
-        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();  //BUN
+        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();  //BUN
         public ICollection<Post> Posts { get; set; } = new List<Post>();  //BUN
         public ICollection<UserBadge> UserBadges { get; set; } = new List<UserBadge>();  //BUN
         public ICollection<Voucher> Vouchers { get; set; } = new List<Voucher>();  //BUN

@@ -79,374 +79,285 @@
 
 </style>
 
-<h2 class="mb-4">Admin Dashboard</h2>
 
-<form method="post" style="display:none;">
-    @Html.AntiForgeryToken()
-</form>
-
-<div class="admin-navbar">
-
-    <button onclick="showSection('logs')">
-        Logs
-    </button>
-
-    <button onclick="showSection('reports')">
-        Reports
-    </button>
-
-    <button onclick="showSection('statistics')">
-        Statistics
-    </button>
-
-</div>
-
-
-<!-- LOGS -->
-
-<div id="logs" class="admin-section active">
-
-    <h3>Logs</h3>
-
-    <hr />
-
-    @if (!Model.Logs.Any())
-    {
-        <p>No logs found.</p>
-    }
-    else
-    {
-        <div class="table-responsive">
-
-            <table class="table table-hover align-middle">
-
-                <thead>
-                    <tr>
-                        <th>Action</th>
-                        <th>User</th>
-                        <th>Details</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    @foreach (var log in Model.Logs)
-                    {
-                        <tr>
-
-                            <td>
-                                <strong>@log.Action</strong>
-                            </td>
-
-                            <td>
-                                @(log.PerformedByUser?.UserName ?? "Unknown")
-                            </td>
-
-                            <td>
-                                @log.Details
-                            </td>
-
-                            <td>
-                                @log.DateOfCreation.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")
-                            </td>
-
-                        </tr>
-                    }
-
-                </tbody>
-
-            </table>
-
-        </div>
-    }
-
-</div>
-
-
-
-<!-- REPORTS -->
-
-<div id="reports" class="admin-section">
-
-    <h3>Reports</h3>
-
-    <hr />
-
-    @if (!Model.Reports.Any())
-    {
-        <p>No reports found.</p>
-    }
-    else
-    {
-        <div class="table-responsive">
-
-            <table class="table table-hover align-middle">
-
-                <thead>
-                    <tr>
-                        <th>Reporter</th>
-                        <th>Type</th>
-                        <th>Reason</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                        <th></th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    @foreach (var report in Model.Reports)
-                    {
-                        <tr>
-
-                            <td>
-                                @report.Reporter.UserName
-                            </td>
-
-                            <td>
-                                @report.Type
-                            </td>
-
-                            <td>
-                                @report.Reason
-                            </td>
-
-                            <td>
-
-                                @if (report.Status == ReportStatus.Pending)
-                                {
-                                    <span class="badge bg-warning text-dark">
-                                        Pending
-                                    </span>
-                                }
-                                else if (report.Status == ReportStatus.Reviewed)
-                                {
-                                    <span class="badge bg-primary">
-                                        Reviewed
-                                    </span>
-                                }
-                                else if (report.Status == ReportStatus.Resolved)
-                                {
-                                    <span class="badge bg-success">
-                                        Resolved
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">
-                                        Rejected
-                                    </span>
-                                }
-
-                            </td>
-
-                            <td>
-                                @report.DateOfCreation.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
-                            </td>
-
-                            <td>
-
-                                <button class="btn btn-primary btn-sm"
-                                        onclick="markReportAsViewed('@report.Id')"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#reportModal-@report.Id">
-                                    View
-                                </button>
-
-                            </td>
-
-                        </tr>
-                    }
-
-                </tbody>
-
-            </table>
-
-        </div>
-    }
-
-</div>
-
-
-
-
-@foreach (var report in Model.Reports)
+@if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Admin"))
 {
-    <div class="modal fade"
-         id="reportModal-@report.Id"
-         tabindex="-1">
 
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <h2 class="mb-4">Admin Dashboard</h2>
 
-            <div class="modal-content">
+    <form method="post" style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
 
-                <div class="modal-header">
+    <div class="admin-navbar">
 
-                    <h5 class="modal-title">
-                        Report Details
-                    </h5>
+        <button onclick="showSection('logs')">
+            Logs
+        </button>
 
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal">
-                    </button>
+        <button onclick="showSection('reports')">
+            Reports
+        </button>
 
-                </div>
+        <button onclick="showSection('statistics')">
+            Statistics
+        </button>
 
-                <div class="modal-body">
+    </div>
 
-                    <div class="row mb-4">
 
-                        <div class="col-md-6">
+    <!-- LOGS -->
 
-                            <p>
-                                <strong>Reporter:</strong>
-                                @report.Reporter.UserName
-                            </p>
+    <div id="logs" class="admin-section active">
 
-                            <p>
-                                <strong>Type:</strong>
-                                @report.Type
-                            </p>
+        <h3>Logs</h3>
 
-                            <p>
-                                <strong>Status:</strong>
-                                @report.Status
-                            </p>
+        <hr />
 
-                        </div>
+        @if (!Model.Logs.Any())
+        {
+            <p>No logs found.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
 
-                        <div class="col-md-6">
+                <table class="table table-hover align-middle">
 
-                            <p>
-                                <strong>Date:</strong>
-                                @report.DateOfCreation.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
-                            </p>
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>User</th>
+                            <th>Details</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
 
-                            @if (report.ReviewedByAdmin != null)
-                            {
-                                <p>
-                                    <strong>Reviewed By:</strong>
-                                    @report.ReviewedByAdmin.UserName
-                                </p>
-                            }
+                    <tbody>
 
-                        </div>
+                        @foreach (var log in Model.Logs)
+                        {
+                            <tr>
+
+                                <td>
+                                    <strong>@log.Action</strong>
+                                </td>
+
+                                <td>
+                                    @(log.PerformedByUser?.UserName ?? "Unknown")
+                                </td>
+
+                                <td>
+                                    @log.Details
+                                </td>
+
+                                <td>
+                                    @log.DateOfCreation.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+
+    </div>
+
+
+
+    <!-- REPORTS -->
+
+    <div id="reports" class="admin-section">
+
+        <h3>Reports</h3>
+
+        <hr />
+
+        @if (!Model.Reports.Any())
+        {
+            <p>No reports found.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead>
+                        <tr>
+                            <th>Reporter</th>
+                            <th>Type</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var report in Model.Reports)
+                        {
+                            <tr>
+
+                                <td>
+                                    @report.Reporter.UserName
+                                </td>
+
+                                <td>
+                                    @report.Type
+                                </td>
+
+                                <td>
+                                    @report.Reason
+                                </td>
+
+                                <td>
+
+                                    @if (report.Status == ReportStatus.Pending)
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            Pending
+                                        </span>
+                                    }
+                                    else if (report.Status == ReportStatus.Reviewed)
+                                    {
+                                        <span class="badge bg-primary">
+                                            Reviewed
+                                        </span>
+                                    }
+                                    else if (report.Status == ReportStatus.Resolved)
+                                    {
+                                        <span class="badge bg-success">
+                                            Resolved
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+                                            Rejected
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td>
+                                    @report.DateOfCreation.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </td>
+
+                                <td>
+
+                                    <button class="btn btn-primary btn-sm"
+                                            onclick="markReportAsViewed('@report.Id')"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#reportModal-@report.Id">
+                                        View
+                                    </button>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+
+    </div>
+
+
+
+
+    @foreach (var report in Model.Reports)
+    {
+        <div class="modal fade"
+             id="reportModal-@report.Id"
+             tabindex="-1">
+
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+
+                <div class="modal-content">
+
+                    <div class="modal-header">
+
+                        <h5 class="modal-title">
+                            Report Details
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal">
+                        </button>
 
                     </div>
 
-                    <div class="alert alert-warning">
+                    <div class="modal-body">
 
-                        <strong>Reason:</strong>
+                        <div class="row mb-4">
 
-                        <br />
+                            <div class="col-md-6">
 
-                        @report.Reason
-
-                    </div>
-
-
-
-
-
-                    @if (report.Type == ReportType.Post && report.Post != null)
-                    {
-                        <h5 class="mb-3">
-                            Reported Post
-                        </h5>
-
-                        <div class="border rounded p-3 bg-light">
-
-                            <div class="d-flex justify-content-between align-items-center">
-
-                                <strong>
-                                    @report.Post.User.UserName
-                                </strong>
-
-                                <small class="text-muted">
-                                    @report.Post.DateOfCreation.ToLocalTime().ToString("g")
-                                </small>
-
-                            </div>
-
-                            <hr />
-
-                            @if (!string.IsNullOrWhiteSpace(report.Post.Title))
-                            {
-                                <h6>
-                                    @report.Post.Title
-                                </h6>
-                            }
-
-                            @if (!string.IsNullOrWhiteSpace(report.Post.Description))
-                            {
                                 <p>
-                                    @report.Post.Description
+                                    <strong>Reporter:</strong>
+                                    @report.Reporter.UserName
                                 </p>
-                            }
 
-                            @if (!string.IsNullOrWhiteSpace(report.Post.ImagePath))
-                            {
-                                <img src="@report.Post.ImagePath"
-                                     class="img-fluid rounded mb-3"
-                                     style="max-height:300px; object-fit:cover;" />
-                            }
+                                <p>
+                                    <strong>Type:</strong>
+                                    @report.Type
+                                </p>
 
-                            <button class="btn btn-primary btn-sm"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#commentsModal-@report.Post.Id">
-
-                                View Post
-
-                            </button>
-
-                        </div>
-
-                        <partial name="_CommentsModal"
-                                 model="report.Post" />
-                    }
-
-
-
-
-
-
-
-                    @if (report.Type == ReportType.Comment && report.Comment != null)
-                    {
-                        <h5 class="mb-3">
-                            Reported Comment
-                        </h5>
-
-                        <div class="border rounded p-3 bg-light mb-4">
-
-                            <div class="d-flex justify-content-between">
-
-                                <strong>
-                                    @report.Comment.User.UserName
-                                </strong>
-
-                                <small class="text-muted">
-                                    @report.Comment.DateOfCreation.ToLocalTime().ToString("g")
-                                </small>
+                                <p>
+                                    <strong>Status:</strong>
+                                    @report.Status
+                                </p>
 
                             </div>
 
-                            <hr />
+                            <div class="col-md-6">
 
-                            <p class="mb-0">
-                                @report.Comment.Content
-                            </p>
+                                <p>
+                                    <strong>Date:</strong>
+                                    @report.DateOfCreation.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </p>
+
+                                @if (report.ReviewedByAdmin != null)
+                                {
+                                    <p>
+                                        <strong>Reviewed By:</strong>
+                                        @report.ReviewedByAdmin.UserName
+                                    </p>
+                                }
+
+                            </div>
+
+                        </div>
+
+                        <div class="alert alert-warning">
+
+                            <strong>Reason:</strong>
+
+                            <br />
+
+                            @report.Reason
 
                         </div>
 
 
 
-                        @if (report.Comment.Post != null)
+
+
+                        @if (report.Type == ReportType.Post && report.Post != null)
                         {
                             <h5 class="mb-3">
-                                Original Post
+                                Reported Post
                             </h5>
 
                             <div class="border rounded p-3 bg-light">
@@ -454,34 +365,41 @@
                                 <div class="d-flex justify-content-between align-items-center">
 
                                     <strong>
-                                        @report.Comment.Post.User.UserName
+                                        @report.Post.User.UserName
                                     </strong>
 
                                     <small class="text-muted">
-                                        @report.Comment.Post.DateOfCreation.ToLocalTime().ToString("g")
+                                        @report.Post.DateOfCreation.ToLocalTime().ToString("g")
                                     </small>
 
                                 </div>
 
                                 <hr />
 
-                                @if (!string.IsNullOrWhiteSpace(report.Comment.Post.Title))
+                                @if (!string.IsNullOrWhiteSpace(report.Post.Title))
                                 {
                                     <h6>
-                                        @report.Comment.Post.Title
+                                        @report.Post.Title
                                     </h6>
                                 }
 
-                                @if (!string.IsNullOrWhiteSpace(report.Comment.Post.Description))
+                                @if (!string.IsNullOrWhiteSpace(report.Post.Description))
                                 {
                                     <p>
-                                        @report.Comment.Post.Description
+                                        @report.Post.Description
                                     </p>
+                                }
+
+                                @if (!string.IsNullOrWhiteSpace(report.Post.ImagePath))
+                                {
+                                    <img src="@report.Post.ImagePath"
+                                         class="img-fluid rounded mb-3"
+                                         style="max-height:300px; object-fit:cover;" />
                                 }
 
                                 <button class="btn btn-primary btn-sm"
                                         data-bs-toggle="modal"
-                                        data-bs-target="#commentsModal-@report.Comment.Post.Id">
+                                        data-bs-target="#commentsModal-@report.Post.Id">
 
                                     View Post
 
@@ -490,9 +408,8 @@
                             </div>
 
                             <partial name="_CommentsModal"
-                                     model="report.Comment.Post" />
+                                     model="report.Post" />
                         }
-                    }
 
 
 
@@ -500,37 +417,126 @@
 
 
 
-                    @if (report.Type == ReportType.Flight && report.Flight != null)
-                    {
-                        <h5 class="mb-3">
-                            Reported Flight
-                        </h5>
+                        @if (report.Type == ReportType.Comment && report.Comment != null)
+                        {
+                            <h5 class="mb-3">
+                                Reported Comment
+                            </h5>
 
-                        <partial name="_FlightCard"
-                                 model="report.Flight" />
-                    }
+                            <div class="border rounded p-3 bg-light mb-4">
+
+                                <div class="d-flex justify-content-between">
+
+                                    <strong>
+                                        @report.Comment.User.UserName
+                                    </strong>
+
+                                    <small class="text-muted">
+                                        @report.Comment.DateOfCreation.ToLocalTime().ToString("g")
+                                    </small>
+
+                                </div>
+
+                                <hr />
+
+                                <p class="mb-0">
+                                    @report.Comment.Content
+                                </p>
+
+                            </div>
 
 
 
-                    <div class="modal-footer">
+                            @if (report.Comment.Post != null)
+                            {
+                                <h5 class="mb-3">
+                                    Original Post
+                                </h5>
 
-                        <form method="post" asp-page-handler="ResolveReport">
-                            <input type="hidden" name="reportId" value="@report.Id" />
-                            <input type="hidden" name="actionType" value="approve" />
+                                <div class="border rounded p-3 bg-light">
 
-                            <button type="submit" class="btn btn-danger">
-                                Approve
-                            </button>
-                        </form>
+                                    <div class="d-flex justify-content-between align-items-center">
 
-                        <form method="post" asp-page-handler="ResolveReport">
-                            <input type="hidden" name="reportId" value="@report.Id" />
-                            <input type="hidden" name="actionType" value="reject" />
+                                        <strong>
+                                            @report.Comment.Post.User.UserName
+                                        </strong>
 
-                            <button type="submit" class="btn btn-secondary">
-                                Reject
-                            </button>
-                        </form>
+                                        <small class="text-muted">
+                                            @report.Comment.Post.DateOfCreation.ToLocalTime().ToString("g")
+                                        </small>
+
+                                    </div>
+
+                                    <hr />
+
+                                    @if (!string.IsNullOrWhiteSpace(report.Comment.Post.Title))
+                                    {
+                                        <h6>
+                                            @report.Comment.Post.Title
+                                        </h6>
+                                    }
+
+                                    @if (!string.IsNullOrWhiteSpace(report.Comment.Post.Description))
+                                    {
+                                        <p>
+                                            @report.Comment.Post.Description
+                                        </p>
+                                    }
+
+                                    <button class="btn btn-primary btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#commentsModal-@report.Comment.Post.Id">
+
+                                        View Post
+
+                                    </button>
+
+                                </div>
+
+                                <partial name="_CommentsModal"
+                                         model="report.Comment.Post" />
+                            }
+                        }
+
+
+
+
+
+
+
+                        @if (report.Type == ReportType.Flight && report.Flight != null)
+                        {
+                            <h5 class="mb-3">
+                                Reported Flight
+                            </h5>
+
+                            <partial name="_FlightCard"
+                                     model="report.Flight" />
+                        }
+
+
+
+                        <div class="modal-footer">
+
+                            <form method="post" asp-page-handler="ResolveReport">
+                                <input type="hidden" name="reportId" value="@report.Id" />
+                                <input type="hidden" name="actionType" value="approve" />
+
+                                <button type="submit" class="btn btn-danger">
+                                    Approve
+                                </button>
+                            </form>
+
+                            <form method="post" asp-page-handler="ResolveReport">
+                                <input type="hidden" name="reportId" value="@report.Id" />
+                                <input type="hidden" name="actionType" value="reject" />
+
+                                <button type="submit" class="btn btn-secondary">
+                                    Reject
+                                </button>
+                            </form>
+
+                        </div>
 
                     </div>
 
@@ -539,76 +545,85 @@
             </div>
 
         </div>
+    }
+
+
+
+
+    <!-- STATISTICS -->
+
+    <div id="statistics" class="admin-section">
+
+        <h3>Statistics</h3>
+
+        <hr />
+
+        <div class="stats-grid">
+
+            <div class="stat-card">
+                <div class="stat-number">@Model.TotalUsers</div>
+                <div class="stat-title">Users</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">@Model.TotalCompanies</div>
+                <div class="stat-title">Companies</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">@Model.TotalFlights</div>
+                <div class="stat-title">Flights</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">@Model.TotalAircrafts</div>
+                <div class="stat-title">Aircrafts</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">@Model.TotalBookings</div>
+                <div class="stat-title">Bookings</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">@Model.TotalPosts</div>
+                <div class="stat-title">Posts</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">@Model.TotalComments</div>
+                <div class="stat-title">Comments</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">@Model.TotalLikes</div>
+                <div class="stat-title">Likes</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">@Model.TotalBadges</div>
+                <div class="stat-title">Badges</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">@Model.TotalNotifications</div>
+                <div class="stat-title">Notifications</div>
+            </div>
+
+        </div>
 
     </div>
 }
-
-
-
-
-<!-- STATISTICS -->
-
-<div id="statistics" class="admin-section">
-
-    <h3>Statistics</h3>
-
-    <hr />
-
-    <div class="stats-grid">
-
-        <div class="stat-card">
-            <div class="stat-number">@Model.TotalUsers</div>
-            <div class="stat-title">Users</div>
+else
+{
+    <div class="container my-5">
+        <div class="alert alert-danger p-4 shadow-sm border-start border-danger border-4">
+            <h4 class="alert-heading fw-bold text-danger mb-2">🚫 Access Unauthorized</h4>
+            <p class="mb-0 text-muted">This workstation is restricted solely to verified system administrators. Your credentials do not matching permissions required to read system diagnostics or modify database content.</p>
         </div>
-
-        <div class="stat-card">
-            <div class="stat-number">@Model.TotalCompanies</div>
-            <div class="stat-title">Companies</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-number">@Model.TotalFlights</div>
-            <div class="stat-title">Flights</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-number">@Model.TotalAircrafts</div>
-            <div class="stat-title">Aircrafts</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-number">@Model.TotalBookings</div>
-            <div class="stat-title">Bookings</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-number">@Model.TotalPosts</div>
-            <div class="stat-title">Posts</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-number">@Model.TotalComments</div>
-            <div class="stat-title">Comments</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-number">@Model.TotalLikes</div>
-            <div class="stat-title">Likes</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-number">@Model.TotalBadges</div>
-            <div class="stat-title">Badges</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-number">@Model.TotalNotifications</div>
-            <div class="stat-title">Notifications</div>
-        </div>
-
     </div>
+}
 
-</div>
 
 
 

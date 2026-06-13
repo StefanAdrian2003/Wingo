@@ -2,8 +2,8 @@
 {
     public class Booking : BaseObject
     {
-        public required string UserId { get; set; }
-        public User User { get; set; }
+        public required Guid ReservationId { get; set; }
+        public Reservation Reservation { get; set; }
 
         public Guid FlightId { get; set; }
         public Flight Flight { get; set; }

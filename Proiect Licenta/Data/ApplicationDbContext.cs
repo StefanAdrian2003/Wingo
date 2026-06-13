@@ -17,7 +17,7 @@ namespace Proiect_Licenta.Data
         public DbSet<Airline> Airlines { get; set; }
         public DbSet<Airport> Airports { get; set; }
         public DbSet<Badge> Badges { get; set; }
-        public DbSet<BaggageItem> baggageItems { get; set; }
+        public DbSet<BaggageItem> BaggageItems { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Flight> Flights { get; set; }
@@ -26,6 +26,7 @@ namespace Proiect_Licenta.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<Report> Reports { get; set; }
+        public DbSet<Reservation> Reservations { get; set; }
         public DbSet<Seat> Seats { get; set; }
         public DbSet<SeatSection> SeatSections { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
@@ -158,12 +159,19 @@ namespace Proiect_Licenta.Data
             // BOOKING
             // ------------------------------
 
-            // Booking → User (cine rezervă)
+            // Reservation → Bookings (Deleting a Reservation automatically wipes out all 4 sub-bookings/legs)
             builder.Entity<Booking>()
-                .HasOne(b => b.User)
-                .WithMany(u => u.Bookings)
-                .HasForeignKey(b => b.UserId)
+                .HasOne(b => b.Reservation)
+                .WithMany(r => r.Bookings)
+                .HasForeignKey(b => b.ReservationId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Booking → Flight (Keep Restrict to prevent deleting an entire Flight from deleting user records)
+            builder.Entity<Booking>()
+                .HasOne(b => b.Flight)
+                .WithMany(f => f.Bookings)
+                .HasForeignKey(b => b.FlightId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Booking → Flight (pentru ce zbor)
             builder.Entity<Booking>()
@@ -171,6 +179,13 @@ namespace Proiect_Licenta.Data
                 .WithMany(f => f.Bookings)
                 .HasForeignKey(b => b.FlightId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // User → Reservations (Deleting a user wipes out their entire reservation history)
+            builder.Entity<Reservation>()
+                .HasOne(r => r.User)
+                .WithMany(u => u.Reservations)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // ------------------------------
             // AIRLINE → USER (un user poate fi asociat cu o companie)

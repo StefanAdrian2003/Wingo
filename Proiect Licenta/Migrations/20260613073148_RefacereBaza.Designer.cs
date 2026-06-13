@@ -12,8 +12,8 @@ using Proiect_Licenta.Data;
 namespace Proiect_Licenta.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260612160116_UpdateAddAircraft")]
-    partial class UpdateAddAircraft
+    [Migration("20260613073148_RefacereBaza")]
+    partial class RefacereBaza
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -325,7 +325,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("10000000-0000-0000-0000-000000000000"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5782),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(2994),
                             Description = "You have created your account!",
                             Icon = "/images/welcome.png",
                             Name = "Welcome"
@@ -333,7 +333,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("10000000-0000-0000-0000-000000000001"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5796),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3009),
                             Description = "You posted for the first time",
                             Icon = "/images/post1.png",
                             Name = "First Post"
@@ -341,7 +341,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("10000000-0000-0000-0000-000000000005"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5802),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3020),
                             Description = "You made 5 posts",
                             Icon = "/images/post5.png",
                             Name = "Traveler"
@@ -349,7 +349,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("10000000-0000-0000-0000-000000000020"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5805),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3023),
                             Description = "You made 20 posts",
                             Icon = "/images/post20.png",
                             Name = "Explorer"
@@ -357,7 +357,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("10000000-0000-0000-0000-000000000050"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5810),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3025),
                             Description = "You made 50 posts",
                             Icon = "/images/post50.png",
                             Name = "Adventurer"
@@ -365,7 +365,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("10000000-0000-0000-0000-000000000100"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5812),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3027),
                             Description = "You made 100 posts",
                             Icon = "/images/post100.png",
                             Name = "Storyteller"
@@ -373,7 +373,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("10000000-0000-0000-0000-000000000250"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5816),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3029),
                             Description = "You made 250 posts",
                             Icon = "/images/post250.png",
                             Name = "Content Creator"
@@ -381,7 +381,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("10000000-0000-0000-0000-000000000500"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5824),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3030),
                             Description = "You made 500 posts",
                             Icon = "/images/post500.png",
                             Name = "Master Explorer"
@@ -389,7 +389,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("10000000-0000-0000-0000-000000001000"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5827),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3032),
                             Description = "You made 1,000 posts",
                             Icon = "/images/post1000.png",
                             Name = "Legendary Poster"
@@ -397,7 +397,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000005"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5830),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3034),
                             Description = "Reached level 5",
                             Icon = "/images/level5.png",
                             Name = "Getting Started"
@@ -405,7 +405,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000010"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5833),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3038),
                             Description = "Reached level 10",
                             Icon = "/images/level10.png",
                             Name = "Rising Star"
@@ -413,7 +413,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000020"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5834),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3039),
                             Description = "Reached level 20",
                             Icon = "/images/level20.png",
                             Name = "Challenger"
@@ -421,7 +421,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000050"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5837),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3042),
                             Description = "Reached level 50",
                             Icon = "/images/level50.png",
                             Name = "Veteran Explorer"
@@ -429,7 +429,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("20000000-0000-0000-0000-000000000100"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5839),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3045),
                             Description = "Reached level 100",
                             Icon = "/images/level100.png",
                             Name = "Legend of Wingo"
@@ -437,7 +437,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("30000000-0000-0000-0000-000000000001"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5841),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3046),
                             Description = "Gave your first like",
                             Icon = "/images/like1.png",
                             Name = "First Love"
@@ -445,7 +445,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("30000000-0000-0000-0000-000000000010"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5845),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3049),
                             Description = "Gave 10 likes",
                             Icon = "/images/like10.png",
                             Name = "Supporter"
@@ -453,7 +453,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("30000000-0000-0000-0000-000000000050"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5847),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3051),
                             Description = "Gave 50 likes",
                             Icon = "/images/like50.png",
                             Name = "Positive Vibes"
@@ -461,7 +461,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("30000000-0000-0000-0000-000000000100"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5849),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3053),
                             Description = "Gave 100 likes",
                             Icon = "/images/like100.png",
                             Name = "Community Booster"
@@ -469,7 +469,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("30000000-0000-0000-0000-000000000500"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5850),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3060),
                             Description = "Gave 500 likes",
                             Icon = "/images/like500.png",
                             Name = "Influencer"
@@ -477,7 +477,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("30000000-0000-0000-0000-000000001000"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5852),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3062),
                             Description = "Gave 1,000 likes",
                             Icon = "/images/like1000.png",
                             Name = "Social Machine"
@@ -485,7 +485,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("30000000-0000-0000-0000-000000005000"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5887),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3064),
                             Description = "Gave 5,000 likes",
                             Icon = "/images/like5000.png",
                             Name = "Infinity Reactor"
@@ -493,7 +493,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("40000000-0000-0000-0000-000000000001"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5889),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3066),
                             Description = "Posted your first comment",
                             Icon = "/images/comment1.png",
                             Name = "First Words"
@@ -501,7 +501,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("40000000-0000-0000-0000-000000000005"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5890),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3067),
                             Description = "Posted 5 comments",
                             Icon = "/images/comment5.png",
                             Name = "Conversationalist"
@@ -509,7 +509,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("40000000-0000-0000-0000-000000000015"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5894),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3069),
                             Description = "Posted 15 comments",
                             Icon = "/images/comment15.png",
                             Name = "Active Voice"
@@ -517,7 +517,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("40000000-0000-0000-0000-000000000050"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5895),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3072),
                             Description = "Posted 50 comments",
                             Icon = "/images/comment50.png",
                             Name = "Discussion Leader"
@@ -525,7 +525,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("40000000-0000-0000-0000-000000000100"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5897),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3073),
                             Description = "Posted 100 comments",
                             Icon = "/images/comment100.png",
                             Name = "Community Speaker"
@@ -533,7 +533,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("40000000-0000-0000-0000-000000000250"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5899),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3077),
                             Description = "Posted 250 comments",
                             Icon = "/images/comment250.png",
                             Name = "Debater Pro"
@@ -541,7 +541,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("40000000-0000-0000-0000-000000000500"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5900),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3079),
                             Description = "Posted 500 comments",
                             Icon = "/images/comment500.png",
                             Name = "Social Anchor"
@@ -549,7 +549,7 @@ namespace Proiect_Licenta.Migrations
                         new
                         {
                             Id = new Guid("40000000-0000-0000-0000-000000001000"),
-                            DateOfCreation = new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5902),
+                            DateOfCreation = new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3081),
                             Description = "Posted 1,000 comments",
                             Icon = "/images/comment1000.png",
                             Name = "Voice of Wingo"
@@ -582,7 +582,7 @@ namespace Proiect_Licenta.Migrations
 
                     b.HasIndex("TicketId");
 
-                    b.ToTable("baggageItems");
+                    b.ToTable("BaggageItems");
                 });
 
             modelBuilder.Entity("Proiect_Licenta.Models.Booking", b =>
@@ -600,15 +600,14 @@ namespace Proiect_Licenta.Migrations
                     b.Property<Guid>("FlightId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("ReservationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("FlightId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("ReservationId");
 
                     b.ToTable("Bookings");
                 });
@@ -872,6 +871,26 @@ namespace Proiect_Licenta.Migrations
                     b.HasIndex("ReviewedByAdminId");
 
                     b.ToTable("Reports");
+                });
+
+            modelBuilder.Entity("Proiect_Licenta.Models.Reservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DateOfCreation")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Reservations");
                 });
 
             modelBuilder.Entity("Proiect_Licenta.Models.Seat", b =>
@@ -1217,15 +1236,15 @@ namespace Proiect_Licenta.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Proiect_Licenta.Models.User", "User")
+                    b.HasOne("Proiect_Licenta.Models.Reservation", "Reservation")
                         .WithMany("Bookings")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("ReservationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Flight");
 
-                    b.Navigation("User");
+                    b.Navigation("Reservation");
                 });
 
             modelBuilder.Entity("Proiect_Licenta.Models.Comment", b =>
@@ -1402,6 +1421,17 @@ namespace Proiect_Licenta.Migrations
                     b.Navigation("ReviewedByAdmin");
                 });
 
+            modelBuilder.Entity("Proiect_Licenta.Models.Reservation", b =>
+                {
+                    b.HasOne("Proiect_Licenta.Models.User", "User")
+                        .WithMany("Reservations")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Proiect_Licenta.Models.Seat", b =>
                 {
                     b.HasOne("Proiect_Licenta.Models.SeatSection", "SeatSection")
@@ -1520,6 +1550,11 @@ namespace Proiect_Licenta.Migrations
                     b.Navigation("Reports");
                 });
 
+            modelBuilder.Entity("Proiect_Licenta.Models.Reservation", b =>
+                {
+                    b.Navigation("Bookings");
+                });
+
             modelBuilder.Entity("Proiect_Licenta.Models.Seat", b =>
                 {
                     b.Navigation("FlightSeats");
@@ -1542,8 +1577,6 @@ namespace Proiect_Licenta.Migrations
                 {
                     b.Navigation("Airline");
 
-                    b.Navigation("Bookings");
-
                     b.Navigation("Comments");
 
                     b.Navigation("Likes");
@@ -1553,6 +1586,8 @@ namespace Proiect_Licenta.Migrations
                     b.Navigation("Posts");
 
                     b.Navigation("Reports");
+
+                    b.Navigation("Reservations");
 
                     b.Navigation("UserBadges");
 

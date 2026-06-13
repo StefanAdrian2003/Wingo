@@ -53,6 +53,13 @@ namespace Proiect_Licenta.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+            // Safety check: Ensure the user is actually authenticated
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                return Challenge(); // Redirects to the Login page
+            }
+
+
             var userId = _userManager.GetUserId(User);
 
             var user = _db.Users

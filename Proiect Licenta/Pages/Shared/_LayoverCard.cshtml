@@ -77,17 +77,22 @@
     <hr />
 
     <div class="flight-card-footer d-flex justify-content-between align-items-center mt-3 p-3 bg-light rounded-bottom">
-        <div class="flight-price-box">
-            <span class="price-label text-muted small d-block">Total Price (1 Stop)</span>
-            <span class="flight-price text-success fs-4 fw-bold">€@Model.TotalPrice</span>
-        </div>
+        
+        @if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole("Company"))
+        {
+            <div class="flight-price-box">
+                <span class="price-label text-muted small d-block">Total Price (1 Stop)</span>
+                <span class="flight-price text-success fs-4 fw-bold">€@Model.TotalPrice</span>
+            </div>
 
-        <a asp-page="/BookingPassenger"
-           asp-route-id="@Model.Leg1.Id"
-           asp-route-returnId="@Guid.Empty"
-           asp-route-leg2Id="@Model.Leg2.Id"
-           class="reserve-btn btn btn-warning">
-            Book Layover
-        </a>
+            <a asp-page="/BookingPassenger"
+               asp-route-id="@Model.Leg1.Id"
+               asp-route-returnId="@Guid.Empty"
+               asp-route-leg2Id="@Model.Leg2.Id"
+               class="reserve-btn btn btn-warning">
+                Book Layover
+            </a>
+        }
+        
     </div>
 </div>

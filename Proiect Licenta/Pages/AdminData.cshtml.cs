@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using Proiect_Licenta.Models;
 
 namespace Proiect_Licenta.Pages
 {
+    [Authorize(Roles = "Admin")]
     public class AdminDataModel : PageModel
     {
         private readonly ApplicationDbContext _db;
@@ -244,6 +246,7 @@ namespace Proiect_Licenta.Pages
                     var flight = await _db.Flights
                         .Include(f => f.Airline)
                         .Include(f => f.Bookings)
+                            .ThenInclude(b => b.Reservation)
                         .FirstOrDefaultAsync(f => f.Id == flightId);
 
                     if (flight != null)
@@ -265,7 +268,7 @@ namespace Proiect_Licenta.Pages
                         {
                             _db.Notifications.Add(new Notification
                             {
-                                UserId = booking.UserId,
+                                UserId = booking.Reservation.UserId,
                                 SenderId = adminId,
                                 Type = NotificationType.FlightCancelled,
                                 Message = $"The flight {flight.FlightNumber} you booked has been removed by system administration.",

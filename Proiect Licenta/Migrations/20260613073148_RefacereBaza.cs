@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Proiect_Licenta.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateAddAircraft : Migration
+    public partial class RefacereBaza : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -268,6 +268,25 @@ namespace Proiect_Licenta.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Reservations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    DateOfCreation = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reservations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reservations_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Vouchers",
                 columns: table => new
                 {
@@ -496,7 +515,7 @@ namespace Proiect_Licenta.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ReservationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     FlightId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     BookingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DateOfCreation = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -505,17 +524,17 @@ namespace Proiect_Licenta.Migrations
                 {
                     table.PrimaryKey("PK_Bookings", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Bookings_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_Bookings_Flights_FlightId",
                         column: x => x.FlightId,
                         principalTable: "Flights",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Bookings_Reservations_ReservationId",
+                        column: x => x.ReservationId,
+                        principalTable: "Reservations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -611,7 +630,7 @@ namespace Proiect_Licenta.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "baggageItems",
+                name: "BaggageItems",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -623,9 +642,9 @@ namespace Proiect_Licenta.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_baggageItems", x => x.Id);
+                    table.PrimaryKey("PK_BaggageItems", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_baggageItems_Tickets_TicketId",
+                        name: "FK_BaggageItems_Tickets_TicketId",
                         column: x => x.TicketId,
                         principalTable: "Tickets",
                         principalColumn: "Id",
@@ -669,35 +688,35 @@ namespace Proiect_Licenta.Migrations
                 columns: new[] { "Id", "DateOfCreation", "Description", "Icon", "Name" },
                 values: new object[,]
                 {
-                    { new Guid("10000000-0000-0000-0000-000000000000"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5782), "You have created your account!", "/images/welcome.png", "Welcome" },
-                    { new Guid("10000000-0000-0000-0000-000000000001"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5796), "You posted for the first time", "/images/post1.png", "First Post" },
-                    { new Guid("10000000-0000-0000-0000-000000000005"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5802), "You made 5 posts", "/images/post5.png", "Traveler" },
-                    { new Guid("10000000-0000-0000-0000-000000000020"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5805), "You made 20 posts", "/images/post20.png", "Explorer" },
-                    { new Guid("10000000-0000-0000-0000-000000000050"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5810), "You made 50 posts", "/images/post50.png", "Adventurer" },
-                    { new Guid("10000000-0000-0000-0000-000000000100"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5812), "You made 100 posts", "/images/post100.png", "Storyteller" },
-                    { new Guid("10000000-0000-0000-0000-000000000250"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5816), "You made 250 posts", "/images/post250.png", "Content Creator" },
-                    { new Guid("10000000-0000-0000-0000-000000000500"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5824), "You made 500 posts", "/images/post500.png", "Master Explorer" },
-                    { new Guid("10000000-0000-0000-0000-000000001000"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5827), "You made 1,000 posts", "/images/post1000.png", "Legendary Poster" },
-                    { new Guid("20000000-0000-0000-0000-000000000005"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5830), "Reached level 5", "/images/level5.png", "Getting Started" },
-                    { new Guid("20000000-0000-0000-0000-000000000010"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5833), "Reached level 10", "/images/level10.png", "Rising Star" },
-                    { new Guid("20000000-0000-0000-0000-000000000020"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5834), "Reached level 20", "/images/level20.png", "Challenger" },
-                    { new Guid("20000000-0000-0000-0000-000000000050"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5837), "Reached level 50", "/images/level50.png", "Veteran Explorer" },
-                    { new Guid("20000000-0000-0000-0000-000000000100"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5839), "Reached level 100", "/images/level100.png", "Legend of Wingo" },
-                    { new Guid("30000000-0000-0000-0000-000000000001"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5841), "Gave your first like", "/images/like1.png", "First Love" },
-                    { new Guid("30000000-0000-0000-0000-000000000010"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5845), "Gave 10 likes", "/images/like10.png", "Supporter" },
-                    { new Guid("30000000-0000-0000-0000-000000000050"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5847), "Gave 50 likes", "/images/like50.png", "Positive Vibes" },
-                    { new Guid("30000000-0000-0000-0000-000000000100"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5849), "Gave 100 likes", "/images/like100.png", "Community Booster" },
-                    { new Guid("30000000-0000-0000-0000-000000000500"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5850), "Gave 500 likes", "/images/like500.png", "Influencer" },
-                    { new Guid("30000000-0000-0000-0000-000000001000"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5852), "Gave 1,000 likes", "/images/like1000.png", "Social Machine" },
-                    { new Guid("30000000-0000-0000-0000-000000005000"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5887), "Gave 5,000 likes", "/images/like5000.png", "Infinity Reactor" },
-                    { new Guid("40000000-0000-0000-0000-000000000001"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5889), "Posted your first comment", "/images/comment1.png", "First Words" },
-                    { new Guid("40000000-0000-0000-0000-000000000005"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5890), "Posted 5 comments", "/images/comment5.png", "Conversationalist" },
-                    { new Guid("40000000-0000-0000-0000-000000000015"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5894), "Posted 15 comments", "/images/comment15.png", "Active Voice" },
-                    { new Guid("40000000-0000-0000-0000-000000000050"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5895), "Posted 50 comments", "/images/comment50.png", "Discussion Leader" },
-                    { new Guid("40000000-0000-0000-0000-000000000100"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5897), "Posted 100 comments", "/images/comment100.png", "Community Speaker" },
-                    { new Guid("40000000-0000-0000-0000-000000000250"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5899), "Posted 250 comments", "/images/comment250.png", "Debater Pro" },
-                    { new Guid("40000000-0000-0000-0000-000000000500"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5900), "Posted 500 comments", "/images/comment500.png", "Social Anchor" },
-                    { new Guid("40000000-0000-0000-0000-000000001000"), new DateTime(2026, 6, 12, 16, 1, 15, 398, DateTimeKind.Utc).AddTicks(5902), "Posted 1,000 comments", "/images/comment1000.png", "Voice of Wingo" }
+                    { new Guid("10000000-0000-0000-0000-000000000000"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(2994), "You have created your account!", "/images/welcome.png", "Welcome" },
+                    { new Guid("10000000-0000-0000-0000-000000000001"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3009), "You posted for the first time", "/images/post1.png", "First Post" },
+                    { new Guid("10000000-0000-0000-0000-000000000005"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3020), "You made 5 posts", "/images/post5.png", "Traveler" },
+                    { new Guid("10000000-0000-0000-0000-000000000020"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3023), "You made 20 posts", "/images/post20.png", "Explorer" },
+                    { new Guid("10000000-0000-0000-0000-000000000050"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3025), "You made 50 posts", "/images/post50.png", "Adventurer" },
+                    { new Guid("10000000-0000-0000-0000-000000000100"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3027), "You made 100 posts", "/images/post100.png", "Storyteller" },
+                    { new Guid("10000000-0000-0000-0000-000000000250"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3029), "You made 250 posts", "/images/post250.png", "Content Creator" },
+                    { new Guid("10000000-0000-0000-0000-000000000500"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3030), "You made 500 posts", "/images/post500.png", "Master Explorer" },
+                    { new Guid("10000000-0000-0000-0000-000000001000"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3032), "You made 1,000 posts", "/images/post1000.png", "Legendary Poster" },
+                    { new Guid("20000000-0000-0000-0000-000000000005"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3034), "Reached level 5", "/images/level5.png", "Getting Started" },
+                    { new Guid("20000000-0000-0000-0000-000000000010"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3038), "Reached level 10", "/images/level10.png", "Rising Star" },
+                    { new Guid("20000000-0000-0000-0000-000000000020"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3039), "Reached level 20", "/images/level20.png", "Challenger" },
+                    { new Guid("20000000-0000-0000-0000-000000000050"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3042), "Reached level 50", "/images/level50.png", "Veteran Explorer" },
+                    { new Guid("20000000-0000-0000-0000-000000000100"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3045), "Reached level 100", "/images/level100.png", "Legend of Wingo" },
+                    { new Guid("30000000-0000-0000-0000-000000000001"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3046), "Gave your first like", "/images/like1.png", "First Love" },
+                    { new Guid("30000000-0000-0000-0000-000000000010"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3049), "Gave 10 likes", "/images/like10.png", "Supporter" },
+                    { new Guid("30000000-0000-0000-0000-000000000050"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3051), "Gave 50 likes", "/images/like50.png", "Positive Vibes" },
+                    { new Guid("30000000-0000-0000-0000-000000000100"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3053), "Gave 100 likes", "/images/like100.png", "Community Booster" },
+                    { new Guid("30000000-0000-0000-0000-000000000500"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3060), "Gave 500 likes", "/images/like500.png", "Influencer" },
+                    { new Guid("30000000-0000-0000-0000-000000001000"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3062), "Gave 1,000 likes", "/images/like1000.png", "Social Machine" },
+                    { new Guid("30000000-0000-0000-0000-000000005000"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3064), "Gave 5,000 likes", "/images/like5000.png", "Infinity Reactor" },
+                    { new Guid("40000000-0000-0000-0000-000000000001"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3066), "Posted your first comment", "/images/comment1.png", "First Words" },
+                    { new Guid("40000000-0000-0000-0000-000000000005"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3067), "Posted 5 comments", "/images/comment5.png", "Conversationalist" },
+                    { new Guid("40000000-0000-0000-0000-000000000015"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3069), "Posted 15 comments", "/images/comment15.png", "Active Voice" },
+                    { new Guid("40000000-0000-0000-0000-000000000050"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3072), "Posted 50 comments", "/images/comment50.png", "Discussion Leader" },
+                    { new Guid("40000000-0000-0000-0000-000000000100"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3073), "Posted 100 comments", "/images/comment100.png", "Community Speaker" },
+                    { new Guid("40000000-0000-0000-0000-000000000250"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3077), "Posted 250 comments", "/images/comment250.png", "Debater Pro" },
+                    { new Guid("40000000-0000-0000-0000-000000000500"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3079), "Posted 500 comments", "/images/comment500.png", "Social Anchor" },
+                    { new Guid("40000000-0000-0000-0000-000000001000"), new DateTime(2026, 6, 13, 7, 31, 47, 459, DateTimeKind.Utc).AddTicks(3081), "Posted 1,000 comments", "/images/comment1000.png", "Voice of Wingo" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -762,8 +781,8 @@ namespace Proiect_Licenta.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_baggageItems_TicketId",
-                table: "baggageItems",
+                name: "IX_BaggageItems_TicketId",
+                table: "BaggageItems",
                 column: "TicketId");
 
             migrationBuilder.CreateIndex(
@@ -772,9 +791,9 @@ namespace Proiect_Licenta.Migrations
                 column: "FlightId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Bookings_UserId",
+                name: "IX_Bookings_ReservationId",
                 table: "Bookings",
-                column: "UserId");
+                column: "ReservationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Comments_PostId",
@@ -881,6 +900,11 @@ namespace Proiect_Licenta.Migrations
                 column: "ReviewedByAdminId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Reservations_UserId",
+                table: "Reservations",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Seats_SeatSectionId",
                 table: "Seats",
                 column: "SeatSectionId");
@@ -939,7 +963,7 @@ namespace Proiect_Licenta.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "baggageItems");
+                name: "BaggageItems");
 
             migrationBuilder.DropTable(
                 name: "FlightSeats");
@@ -985,6 +1009,9 @@ namespace Proiect_Licenta.Migrations
 
             migrationBuilder.DropTable(
                 name: "Flights");
+
+            migrationBuilder.DropTable(
+                name: "Reservations");
 
             migrationBuilder.DropTable(
                 name: "Aircrafts");

@@ -141,27 +141,7 @@
 
                             <div class="flight-bookings">
 
-                                <h5>Bookings</h5>
-
-                                @if (!flight.Bookings.Any())
-                                {
-                                    <p>No bookings yet.</p>
-                                }
-                                else
-                                {
-                                    <div class="booking-list">
-
-                                        @foreach (var booking in flight.Bookings)
-                                        {
-                                            <div class="booking-item">
-
-                                                👤 @booking.User.UserName
-
-                                            </div>
-                                        }
-
-                                    </div>
-                                }
+                                <h5>Number of Bookings: @flight.Bookings.Count()</h5>
 
                             </div>
 

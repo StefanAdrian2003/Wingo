@@ -69,18 +69,24 @@
     <hr class="m-0" />
 
     <div class="flight-card-footer d-flex justify-content-between align-items-center p-3 bg-light rounded-bottom">
-        <div class="flight-price-box">
-            <span class="price-label text-muted small d-block">Total Price (All 4 Flights + Discount)</span>
-            <span class="flight-price text-success fs-4 fw-bold">€@Model.TotalPrice.ToString("0.00")</span>
-        </div>
+        
+        @if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole("Company"))
+        {
+            <div class="flight-price-box">
+                <span class="price-label text-muted small d-block">Total Price (All 4 Flights + Discount)</span>
+                <span class="flight-price text-success fs-4 fw-bold">€@Model.TotalPrice.ToString("0.00")</span>
+            </div>
 
-        <a asp-page="/BookingPassenger"
-           asp-route-id="@Model.OutboundJourney.Leg1.Id"
-           asp-route-leg2Id="@Model.OutboundJourney.Leg2.Id"
-           asp-route-returnId="@Model.ReturnJourney.Leg1.Id"
-           asp-route-retLeg2Id="@Model.ReturnJourney.Leg2.Id"
-           class="reserve-btn btn btn-primary">
-            Book Round-Trip Bundle
-        </a>
+            <a asp-page="/BookingPassenger"
+               asp-route-id="@Model.OutboundJourney.Leg1.Id"
+               asp-route-leg2Id="@Model.OutboundJourney.Leg2.Id"
+               asp-route-returnId="@Model.ReturnJourney.Leg1.Id"
+               asp-route-retLeg2Id="@Model.ReturnJourney.Leg2.Id"
+               class="reserve-btn btn btn-primary">
+                Book Round-Trip Bundle
+            </a>
+        }
+        
+        
     </div>
 </div>

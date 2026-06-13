@@ -134,13 +134,18 @@
     <!-- FOOTER -->
     <div class="flight-card-footer">
 
-        <a asp-page="/BookingPassenger"
-           asp-route-id="@Model.Id"
-           class="reserve-btn">
+        @if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole("Company"))
+        {
+            <a asp-page="/BookingPassenger"
+               asp-route-id="@Model.Id"
+               class="reserve-btn">
 
-            Reserve now!
+                Reserve now!
 
-        </a>
+            </a>
+        }
+
+        
 
     </div>
 

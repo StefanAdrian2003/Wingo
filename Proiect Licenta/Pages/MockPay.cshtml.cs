@@ -31,17 +31,13 @@ namespace Proiect_Licenta.Pages
             _progressService = progressService;
         }
 
+        public BookingSessionDto Session { get; set; } = default!;
 
-        public BookingSessionDto Session { get; set; }
-
-
-        public Flight Flight { get; set; }
+        public Flight Flight { get; set; } = default!;
         public List<Seat> SelectedSeats { get; set; } = new();
-
 
         public Flight? ReturnFlight { get; set; }
         public List<Seat> ReturnSeats { get; set; } = new();
-
 
         public Flight? Leg2Flight { get; set; }
         public List<Seat> Leg2Seats { get; set; } = new();
@@ -49,19 +45,13 @@ namespace Proiect_Licenta.Pages
         public Flight? ReturnLeg2Flight { get; set; }
         public List<Seat> ReturnLeg2Seats { get; set; } = new();
 
-
         public decimal GrandTotal { get; set; }
-
-
-
 
         [BindProperty]
         public int? SelectedVoucherId { get; set; }
         public List<Voucher> UserVouchers { get; set; } = new();
 
         public decimal DiscountAmount { get; set; }
-
-
 
         private static readonly Dictionary<TravelClass, decimal> Multipliers = new()
         {
@@ -73,19 +63,30 @@ namespace Proiect_Licenta.Pages
         private string BookingKey =>
             $"Booking:{User.FindFirstValue(ClaimTypes.NameIdentifier)}";
 
-
-
-
         public async Task<IActionResult> OnGetAsync()
         {
             var json = TempData.Peek(BookingKey)?.ToString();
             if (string.IsNullOrEmpty(json))
                 return RedirectToPage("/Index");
 
-            Session = JsonSerializer.Deserialize<BookingSessionDto>(json)!;
-            await LoadData(Session);
+            try
+            {
+                Session = JsonSerializer.Deserialize<BookingSessionDto>(json)!;
+            }
+            catch
+            {
+                return RedirectToPage("/Index");
+            }
+
+            // Safe Redirect Strategy if essential lookup data fails
+            bool successfullyLoaded = await LoadData(Session);
+            if (!successfullyLoaded)
+            {
+                return RedirectToPage("/Index");
+            }
 
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToPage("/Index");
 
             UserVouchers = await _context.Vouchers
                 .Where(v => v.UserId == user.Id)
@@ -99,8 +100,21 @@ namespace Proiect_Licenta.Pages
             var json = TempData.Peek(BookingKey)?.ToString();
             if (string.IsNullOrEmpty(json)) return RedirectToPage("/Index");
 
-            Session = JsonSerializer.Deserialize<BookingSessionDto>(json)!;
-            await LoadData(Session);
+            try
+            {
+                Session = JsonSerializer.Deserialize<BookingSessionDto>(json)!;
+            }
+            catch
+            {
+                return RedirectToPage("/Index");
+            }
+
+            bool successfullyLoaded = await LoadData(Session);
+            if (!successfullyLoaded)
+            {
+                ModelState.AddModelError("", "Flight details could not be verified. Please restart your search.");
+                return RedirectToPage("/Index");
+            }
 
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return RedirectToPage("/Index");
@@ -134,47 +148,62 @@ namespace Proiect_Licenta.Pages
                     });
                 }
 
-                // Calculate voucher discount factors
+                // Calculate voucher discount factors + Anti-tampering check
                 decimal discountMultiplier = 0m;
                 Voucher? voucher = null;
                 if (SelectedVoucherId.HasValue)
                 {
                     voucher = await _context.Vouchers.FirstOrDefaultAsync(v => v.Id == SelectedVoucherId.Value && v.UserId == currentUser.Id);
-                    if (voucher != null) discountMultiplier = voucher.DiscountPercent / 100m;
+                    if (voucher != null)
+                    {
+                        discountMultiplier = voucher.DiscountPercent / 100m;
+                    }
                 }
 
-                // 2. ── PROCESS BOOKINGS USING A SECURE DICTIONARY MAP (Fixes Bug 1) ──
-                // Load seats into dictionaries to guarantee O(1) matching based precisely on DTO index positions
+                // ============================================================================
+                // ── STEP A: CREATE THE PARENT RESERVATION RECORD FIRST ──
+                // ============================================================================
+                var reservation = new Reservation
+                {
+                    UserId = currentUser.Id
+                };
+                _context.Reservations.Add(reservation);
+                await _context.SaveChangesAsync();
+
+                // ============================================================================
+                // ── STEP B: PROCESS BOOKINGS ATTACHED TO THE RESERVATION ID ──
+                // ============================================================================
                 var outboundSeatsMap = SelectedSeats.ToDictionary(s => s.Id);
 
                 // Process Outbound Leg 1
-                await ProcessLegBookingAsync(bookingUser: currentUser,
-                                             flightId: Session.FlightId,
-                                             baseFlightPrice: Flight.Price,
-                                             orderedSeatIds: Session.SelectedSeatIds,
-                                             seatsMap: outboundSeatsMap,
-                                             baggageSelections: Session.Baggage,
-                                             discountMultiplier: discountMultiplier);
+                await ProcessLegBookingAsync(
+                    reservationId: reservation.Id,
+                    flightId: Session.FlightId,
+                    baseFlightPrice: Flight.Price,
+                    orderedSeatIds: Session.SelectedSeatIds,
+                    seatsMap: outboundSeatsMap,
+                    baggageSelections: Session.Baggage,
+                    discountMultiplier: discountMultiplier);
 
                 // Process Outbound Leg 2 (Layover)
-                if (Session.Leg2FlightId.HasValue && Leg2Seats.Any())
+                if (Session.Leg2FlightId.HasValue && Leg2Seats.Any() && Leg2Flight != null)
                 {
                     var leg2Map = Leg2Seats.ToDictionary(s => s.Id);
-                    await ProcessLegBookingAsync(currentUser, Session.Leg2FlightId.Value, Leg2Flight!.Price, Session.Leg2SeatIds, leg2Map, Session.Leg2Baggage, discountMultiplier);
+                    await ProcessLegBookingAsync(reservation.Id, Session.Leg2FlightId.Value, Leg2Flight.Price, Session.Leg2SeatIds, leg2Map, Session.Leg2Baggage, discountMultiplier);
                 }
 
                 // Process Return Leg 1
-                if (Session.IsRoundTrip && ReturnSeats.Any())
+                if (Session.IsRoundTrip && ReturnSeats.Any() && ReturnFlight != null)
                 {
                     var returnMap = ReturnSeats.ToDictionary(s => s.Id);
-                    await ProcessLegBookingAsync(currentUser, Session.ReturnFlightId!.Value, ReturnFlight!.Price, Session.ReturnSeatIds, returnMap, Session.ReturnBaggage, discountMultiplier);
+                    await ProcessLegBookingAsync(reservation.Id, Session.ReturnFlightId!.Value, ReturnFlight.Price, Session.ReturnSeatIds, returnMap, Session.ReturnBaggage, discountMultiplier);
                 }
 
                 // Process Return Leg 2 (Round Trip Connection Layover)
-                if (Session.ReturnLeg2FlightId.HasValue && ReturnLeg2Seats.Any())
+                if (Session.ReturnLeg2FlightId.HasValue && ReturnLeg2Seats.Any() && ReturnLeg2Flight != null)
                 {
                     var returnLeg2Map = ReturnLeg2Seats.ToDictionary(s => s.Id);
-                    await ProcessLegBookingAsync(currentUser, Session.ReturnLeg2FlightId.Value, ReturnLeg2Flight!.Price, Session.ReturnLeg2SeatIds, returnLeg2Map, Session.ReturnLeg2Baggage, discountMultiplier);
+                    await ProcessLegBookingAsync(reservation.Id, Session.ReturnLeg2FlightId.Value, ReturnLeg2Flight.Price, Session.ReturnLeg2SeatIds, returnLeg2Map, Session.ReturnLeg2Baggage, discountMultiplier);
                 }
 
                 // 3. ── UPDATE USER STATISTICS & CLEANUP ──
@@ -195,16 +224,13 @@ namespace Proiect_Licenta.Pages
                     returnUrl = Url.Page("/Account/Manage/Bookings", new { area = "Identity" })
                 });
             }
-            catch
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
-                ModelState.AddModelError("", "Something went wrong. Please try again.");
+                ModelState.AddModelError("", "Something went wrong during payment processing. Please try again.");
                 return Page();
             }
         }
-
-
-
 
         private async Task<List<Guid>> GetTakenSeatsAsync(Guid? flightId, List<Guid> seatIds)
         {
@@ -218,23 +244,39 @@ namespace Proiect_Licenta.Pages
 
         private async Task<List<string>> GetSeatNumbersAsync(List<Guid> seatIds)
         {
-            if (!seatIds.Any()) return new List<string>();
+            if (seatIds == null || !seatIds.Any()) return new List<string>();
             return await _context.Seats.Where(s => seatIds.Contains(s.Id)).Select(s => s.SeatNumber).ToListAsync();
         }
 
-        private async Task ProcessLegBookingAsync(User bookingUser, Guid flightId, decimal baseFlightPrice, List<Guid> orderedSeatIds, Dictionary<Guid, Seat> seatsMap, List<BaggageSelectionDto> baggageSelections, decimal discountMultiplier)
+        private async Task ProcessLegBookingAsync(
+            Guid reservationId,
+            Guid flightId,
+            decimal baseFlightPrice,
+            List<Guid> orderedSeatIds,
+            Dictionary<Guid, Seat> seatsMap,
+            List<BaggageSelectionDto>? baggageSelections,
+            decimal discountMultiplier)
         {
-            var booking = new Booking { UserId = bookingUser.Id, FlightId = flightId, BookingDate = DateTime.UtcNow };
+            var booking = new Booking
+            {
+                ReservationId = reservationId,
+                FlightId = flightId,
+                BookingDate = DateTime.UtcNow
+            };
+
             _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync(); // Generates Booking ID
+            await _context.SaveChangesAsync();
 
             for (int i = 0; i < orderedSeatIds.Count; i++)
             {
                 var seatId = orderedSeatIds[i];
                 if (!seatsMap.TryGetValue(seatId, out var seat)) continue;
+                if (seat.SeatSection == null) continue; // Protective guard clause
 
                 var travelClass = seat.SeatSection.TravelClass;
-                var seatPrice = Math.Round(baseFlightPrice * Multipliers[travelClass], 2);
+
+                decimal multiplier = Multipliers.ContainsKey(travelClass) ? Multipliers[travelClass] : 1.0m;
+                var seatPrice = Math.Round(baseFlightPrice * multiplier, 2);
                 var baggageDto = baggageSelections?.ElementAtOrDefault(i);
                 var originalPrice = seatPrice + (baggageDto?.TotalBaggagePrice ?? 0m);
 
@@ -245,9 +287,8 @@ namespace Proiect_Licenta.Pages
                     Price = Math.Round(originalPrice * (1 - discountMultiplier), 2)
                 };
                 _context.Tickets.Add(ticket);
-                await _context.SaveChangesAsync(); // Generates Ticket ID
+                await _context.SaveChangesAsync();
 
-                // FIXES BUG 2: Updates inventory record if it exists, otherwise creates it safely
                 var existingFlightSeat = await _context.FlightSeats.FirstOrDefaultAsync(fs => fs.FlightId == flightId && fs.SeatId == seatId);
                 if (existingFlightSeat != null)
                 {
@@ -258,7 +299,6 @@ namespace Proiect_Licenta.Pages
                     _context.FlightSeats.Add(new FlightSeat { FlightId = flightId, SeatId = seatId, TicketId = ticket.Id });
                 }
 
-                // Save Baggage details
                 if (baggageDto != null && baggageDto.BaggageType != "None")
                 {
                     var (baggageType, weight, price) = baggageDto.BaggageType switch
@@ -269,30 +309,27 @@ namespace Proiect_Licenta.Pages
                         _ => (BaggageType.Cabin, 8, 0m)
                     };
 
-                    _context.baggageItems.Add(new BaggageItem { TicketId = ticket.Id, Type = baggageType, WeightKg = weight, Price = price });
+                    _context.BaggageItems.Add(new BaggageItem { TicketId = ticket.Id, Type = baggageType, WeightKg = weight, Price = price });
                 }
 
                 if (baggageDto?.HasExtraBag == true)
                 {
-                    _context.baggageItems.Add(new BaggageItem { TicketId = ticket.Id, Type = BaggageType.Extra, WeightKg = 23, Price = 35m });
+                    _context.BaggageItems.Add(new BaggageItem { TicketId = ticket.Id, Type = BaggageType.Extra, WeightKg = 23, Price = 35m });
                 }
             }
         }
 
-
-
-
-        private async Task LoadData(BookingSessionDto session)
+        // Returns false if critical entities are completely missing in the DB
+        private async Task<bool> LoadData(BookingSessionDto session)
         {
-            // ─────────────────────────────────────────
-            // FLIGHTS
-            // ─────────────────────────────────────────
-
-            Flight = await _context.Flights
+            var primaryFlight = await _context.Flights
                 .Include(f => f.Airline)
                 .Include(f => f.DepartureAirport)
                 .Include(f => f.ArrivalAirport)
                 .FirstOrDefaultAsync(f => f.Id == session.FlightId);
+
+            if (primaryFlight == null) return false;
+            Flight = primaryFlight;
 
             if (session.Leg2FlightId.HasValue)
             {
@@ -321,16 +358,12 @@ namespace Proiect_Licenta.Pages
                     .FirstOrDefaultAsync(f => f.Id == session.ReturnLeg2FlightId);
             }
 
-            // ─────────────────────────────────────────
-            // SEATS (ALL LEGS)
-            // ─────────────────────────────────────────
-
             SelectedSeats = await _context.Seats
                 .Include(s => s.SeatSection)
                 .Where(s => session.SelectedSeatIds.Contains(s.Id))
                 .ToListAsync();
 
-            if (session.Leg2SeatIds.Any())
+            if (session.Leg2SeatIds != null && session.Leg2SeatIds.Any())
             {
                 Leg2Seats = await _context.Seats
                     .Include(s => s.SeatSection)
@@ -343,7 +376,7 @@ namespace Proiect_Licenta.Pages
                 .Where(s => session.ReturnSeatIds.Contains(s.Id))
                 .ToListAsync();
 
-            if (session.ReturnLeg2SeatIds.Any())
+            if (session.ReturnLeg2SeatIds != null && session.ReturnLeg2SeatIds.Any())
             {
                 ReturnLeg2Seats = await _context.Seats
                     .Include(s => s.SeatSection)
@@ -351,58 +384,36 @@ namespace Proiect_Licenta.Pages
                     .ToListAsync();
             }
 
-            // ─────────────────────────────────────────
-            // PRICING
-            // ─────────────────────────────────────────
+            // ── Safe Math Summation Processing ──
+            decimal seatTotal = SelectedSeats.Sum(s =>
+                s.SeatSection != null && Multipliers.ContainsKey(s.SeatSection.TravelClass)
+                ? Math.Round(Flight.Price * Multipliers[s.SeatSection.TravelClass], 2)
+                : 0m);
 
-            decimal seatTotal =
-                SelectedSeats.Sum(s =>
-                    Math.Round(Flight.Price * Multipliers[s.SeatSection.TravelClass], 2));
+            decimal leg2SeatTotal = Leg2Flight == null ? 0m : Leg2Seats.Sum(s =>
+                s.SeatSection != null && Multipliers.ContainsKey(s.SeatSection.TravelClass)
+                ? Math.Round(Leg2Flight.Price * Multipliers[s.SeatSection.TravelClass], 2)
+                : 0m);
 
-            decimal leg2SeatTotal =
-                Leg2Flight == null ? 0 :
-                Leg2Seats.Sum(s =>
-                    Math.Round(Leg2Flight.Price * Multipliers[s.SeatSection.TravelClass], 2));
+            decimal returnSeatTotal = ReturnFlight == null ? 0m : ReturnSeats.Sum(s =>
+                s.SeatSection != null && Multipliers.ContainsKey(s.SeatSection.TravelClass)
+                ? Math.Round(ReturnFlight.Price * Multipliers[s.SeatSection.TravelClass], 2)
+                : 0m);
 
-            decimal returnSeatTotal =
-                ReturnFlight == null ? 0 :
-                ReturnSeats.Sum(s =>
-                    Math.Round(ReturnFlight.Price * Multipliers[s.SeatSection.TravelClass], 2));
+            decimal returnLeg2SeatTotal = ReturnLeg2Flight == null ? 0m : ReturnLeg2Seats.Sum(s =>
+                s.SeatSection != null && Multipliers.ContainsKey(s.SeatSection.TravelClass)
+                ? Math.Round(ReturnLeg2Flight.Price * Multipliers[s.SeatSection.TravelClass], 2)
+                : 0m);
 
-            decimal returnLeg2SeatTotal =
-                ReturnLeg2Flight == null ? 0 :
-                ReturnLeg2Seats.Sum(s =>
-                    Math.Round(ReturnLeg2Flight.Price * Multipliers[s.SeatSection.TravelClass], 2));
+            decimal baggageTotal = session.Baggage?.Sum(b => b.TotalBaggagePrice) ?? 0m;
+            decimal leg2BaggageTotal = session.Leg2Baggage?.Sum(b => b.TotalBaggagePrice) ?? 0m;
+            decimal returnBaggageTotal = session.ReturnBaggage?.Sum(b => b.TotalBaggagePrice) ?? 0m;
+            decimal returnLeg2BaggageTotal = session.ReturnLeg2Baggage?.Sum(b => b.TotalBaggagePrice) ?? 0m;
 
-            // ─────────────────────────────────────────
-            // BAGGAGE
-            // ─────────────────────────────────────────
+            GrandTotal = seatTotal + leg2SeatTotal + returnSeatTotal + returnLeg2SeatTotal +
+                         baggageTotal + leg2BaggageTotal + returnBaggageTotal + returnLeg2BaggageTotal;
 
-            decimal baggageTotal =
-                session.Baggage?.Sum(b => b.TotalBaggagePrice) ?? 0m;
-
-            decimal leg2BaggageTotal =
-                session.Leg2Baggage?.Sum(b => b.TotalBaggagePrice) ?? 0m;
-
-            decimal returnBaggageTotal =
-                session.ReturnBaggage?.Sum(b => b.TotalBaggagePrice) ?? 0m;
-
-            decimal returnLeg2BaggageTotal =
-                session.ReturnLeg2Baggage?.Sum(b => b.TotalBaggagePrice) ?? 0m;
-
-            // ─────────────────────────────────────────
-            // FINAL TOTAL
-            // ─────────────────────────────────────────
-
-            GrandTotal =
-                seatTotal +
-                leg2SeatTotal +
-                returnSeatTotal +
-                returnLeg2SeatTotal +
-                baggageTotal +
-                leg2BaggageTotal +
-                returnBaggageTotal +
-                returnLeg2BaggageTotal;
+            return true;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿@page
+@using System.Globalization
 @using Proiect_Licenta.Models
 @model Proiect_Licenta.Pages.MockPayModel
 @{
@@ -60,10 +61,10 @@
                 <h2 class="page-title">Payment</h2>
             </div>
 
-            @if (!ModelState.IsValid)
+            @if (!ViewData.ModelState.IsValid)
             {
                 <div class="error-alert">
-                    ⚠️ Something went wrong. Please try again.
+                    ⚠️ Something went wrong during checkout. Please verify your info and try again.
                 </div>
             }
 
@@ -168,7 +169,7 @@
                                     @seat.SeatNumber
                                 </span>
                                 <span class="item-description">@travelClass Class Seat</span>
-                                <span class="order-line-price">€@seatPrice</span>
+                                <span class="order-line-price">€@seatPrice.ToString("F2", CultureInfo.InvariantCulture)</span>
                             </div>
 
                             @if (bagPrice > 0)
@@ -178,7 +179,7 @@
                                         <span class="baggage-icon">🧳</span>
                                         <span class="secondary-text">Checked Baggage Add-on</span>
                                     </div>
-                                    <span class="secondary-text">+€@bagPrice</span>
+                                    <span class="secondary-text">+€@bagPrice.ToString("F2", CultureInfo.InvariantCulture)</span>
                                 </div>
                             }
                         </div>
@@ -211,7 +212,7 @@
                                     @seat.SeatNumber
                                 </span>
                                 <span class="item-description">@travelClass Class Seat</span>
-                                <span class="order-line-price">€@seatPrice</span>
+                                <span class="order-line-price">€@seatPrice.ToString("F2", CultureInfo.InvariantCulture)</span>
                             </div>
 
                             @if (bagPrice > 0)
@@ -221,7 +222,7 @@
                                         <span class="baggage-icon">🧳</span>
                                         <span class="secondary-text">Checked Baggage Add-on</span>
                                     </div>
-                                    <span class="secondary-text">+€@bagPrice</span>
+                                    <span class="secondary-text">+€@bagPrice.ToString("F2", CultureInfo.InvariantCulture)</span>
                                 </div>
                             }
                         </div>
@@ -254,7 +255,7 @@
                                     @seat.SeatNumber
                                 </span>
                                 <span class="item-description">@travelClass Class Seat</span>
-                                <span class="order-line-price">€@seatPrice</span>
+                                <span class="order-line-price">€@seatPrice.ToString("F2", CultureInfo.InvariantCulture)</span>
                             </div>
 
                             @if (bagPrice > 0)
@@ -264,7 +265,7 @@
                                         <span class="baggage-icon">🧳</span>
                                         <span class="secondary-text">Checked Baggage Add-on</span>
                                     </div>
-                                    <span class="secondary-text">+€@bagPrice</span>
+                                    <span class="secondary-text">+€@bagPrice.ToString("F2", CultureInfo.InvariantCulture)</span>
                                 </div>
                             }
                         </div>
@@ -295,9 +296,10 @@
                             <div class="order-line">
                                 <span class="seat-chip @travelClass.ToString().ToLower()">
                                     @seat.SeatNumber
+                                    }
                                 </span>
                                 <span class="item-description">@travelClass Class Seat</span>
-                                <span class="order-line-price">€@seatPrice</span>
+                                <span class="order-line-price">€@seatPrice.ToString("F2", CultureInfo.InvariantCulture)</span>
                             </div>
 
                             @if (bagPrice > 0)
@@ -307,7 +309,7 @@
                                         <span class="baggage-icon">🧳</span>
                                         <span class="secondary-text">Checked Baggage Add-on</span>
                                     </div>
-                                    <span class="secondary-text">+€@bagPrice</span>
+                                    <span class="secondary-text">+€@bagPrice.ToString("F2", CultureInfo.InvariantCulture)</span>
                                 </div>
                             }
                         </div>
@@ -316,24 +318,16 @@
 
                 <div class="summary-divider"></div>
 
-                @if (Model.DiscountAmount > 0)
-                {
-                    <div class="discount-row">
-                        <span>Voucher discount</span>
-                        <span class="discount-amount">-€@Model.DiscountAmount</span>
-                    </div>
-                    <div class="summary-divider"></div>
-                }
-
                 <div id="voucherDiscountRow" class="discount-row" style="display:none;">
                     <span>Voucher discount</span>
                     <span id="voucherDiscountAmount" class="discount-amount"></span>
                 </div>
+                <div id="voucherDiscountDivider" class="summary-divider" style="display:none;"></div>
 
                 <div class="grand-total-row">
                     <span>Total</span>
                     <span id="grandTotalAmount" class="grand-total-amount">
-                        €@Model.GrandTotal
+                        €@Model.GrandTotal.ToString("F2", CultureInfo.InvariantCulture)
                     </span>
                 </div>
 
@@ -377,33 +371,41 @@
             document.getElementById('cardPreview').classList.remove('flipped');
         });
 
-        // ── VOUCHER PREVIEW ──
+        // ── VOUCHER PREVIEW WITH INVARIANT PARSING ──
         const voucherSelect = document.querySelector('[name="SelectedVoucherId"]');
         const totalElement = document.getElementById('grandTotalAmount');
-        const baseTotal = parseFloat('@Model.GrandTotal'.replace(',', '.'));
+        const discountRow = document.getElementById('voucherDiscountRow');
+        const discountDivider = document.getElementById('voucherDiscountDivider');
+
+        // Formatted cleanly directly via InvariantCulture to avoid parsing bugs
+        const baseTotal = parseFloat('@Model.GrandTotal.ToString("F2", CultureInfo.InvariantCulture)');
 
         voucherSelect.addEventListener('change', function () {
             const selectedOption = this.options[this.selectedIndex];
             const discountPercent = parseInt(selectedOption.dataset.discount || 0);
 
             if (discountPercent > 0) {
-                document.getElementById('voucherDiscountRow').style.display = 'flex';
+                discountRow.style.display = 'flex';
+                discountDivider.style.display = 'block';
 
                 const discountAmount = (baseTotal * discountPercent / 100);
                 const finalTotal = baseTotal - discountAmount;
 
-                document.getElementById('voucherDiscountAmount').textContent =
-                    '-€' + discountAmount.toFixed(2);
-
+                document.getElementById('voucherDiscountAmount').textContent = '-€' + discountAmount.toFixed(2);
                 totalElement.textContent = '€' + finalTotal.toFixed(2);
             } else {
-                document.getElementById('voucherDiscountRow').style.display = 'none';
+                discountRow.style.display = 'none';
+                discountDivider.style.display = 'none';
                 totalElement.textContent = '€' + baseTotal.toFixed(2);
             }
         });
 
         // ── PAY BUTTON LOADING STATE ──
-        document.getElementById('payForm').addEventListener('submit', function () {
+        document.getElementById('payForm').addEventListener('submit', function (e) {
+            // Let the browser validate HTML5 validation attributes first
+            if (!this.checkValidity()) {
+                return;
+            }
             const btn = document.getElementById('payBtn');
             btn.textContent = 'Processing...';
             btn.disabled = true;

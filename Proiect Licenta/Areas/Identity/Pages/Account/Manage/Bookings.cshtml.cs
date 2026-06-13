@@ -1,104 +1,142 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Proiect_Licenta.Data;
 using Proiect_Licenta.Models;
+using Proiect_Licenta.Services;
 
 namespace Proiect_Licenta.Areas.Identity.Pages.Account.Manage
 {
+    [Authorize]
     public class BookingsModel : PageModel
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly NotificationService _notificationService;
 
-        public BookingsModel(ApplicationDbContext context, UserManager<User> userManager)
+        public BookingsModel(
+            ApplicationDbContext context,
+            UserManager<User> userManager,
+            NotificationService notificationService)
         {
             _context = context;
             _userManager = userManager;
+            _notificationService = notificationService;
         }
 
-        public List<Booking> Bookings { get; set; } = new();
+        // Matches 'Model.Reservations' from your cshtml layout exactly
+        public IList<Reservation> Reservations { get; set; } = new List<Reservation>();
 
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+            if (user == null)
+                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
 
-            Bookings = await _context.Bookings
-                .Where(b => b.UserId == user.Id)
-                .Include(b => b.Flight)
-                    .ThenInclude(f => f.Airline)
-                .Include(b => b.Flight)
-                    .ThenInclude(f => f.DepartureAirport)
-                .Include(b => b.Flight)
-                    .ThenInclude(f => f.ArrivalAirport)
-                .Include(b => b.Tickets)
-                    .ThenInclude(t => t.BaggageItems)
-                .Include(b => b.Tickets)
-                    .ThenInclude(t => t.FlightSeat)  // one-to-one
-                        .ThenInclude(fs => fs.Seat)
-                .OrderByDescending(b => b.BookingDate)
+            // Fetch complete reservations matching your frontend include targets
+            Reservations = await _context.Reservations
+                .Where(r => r.UserId == user.Id)
+                .Include(r => r.Bookings)
+                    .ThenInclude(b => b.Flight)
+                        .ThenInclude(f => f.DepartureAirport)
+                .Include(r => r.Bookings)
+                    .ThenInclude(b => b.Flight)
+                        .ThenInclude(f => f.ArrivalAirport)
+                .Include(r => r.Bookings)
+                    .ThenInclude(b => b.Flight)
+                        .ThenInclude(f => f.Airline)
+                .Include(r => r.Bookings)
+                    .ThenInclude(b => b.Tickets)
+                        .ThenInclude(t => t.BaggageItems)
+                .Include(r => r.Bookings)
+                    .ThenInclude(b => b.Tickets)
+                        .ThenInclude(t => t.FlightSeat)
+                            .ThenInclude(fs => fs.Seat)
+                .OrderByDescending(r => r.DateOfCreation)
                 .ToListAsync();
 
             return Page();
         }
 
+        // Handles asp-page-handler="Cancel" and binds asp-route-id="@reservation.Id" cleanly
         public async Task<IActionResult> OnPostCancelAsync(Guid id)
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-                return RedirectToPage("/Account/Login", new { area = "Identity" });
+            if (user == null) return Unauthorized();
 
-            var booking = await _context.Bookings
-                .Include(b => b.Tickets)
-                    .ThenInclude(t => t.FlightSeat)
-                .Include(b => b.Tickets)
-                    .ThenInclude(t => t.BaggageItems)
-                .FirstOrDefaultAsync(b => b.Id == id && b.UserId == user.Id);
+            var reservation = await _context.Reservations
+                .Include(r => r.Bookings)
+                    .ThenInclude(b => b.Flight)
+                        .ThenInclude(f => f.ArrivalAirport)
+                .Include(r => r.Bookings)
+                    .ThenInclude(b => b.Tickets)
+                        .ThenInclude(t => t.BaggageItems)
+                .FirstOrDefaultAsync(r => r.Id == id && r.UserId == user.Id);
 
-            if (booking == null)
-                return NotFound();
+            if (reservation == null)
+            {
+                return NotFound("Reservation not found.");
+            }
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
-
             try
             {
-                // 1. Remove baggage
-                var baggage = booking.Tickets
-                    .SelectMany(t => t.BaggageItems)
-                    .ToList();
+                var finalLeg = reservation.Bookings.OrderBy(b => b.Flight.DepartureTime).LastOrDefault()?.Flight;
+                string destinationCity = finalLeg?.ArrivalAirport?.City ?? "your destination";
 
-                _context.baggageItems.RemoveRange(baggage);
+                // Loop through and cleanly drop all multi-leg entities (All-or-Nothing Rule)
+                foreach (var booking in reservation.Bookings)
+                {
+                    if (booking.Tickets.Any())
+                    {
+                        var tickets = booking.Tickets.ToList();
+                        var ticketIds = tickets.Select(t => t.Id).ToList();
 
-                // 2. Remove flight seat reservations
-                var flightSeats = booking.Tickets
-                    .Select(t => t.FlightSeat)
-                    .Where(fs => fs != null)
-                    .ToList();
+                        var baggage = tickets.SelectMany(t => t.BaggageItems).ToList();
+                        if (baggage.Any()) _context.BaggageItems.RemoveRange(baggage);
 
-                _context.FlightSeats.RemoveRange(flightSeats!);
+                        var flightSeats = await _context.FlightSeats
+                            .Where(fs => fs.TicketId != null && ticketIds.Contains(fs.TicketId.Value))
+                            .ToListAsync();
 
-                // 3. Remove tickets
-                _context.Tickets.RemoveRange(booking.Tickets);
+                        foreach (var seat in flightSeats)
+                        {
+                            seat.TicketId = null;
+                        }
 
-                // 4. Remove booking
-                _context.Bookings.Remove(booking);
+                        _context.Tickets.RemoveRange(tickets);
+                    }
+                }
+
+                _context.Bookings.RemoveRange(reservation.Bookings);
+                _context.Reservations.Remove(reservation);
+
+                await _notificationService.CreateAsync(
+                    receiverId: user.Id,
+                    senderId: user.Id,
+                    type: NotificationType.FlightCancelled,
+                    message: $"Your itinerary booking to {destinationCity} was successfully cancelled.",
+                    postId: null
+                );
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                TempData["StatusMessage"] = "Booking cancelled successfully.";
+                TempData["StatusMessage"] = "Reservation completely canceled.";
             }
-            catch
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                TempData["ErrorMessage"] = "Failed to cancel booking.";
+                ModelState.AddModelError(string.Empty, $"An unexpected structural error occurred: {ex.Message}");
             }
 
             return RedirectToPage();
         }
-
     }
-
 }

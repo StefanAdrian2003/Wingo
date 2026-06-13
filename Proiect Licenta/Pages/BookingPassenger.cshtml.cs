@@ -9,7 +9,7 @@ using System.Text.Json;
 
 namespace Proiect_Licenta.Pages
 {
-    [Authorize]
+    [Authorize(Roles = "User,Admin")]
     public class BookingPassengerModel : PageModel
     {
         private readonly ApplicationDbContext _context;
@@ -19,7 +19,7 @@ namespace Proiect_Licenta.Pages
             _context = context;
         }
 
-        public Flight Flight { get; set; }
+        public Flight Flight { get; set; } = null!;
         public Flight? ReturnFlight { get; set; }
 
         public BookingSessionDto? Session { get; set; }
@@ -38,6 +38,12 @@ namespace Proiect_Licenta.Pages
         public async Task<IActionResult> OnGetAsync(
                 Guid id, Guid? returnId, Guid? leg2Id, Guid? retLeg2Id)
         {
+            if(User.IsInRole("Company"))
+            {
+                return Page();
+            }
+
+
             Flight = await LoadFlight(id);
             if (Flight == null) return NotFound();
 
@@ -52,7 +58,19 @@ namespace Proiect_Licenta.Pages
 
             var sessionJson = TempData.Peek(BookingKey)?.ToString();
             if (!string.IsNullOrEmpty(sessionJson))
+            {
                 Session = JsonSerializer.Deserialize<BookingSessionDto>(sessionJson);
+            }
+
+            // If no session exists yet (they just clicked a flight from search),
+            // or if they are restarting the flow, initialize the state to Step 0.
+            if (Session == null)
+            {
+                Session = new BookingSessionDto
+                {
+                    HighestAllowedStep = BookingStep.FlightSelection
+                };
+            }
 
             if (Session != null)
             {
@@ -86,51 +104,41 @@ namespace Proiect_Licenta.Pages
 
             bool hasRealReturn = returnId.HasValue && returnId.Value != Guid.Empty;
 
+            // --- VALIDATION RULES ---
+
             if (seatIds.Count == 0)
             {
                 ModelState.AddModelError("", "Please select at least one seat.");
-                Flight = await LoadFlight(id);
-                if (leg2Id.HasValue) Leg2Flight = await LoadFlight(leg2Id.Value);
-                if (hasRealReturn) ReturnFlight = await LoadFlight(returnId!.Value);
-                if (retLeg2Id.HasValue) ReturnLeg2Flight = await LoadFlight(retLeg2Id.Value);
-                return Page();
             }
 
-            // layover outbound: leg1 and leg2 must match
             if (leg2Id.HasValue && leg2SeatIds.Count != seatIds.Count)
             {
-                ModelState.AddModelError("",
-                    $"Select the same number of seats for both outbound legs. Leg 1: {seatIds.Count}, Leg 2: {leg2SeatIds.Count}.");
-                Flight = await LoadFlight(id);
-                Leg2Flight = await LoadFlight(leg2Id.Value);
-                if (hasRealReturn) ReturnFlight = await LoadFlight(returnId!.Value);
-                if (retLeg2Id.HasValue) ReturnLeg2Flight = await LoadFlight(retLeg2Id.Value);
-                return Page();
+                ModelState.AddModelError("", $"Select the same number of seats for both outbound legs. Leg 1: {seatIds.Count}, Leg 2: {leg2SeatIds.Count}.");
             }
 
-            // direct or layover with return: outbound and return must match
             if (hasRealReturn && returnSeatIds.Count != seatIds.Count)
             {
-                ModelState.AddModelError("",
-                    $"Select the same number of seats for outbound and return. Outbound: {seatIds.Count}, Return: {returnSeatIds.Count}.");
+                ModelState.AddModelError("", $"Select the same number of seats for outbound and return. Outbound: {seatIds.Count}, Return: {returnSeatIds.Count}.");
+            }
+
+            if (retLeg2Id.HasValue && retLeg2SeatIds.Count != seatIds.Count)
+            {
+                ModelState.AddModelError("", $"Select the same number of seats for return leg 2. Expected: {seatIds.Count}, Got: {retLeg2SeatIds.Count}.");
+            }
+
+            if (!ModelState.IsValid)
+            {
                 Flight = await LoadFlight(id);
-                ReturnFlight = await LoadFlight(returnId!.Value);
+                if (Flight == null) return NotFound();
+
                 if (leg2Id.HasValue) Leg2Flight = await LoadFlight(leg2Id.Value);
+                if (hasRealReturn) ReturnFlight = await LoadFlight(returnId!.Value);
                 if (retLeg2Id.HasValue) ReturnLeg2Flight = await LoadFlight(retLeg2Id.Value);
+
                 return Page();
             }
 
-            // layover return leg2 must also match
-            if (retLeg2Id.HasValue && retLeg2SeatIds.Count != seatIds.Count)
-            {
-                ModelState.AddModelError("",
-                    $"Select the same number of seats for return leg 2. Expected: {seatIds.Count}, Got: {retLeg2SeatIds.Count}.");
-                Flight = await LoadFlight(id);
-                if (leg2Id.HasValue) Leg2Flight = await LoadFlight(leg2Id.Value);
-                if (hasRealReturn) ReturnFlight = await LoadFlight(returnId!.Value);
-                ReturnLeg2Flight = await LoadFlight(retLeg2Id.Value);
-                return Page();
-            }
+            // --- SESSION BUILD & REDIRECT ---
 
             var session = new BookingSessionDto
             {
@@ -141,7 +149,11 @@ namespace Proiect_Licenta.Pages
                 ReturnFlightId = returnId,
                 ReturnSeatIds = returnSeatIds,
                 ReturnLeg2FlightId = retLeg2Id,
-                ReturnLeg2SeatIds = retLeg2SeatIds
+                ReturnLeg2SeatIds = retLeg2SeatIds,
+
+                // ─── STATE MACHINE UPDATE ───
+                // Elevate their clearance level to the next step (Baggage Selection)
+                HighestAllowedStep = BookingStep.BaggageSelection
             };
 
             TempData[BookingKey] = JsonSerializer.Serialize(session);

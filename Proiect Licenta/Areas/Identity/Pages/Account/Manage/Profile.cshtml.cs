@@ -87,7 +87,8 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account.Manage
                 .Include(f => f.Airline)
                     .ThenInclude(a => a.User)
                 .Include(f => f.Bookings)
-                    .ThenInclude(b => b.User)
+                    .ThenInclude(r => r.Reservation)
+                        .ThenInclude(b => b.User)
                 .ToListAsync();
         }
 

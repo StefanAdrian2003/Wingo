@@ -3,6 +3,123 @@
 @{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<style>
+    /* Styling specifically tuned for high-contrast visibility against a white background */
+    .privacy-container-flat {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 1rem;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+    }
+
+    .privacy-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #1e40af, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .privacy-subtitle {
+        font-size: 0.95rem;
+        color: #4b5563; /* Clear, visible dark-gray secondary text */
+        margin-bottom: 2rem;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 1rem;
+    }
+
+    .privacy-section {
+        margin-bottom: 2rem;
+    }
+
+        .privacy-section h2 {
+            font-size: 1.4rem;
+            color: #1d4ed8; /* Strong corporate blue for light backgrounds */
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .privacy-section p, .privacy-section ul {
+            color: #1f2937; /* Very dark charcoal for maximum baseline readability */
+            font-size: 1rem;
+        }
+
+        .privacy-section ul {
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .privacy-section li {
+            margin-bottom: 0.5rem;
+        }
+
+    .highlight-box {
+        background: #eff6ff; /* Soft blue alert tint */
+        border-left: 4px solid #2563eb;
+        padding: 1rem;
+        border-radius: 0 8px 8px 0;
+        margin-top: 1rem;
+        color: #1e40af;
+    }
+</style>
+
+<div class="background">
+    <div class="privacy-container-flat">
+        <h1 class="privacy-title">@ViewData["Title"]</h1>
+        <p class="privacy-subtitle">Last updated: June 2026 | Compliant with GDPR & Data Protection Regulations</p>
+
+        <div class="privacy-section">
+            <h2>🔒 1. Information We Collect</h2>
+            <p>To provide reliable aviation booking and community features, we collect and process the following categories of personal data:</p>
+            <ul>
+                <li><strong>Account Credentials:</strong> Name, email address, username, password, and security stamps managed safely via ASP.NET Core Identity.</li>
+                <li><strong>Aviation & Booking Data:</strong> Passenger identities, ticket details, seat assignments, baggage records, and booking reservations.</li>
+                <li><strong>Community Interaction Data:</strong> Posts, public comments, social likes, earned activity badges, and platform notifications.</li>
+                <li><strong>Automated Processing Logs:</strong> Text contents submitted to comments are processed using our AI Comment Moderation Engine to ensure platform security and prevent hate speech.</li>
+            </ul>
+        </div>
+
+        <div class="privacy-section">
+            <h2>⚙️ 2. How Your Data is Used</h2>
+            <p>Your information is explicitly processed to run this application effectively:</p>
+            <ul>
+                <li>To generate legal airline reservations, boarding passes, and flight schedules.</li>
+                <li>To manage gamified community engagement features (points tracking and milestones achievements).</li>
+                <li>To fulfill system security auditing protocols via immutable administrative log tracking.</li>
+            </ul>
+        </div>
+
+        <div class="privacy-section">
+            <h2>⏱️ 3. Data Retention & Integrity</h2>
+            <p>We maintain an optimized relational database lifecycle:</p>
+            <ul>
+                <li>Active account profile data is stored as long as your registered account remains open.</li>
+                <li>If an operating partner (Airline) removes their corporate account context, all active passenger reservation dependencies linked to their flight segments are cleanly purged within atomic transactions to prevent dead database states.</li>
+                <li>System actions recorded inside operational security logs (<strong>AdminLogs</strong>) are preserved contextually as plain text strings to guarantee historical audit integrity even if their parent items are deleted.</li>
+            </ul>
+        </div>
+
+        <div class="privacy-section">
+            <h2>🗑️ 4. Your Rights & The Right to Be Forgotten</h2>
+            <p>We empower our users with direct, autonomous data control rights over their personal footprint:</p>
+            <ul>
+                <li><strong>Data Rectification & Review:</strong> You can inspect and update your identity configurations at any point within your account profile page.</li>
+                <li><strong>The Right to Erasure (Account Deletion):</strong> Standard user accounts can utilize the <em>Delete Personal Data</em> menu to completely wipe out their identity footprint, including social posts, notifications, badges, vouchers, and direct client reservations.</li>
+            </ul>
+
+            <div class="highlight-box">
+                <strong>⚠️ Administrative Guardrail Notice:</strong> To ensure compliance with international civil aviation regulations, platform security policies, and continuous audit log accuracy, accounts explicitly configured with the <strong>Administrative Role (Admin)</strong> are strictly blocked from hard deletion.
+            </div>
+        </div>
+
+        <div class="privacy-section">
+            <h2>✉️ 5. Contact Information</h2>
+            <p>For any system auditing requests, academic verifications, or individual data restriction inquiries concerning this thesis software model, please reach out via the support portal or system engineering administrator desk.</p>
+        </div>
+    </div>
+</div>

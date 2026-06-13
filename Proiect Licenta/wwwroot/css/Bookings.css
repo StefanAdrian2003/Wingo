@@ -344,3 +344,82 @@
         transform: translateY(0); /* Pushes down when clicked */
         box-shadow: none;
     }
+
+
+/* ── RESERVATION WINDOW ADDITIONS ── */
+.reservation-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    position: relative;
+}
+
+.reservation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    margin-bottom: 1.2rem;
+    border-bottom: 2px dashed #edf2f7;
+}
+
+.reservation-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.reservation-id-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #4a5568;
+    background: #edf2f7;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: monospace;
+}
+
+/* Actions wrapper updated to track parent reservation */
+.reservation-actions {
+    position: absolute;
+    top: 22px;
+    right: 140px; /* Offset clear of the Reference ID tag */
+    z-index: 10;
+}
+
+.reservation-legs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Gap between separate flight legs */
+    margin-bottom: 1rem;
+}
+
+.leg-sub-row {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+    .leg-sub-row.past-leg {
+        opacity: 0.65;
+        background: #fafafa;
+    }
+
+.leg-header-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.leg-badge {
+    font-size: 0.65rem;
+    color: #718096;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
