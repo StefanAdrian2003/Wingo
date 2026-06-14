@@ -53,59 +53,37 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account
             _environment = environment;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public string ReturnUrl { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
+            // 🛡️ SECURITY LAYER: Explicit input parameter for custom unique pseudonyms
+            [Required]
+            [StringLength(30, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 3)]
+            [RegularExpression(@"^[a-zA-Z0-9_\-\.]+$", ErrorMessage = "Username can only contain letters, numbers, dots, hyphens, and underscores.")]
+            [Display(Name = "Username")]
+            public string Username { get; set; }
+
             [Required]
             [EmailAddress]
             [Display(Name = "Email")]
             public string Email { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Required]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
             public string Password { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [DataType(DataType.Password)]
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
-
 
             [Required]
             public string FirstName { get; set; }
@@ -118,12 +96,10 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account
             public string IATACode { get; set; }
             public string Country { get; set; }
             public IFormFile LogoFile { get; set; }
+
             // Tipul contului
             public bool IsCompany { get; set; } = false;
         }
-
-        
-
 
         public async Task OnGetAsync(string returnUrl = null)
         {
@@ -136,7 +112,7 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
-            if(Input.IsCompany)
+            if (Input.IsCompany)
             {
                 if (string.IsNullOrWhiteSpace(Input.CompanyName))
                     ModelState.AddModelError("Input.CompanyName", "Company Name is required");
@@ -163,14 +139,22 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account
                 }
             }
 
-
-
             if (ModelState.IsValid)
             {
+                // 🛡️ DEFENSIVE PROGRAMMING CHECK: Catch duplicate usernames before file manipulation or entity writing
+                var usernameExists = await _userManager.FindByNameAsync(Input.Username);
+                if (usernameExists != null)
+                {
+                    ModelState.AddModelError("Input.Username", "This username is already taken. Please choose another one.");
+                    return Page();
+                }
+
                 var user = CreateUser();
 
-                await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+                // 🛡️ Map the custom chosen string moniker as the public app username
+                await _userStore.SetUserNameAsync(user, Input.Username, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
@@ -222,7 +206,6 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account
                         user.AirlineId = airline.Id;
                         user.Airline = airline;
 
-
                         await _context.SaveChangesAsync();
                     }
                     else
@@ -230,8 +213,7 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account
                         await _userManager.AddToRoleAsync(user, "User");
                     }
 
-
-                        var userId = await _userManager.GetUserIdAsync(user);
+                    var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.Page(
@@ -253,6 +235,7 @@ namespace Proiect_Licenta.Areas.Identity.Pages.Account
                         return LocalRedirect(returnUrl);
                     }
                 }
+
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);

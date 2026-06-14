@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Proiect_Licenta.Data;
 using Proiect_Licenta.Models;
@@ -9,6 +10,7 @@ using Proiect_Licenta.Models;
 namespace Proiect_Licenta.Pages.Flights
 {
     [Authorize(Roles = "Company")]
+    [EnableRateLimiting("fixed")]
     public class AddFlightModel : PageModel
     {
         private readonly ApplicationDbContext _context;

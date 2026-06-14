@@ -30,16 +30,19 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
+        <nav class="navbar navbar-expand-xl navbar-light bg-white border-bottom box-shadow mb-3 px-4">
+
+            <div class="container-fluid">
                 <a class="navbar-brand d-flex align-items-center" asp-area="" asp-page="/Index">
                     <img src="~/favicon.png" class="logo" style="width:30px; margin-right:10px;" />
                     <span>Wingo</span>
                 </a>
+
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between nav-buttons">
+
+                <div class="navbar-collapse collapse d-xl-inline-flex justify-content-between nav-buttons">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
                             <a class="nav-link @(IsActive("/Index") ? "active" : "")" asp-page="/Index">Home</a>
@@ -88,7 +91,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - Proiect_Licenta - <a asp-area="" asp-page="/Privacy">Privacy</a>
+            &copy; 2026 - Proiect_Licenta - <a asp-area="" asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
 

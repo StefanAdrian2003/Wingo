@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Proiect_Licenta.Data;
 using Proiect_Licenta.Models;
@@ -8,6 +9,7 @@ using Proiect_Licenta.Services;
 
 namespace Proiect_Licenta.Pages
 {
+    [EnableRateLimiting("fixed")]
     public class _ActionsModel : PageModel
     {
         private readonly ApplicationDbContext _db;

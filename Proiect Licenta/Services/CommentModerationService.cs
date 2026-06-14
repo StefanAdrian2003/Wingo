@@ -18,7 +18,7 @@ namespace Proiect_Licenta.Services
 
         public async Task<bool> IsSafeAsync(string comment)
         {
-            // Pregătim request-ul pentru OpenAI
+            // 🛡️ OPTIMIZED PROMPT: Multi-language handling, typo tolerance, and strict output constraint
             var request = new
             {
                 model = "gpt-4o-mini",
@@ -26,12 +26,17 @@ namespace Proiect_Licenta.Services
                 {
                     new {
                         role = "system",
-                        content = "You are a strict content moderation assistant. Only answer with YES if the comment is completely safe, respectful, and follows community guidelines. Answer NO otherwise. Do not add anything else."
+                        content = "You are an advanced multilingual content moderation engine. Your sole task is to determine if a comment violates basic safety guidelines (hate speech, severe insults, spam, illegal content, or explicit threats).\n\n" +
+                                  "CRITICAL RULES:\n" +
+                                  "1. Languages: The comment might be in Romanian, English, or other languages. Accept all languages equally.\n" +
+                                  "2. Typos & Slang: Do not reject a comment for bad grammar, misspellings, or innocent regional slang.\n" +
+                                  "3. Evaluation: If a comment is safe, friendly, a normal question, or constructive criticism, it is safe.\n\n" +
+                                  "OUTPUT FORMAT: Reply with exactly 'YES' if the comment is safe to post. Reply with exactly 'NO' if it contains explicit toxicity or safety violations. Do not include punctuation or any other text."
                     },
                     new
                     {
                         role = "user",
-                        content = $"Comment to check: \"{comment}\""
+                        content = $"Comment to evaluate: \"{comment}\""
                     }
                 }
             };
@@ -61,7 +66,6 @@ namespace Proiect_Licenta.Services
                 var json = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(json);
 
-                // ✅ Varianta sigură: verificăm dacă proprietățile există
                 if (doc.RootElement.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
                 {
                     var firstChoice = choices[0];
@@ -73,22 +77,19 @@ namespace Proiect_Licenta.Services
 
                         if (string.IsNullOrEmpty(answer))
                         {
-                            // fallback: dacă nu primim răspuns valid → nu permitem comentariul
-                            return false;
+                            return false; // Fallback: reject if empty response
                         }
 
-                        // doar dacă AI zice YES → comentariul e safe
                         return answer == "YES";
                     }
                 }
 
-                // fallback: dacă structura JSON nu e cum ne așteptăm
                 return false;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Moderation failed");
-                return false; // sau true, depinde de politica ta
+                return false;
             }
         }
     }

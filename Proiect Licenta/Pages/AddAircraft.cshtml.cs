@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.RateLimiting;
 using Proiect_Licenta.Data;
 using Proiect_Licenta.Models;
 using System.ComponentModel.DataAnnotations;
@@ -9,6 +10,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Proiect_Licenta.Pages
 {
     [Authorize(Roles = "Company")]
+    [EnableRateLimiting("fixed")]
     public class AddAircraftModel : PageModel
     {
         private readonly ApplicationDbContext _db;

@@ -77,7 +77,7 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-    await context.Database.MigrateAsync();
+    // await context.Database.MigrateAsync();
 
     var services = scope.ServiceProvider;
     try
@@ -140,8 +140,10 @@ using (var scope = app.Services.CreateScope())
             }
         }
 
-        string adminEmail = "admin@site.com";
-        string adminPassword = "Admin123!";
+        // 🛡️ SECURITY REMEDIATION: Pull variables from configuration mapping instead of hardcoding raw text
+        string adminEmail = builder.Configuration["SeedSettings:AdminEmail"] ?? "admin@site.com";
+        string adminPassword = builder.Configuration["SeedSettings:AdminPassword"] ?? "Admin123!";
+        string adminUsername = builder.Configuration["SeedSettings:AdminUsername"] ?? "admin";
 
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
@@ -151,7 +153,7 @@ using (var scope = app.Services.CreateScope())
             {
                 LastName = "Stefan",
                 FirstName = "Adrian",
-                UserName = adminEmail,
+                UserName = adminUsername, // 🛡️ PRIVACY REMEDIATION: Uses a distinct public alias name instead of the raw email
                 Email = adminEmail,
                 EmailConfirmed = true
             };
