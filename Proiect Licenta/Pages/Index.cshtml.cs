@@ -1,8 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Proiect_Licenta.Data;
 using Proiect_Licenta.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,14 +26,12 @@ namespace Proiect_Licenta.Pages
         public int BookingsCount { get; set; }
         public int BadgesEarnedCount { get; set; }
 
-        // Changed from RecentFlights to PopularFlights
         public List<Flight> PopularFlights { get; set; } = new();
         public List<Post> LatestPosts { get; set; } = new();
         public List<Badge> FeaturedBadges { get; set; } = new();
 
         public async Task OnGetAsync()
         {
-            // Await each query individually so they execute one after another safely
             FlightsCount = await _context.Flights.CountAsync();
 
             MembersCount = await _context.Users
@@ -43,7 +42,7 @@ namespace Proiect_Licenta.Pages
 
             BadgesEarnedCount = await _context.UserBadges.CountAsync();
 
-            // Select the top 6 flights with the highest percentage of reservation capacity
+            // Filtrare: doar zboruri care se decolează după momentul actual curent
             PopularFlights = await _context.Flights
                 .Include(f => f.Airline)
                     .ThenInclude(a => a.User)
@@ -51,7 +50,7 @@ namespace Proiect_Licenta.Pages
                 .Include(f => f.ArrivalAirport)
                 .Include(f => f.Aircraft)
                 .Include(f => f.FlightSeats)
-                .Where(f => f.Aircraft.TotalSeats > 0) // Guard against division by zero
+                .Where(f => f.Aircraft.TotalSeats > 0 && f.DepartureTime > DateTime.Now)
                 .OrderByDescending(f =>
                     f.FlightSeats.Count(fs => fs.TicketId != null) == 0 ? 0 :
                     ((double)f.FlightSeats.Count(fs => fs.TicketId != null) / f.Aircraft.TotalSeats) * 100)

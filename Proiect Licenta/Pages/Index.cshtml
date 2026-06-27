@@ -6,6 +6,50 @@
 
 <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
 
+<style>
+    /* Fix critic pentru rândurile din carousel conform imaginii active */
+    .carousel-cards-row {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start; /* Previne lungirea forțată a elementelor pe verticală */
+        gap: 20px;
+        padding: 15px 0;
+        width: 100%;
+    }
+
+    /* Targetăm wrapper-ul din interiorul elementului din carousel */
+    .carousel-card-item {
+        flex: 0 1 440px; /* Lățimea ideală pentru noul sistem Bento */
+        max-width: 440px;
+        width: 100%;
+    }
+
+    /* Asigurăm că stilurile din zborul simplu moștenesc corect layout-ul compact */
+    .carousel-card-item .flight-card {
+        width: 100% !important;
+        max-width: 440px !important;
+        margin: 0 auto !important;
+        height: auto !important; /* Elimină stretching-ul */
+    }
+
+    /* Ajustare pentru butoanele de control ale caruselului să nu se suprapună inestetic */
+    .custom-carousel-btn {
+        width: 45px;
+        height: 45px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        color: #000;
+        top: 50%;
+        transform: translateY(-50%);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        opacity: 1;
+    }
+    .custom-carousel-btn:hover {
+        background-color: #ffffff;
+        color: #2563eb;
+    }
+</style>
+
 <div class="full-page-container">
 
     <section class="hero-section">
@@ -15,7 +59,7 @@
             <p>Wingo is a premium social ecosystem where real-world aviation mechanics meet addictive gamification elements.</p>
 
             <div class="d-flex justify-content-center gap-3 mt-4">
-                @if (User.Identity.IsAuthenticated)
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
                 {
                     <a asp-page="/Post" class="btn btn-accent btn-lg">Create Post</a>
                 }
@@ -54,7 +98,6 @@
                 <div id="popularFlightsCarousel" class="carousel slide" data-bs-ride="false">
                     <div class="carousel-inner">
                         @{
-                            // Chunk the list into groups of 2 flights per view slide
                             var chunks = Model.PopularFlights
                             .Select((flight, index) => new { flight, index })
                             .GroupBy(x => x.index / 2)
@@ -89,7 +132,7 @@
             }
             else
             {
-                <div class="text-muted p-4 border rounded text-center">No trending high-capacity flights found right now.</div>
+                <div class="text-muted p-4 border rounded text-center">No trending upcoming flights found right now.</div>
             }
         </div>
 
@@ -156,7 +199,6 @@
         </div>
     </section>
 </div>
-
 
 <div class="modals-container-layer">
     @foreach (var post in Model.LatestPosts)
