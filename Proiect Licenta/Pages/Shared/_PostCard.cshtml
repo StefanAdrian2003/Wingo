@@ -1,56 +1,166 @@
 ﻿@model Proiect_Licenta.Models.Post
 
-
 <style>
+    /* Limitări text și descriere */
     .post-description {
         display: -webkit-box;
         -webkit-line-clamp: 2; /* maxim 2 randuri */
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
+        font-size: 0.95rem;
+        color: #64748b;
+        margin: 8px 0;
+        line-height: 1.5;
+    }
+
+    /* Aliniere Header: Nume în stânga, Butoane în dreapta */
+    .post-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 12px;
+    }
+
+    /* Containerul din dreapta pentru butoane */
+    .post-actions-zone {
+        display: flex;
+        align-items: center;
+        gap: 8px; /* Spațiu între Report și X */
+    }
+
+    /* Stil butoane din Header */
+    .btn-report {
+        background: none;
+        border: none;
+        color: #dc3545;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 4px 10px;
+        border-radius: 6px;
+        transition: background 0.2s, transform 0.1s;
+    }
+
+        .btn-report:hover {
+            background: rgba(220, 53, 69, 0.08);
+        }
+
+        .btn-report:active {
+            transform: scale(0.95);
+        }
+
+    .btn-delete {
+        background: none;
+        border: none;
+        color: #64748b;
+        font-size: 0.9rem;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: background 0.1s, color 0.1s;
+    }
+
+        .btn-delete:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: #1e293b;
+        }
+
+    /* Corecții și design general Card */
+    .post-card {
+        width: 100%;
+        max-width: 520px;
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .post-title {
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #1e293b;
+    }
+
+    .post-user-link {
+        font-weight: 600;
+        color: #3b82f6;
+    }
+
+    /* Imagini uniforme în interiorul cardului */
+    .post-image-wrapper {
+        width: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+        background-color: #f8f9fa;
+    }
+
+    .post-image {
+        width: 100%;
+        height: auto;
+        max-height: 380px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .post-stats {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 4px;
+    }
+
+    .creation-date {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        text-align: right;
     }
 </style>
-
 
 <div class="post-card">
 
     <div class="post-header">
-        @if (User.Identity.IsAuthenticated && User.Identity.Name == Model.User.UserName)
-        {
-            <a asp-area="Identity"
-               asp-page="/Account/Manage/Profile"
-               class="post-user-link text-decoration-none font-weight-bold">
-                @Model.User.UserName (You)
-            </a>
-        }
-        else
-        {
-            <a asp-page="/CustomProfile"
-               asp-route-username="@Model.User.UserName"
-               class="post-user-link text-decoration-none">
-                @Model.User.UserName
-            </a>
-        }
+        <div class="post-user-zone">
+            @if (User.Identity.IsAuthenticated && User.Identity.Name == Model.User.UserName)
+            {
+                <a asp-area="Identity"
+                   asp-page="/Account/Manage/Profile"
+                   class="post-user-link text-decoration-none">
+                    @Model.User.UserName (You)
+                </a>
+            }
+            else
+            {
+                <a asp-page="/CustomProfile"
+                   asp-route-username="@Model.User.UserName"
+                   class="post-user-link text-decoration-none">
+                    @Model.User.UserName
+                </a>
+            }
+        </div>
 
+        <div class="post-actions-zone">
+            @if (User.Identity.IsAuthenticated && User.Identity.Name != Model.User.UserName)
+            {
+                <button type="button" class="btn-report"
+                        onclick="openReportModal('@Model.Id', 'Post')">
+                    Report
+                </button>
+            }
 
-        @if (User.Identity.IsAuthenticated &&
-                User.Identity.Name != Model.User.UserName)
-        {
-            <button type="button"
-                    onclick="openReportModal('@Model.Id', 'Post')">
-                Report
-            </button>
-        }
-
-        @if (User.Identity.IsAuthenticated &&
-                (User.Identity.Name == Model.User.UserName || User.IsInRole("Admin")))
-        {
-            <button type="button"
-                    onclick="openDeleteModal('@Model.Id', 'Post')">
-                ✖
-            </button>
-        }
-
+            @if (User.Identity.IsAuthenticated && (User.Identity.Name == Model.User.UserName || User.IsInRole("Admin")))
+            {
+                <button type="button" class="btn-delete"
+                        onclick="openDeleteModal('@Model.Id', 'Post')">
+                    ✖
+                </button>
+            }
+        </div>
     </div>
 
     <span class="post-title">@Model.Title</span>
@@ -67,7 +177,7 @@
     }
 
     <div class="post-stats">
-        <form method="post" 
+        <form method="post"
               asp-page="/_Actions"
               asp-page-handler="Like"
               asp-route-postId="@Model.Id"
@@ -75,16 +185,14 @@
 
             <button hx-post="/_Actions?handler=Like&postId=@Model.Id"
                     hx-target="#like-count-@Model.Id"
-                    hx-swap="outerHTML">
+                    hx-swap="outerHTML"
+                    class="btn btn-light btn-sm rounded-pill px-3">
                 ❤️ <span id="like-count-@Model.Id">@Model.Likes.Count</span>
             </button>
-
-
         </form>
 
-
         <button type="button"
-                class="btn btn-link p-0"
+                class="btn btn-link text-decoration-none p-0"
                 data-bs-toggle="modal"
                 data-bs-target="#commentsModal-@Model.Id">
             See post
