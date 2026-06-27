@@ -61,7 +61,7 @@ namespace Proiect_Licenta.Pages
             LatestPosts = await _context.Posts
                 .Include(p => p.User)
                 .OrderByDescending(p => p.DateOfCreation)
-                .Take(3)
+                .Take(2)
                 .ToListAsync();
 
             FeaturedBadges = await _context.Badges

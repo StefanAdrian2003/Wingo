@@ -218,11 +218,14 @@
 }
 
 /* Stacked Post Cards vertical configuration */
-.posts-grid {
+.post-grid {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    align-items: center;
+    gap: 24px; /* Spațiul vertical dintre carduri */
+    align-items: center; /* IMPORTANT: Împiedică layout-ul să întindă cardurile pe orizontală */
+    width: 100%;
+    max-width: 600px; /* Ajustează zona centrală a feed-ului */
+    margin: 20px auto; /* Centrează întregul flux de postări în pagină */
 }
 
 /* Badge Carousel Minimal Styling */
