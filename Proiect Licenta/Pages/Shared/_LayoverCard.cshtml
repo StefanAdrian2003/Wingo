@@ -1,98 +1,228 @@
 ﻿@model Proiect_Licenta.Models.ConnectingFlight
 
-<div class="flight-card round-trip-card border-warning mb-4">
+<style>
+    /* Aliniere la structura de bază a FlightCard */
+    .layover-flight-card {
+        width: 100%;
+        max-width: 440px;
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        box-sizing: border-box;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
 
-    <div class="flight-trip-segment container pb-2">
-        <div class="badge bg-info text-dark mb-2">Leg 1</div>
-        <div class="flight-card-header p-0 border-0">
-            <div class="flight-main-info">
-                <div class="flight-top-row">
-                    <h4 class="flight-number">@Model.Leg1.FlightNumber</h4>
-                    <div class="flight-airline">
-                        <img src="@Model.Leg1.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" style="max-height: 25px;" />
-                        <span class="airline-name ms-2 fw-bold">@Model.Leg1.Airline.Name</span>
-                    </div>
-                    <a asp-page="/FlightInfo" asp-route-id="@Model.Leg1.Id" class="flight-link">
-                        <span class="details-link">Details</span>
-                    </a>
-                </div>
-                <div class="flight-route mt-2">
-                    @Model.Leg1.DepartureAirport.Name (@Model.Leg1.DepartureAirport.IATACode)
-                    <span class="route-arrow mx-2 text-muted">→</span>
-                    @Model.Leg1.ArrivalAirport.Name (@Model.Leg1.ArrivalAirport.IATACode)
-                </div>
+        .layover-flight-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px -5px rgba(245, 158, 11, 0.1); /* Glow portocaliu subtil pentru scale */
+        }
+
+    /* SEGMENTE DE ZBOR */
+    .segment-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        background: #f8fafc;
+        padding: 12px;
+        border-radius: 12px;
+        border-left: 3px solid #3b82f6;
+    }
+
+    .segment-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .leg-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: #3b82f6;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    .flight-number-sub {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    /* TIMELINE / ESCALĂ */
+    .layover-divider {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: #fffbeb;
+        border: 1px dashed #fde68a;
+        padding: 8px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #b45309;
+    }
+
+    /* PRICE BOX MULTI-STOP */
+    .layover-price-box {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        border: 1px solid #fde68a;
+        padding: 12px;
+        border-radius: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    .layover-price-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #92400e;
+    }
+
+    .layover-price {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #d97706;
+    }
+
+    /* BUTON SPECIAL CASSETTE */
+    .book-layover-btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        background: #f59e0b;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 12px;
+        border-radius: 10px;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+        transition: background 0.2s, transform 0.1s;
+        border: none;
+    }
+
+        .book-layover-btn:hover {
+            background: #d97706;
+            color: #ffffff;
+        }
+
+        .book-layover-btn:active {
+            transform: scale(0.98);
+        }
+</style>
+
+<div class="layover-flight-card">
+
+    <!-- ZBOR 1 (LEG 1) -->
+    <div class="segment-container">
+        <div class="segment-header">
+            <span class="leg-badge">Leg 1</span>
+            <span class="flight-number-sub">@Model.Leg1.FlightNumber</span>
+
+            <div class="flight-airline">
+                @if (!string.IsNullOrEmpty(Model.Leg1.Airline.LogoUrl))
+                {
+                    <img src="@Model.Leg1.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" />
+                }
+                <span class="airline-name">@Model.Leg1.Airline.Name</span>
             </div>
+
+            <a asp-page="/FlightInfo" asp-route-id="@Model.Leg1.Id" class="flight-link">
+                <span class="details-link">Details →</span>
+            </a>
         </div>
 
-        <div class="flight-card-body p-0 mt-3 d-flex justify-content-between">
-            <div class="flight-info-box">
-                <span class="flight-label text-muted small d-block">Departure</span>
-                <span class="flight-value fw-bold">@Model.Leg1.DepartureTime.ToString("g")</span>
+        <div class="flight-route" style="padding: 6px 0; background: transparent;">
+            <span>@Model.Leg1.DepartureAirport.IATACode</span>
+            <span class="route-arrow">→</span>
+            <span>@Model.Leg1.ArrivalAirport.IATACode</span>
+        </div>
+
+        <div class="d-flex justify-content-between text-start mt-1">
+            <div>
+                <span class="flight-label">Dep</span>
+                <span class="flight-value d-block">@Model.Leg1.DepartureTime.ToString("g")</span>
             </div>
-            <div class="flight-info-box text-end">
-                <span class="flight-label text-muted small d-block">Arrival</span>
-                <span class="flight-value fw-bold">@Model.Leg1.ArrivalTime.ToString("g")</span>
+            <div class="text-end">
+                <span class="flight-label">Arr</span>
+                <span class="flight-value d-block">@Model.Leg1.ArrivalTime.ToString("g")</span>
             </div>
         </div>
     </div>
 
-    <div class="text-center bg-light py-2 border-top border-bottom my-2 text-muted fw-bold">
-        <i class="bi bi-clock-history"></i> Layover in @Model.Leg1.ArrivalAirport.City: @Model.LayoverDuration.ToString(@"hh\h\ mm\m")
+    <!-- TIMELINE INTERMEDIAR (ESCALA) -->
+    <div class="layover-divider">
+        <i class="bi bi-clock-history"></i>
+        <span>Escală în @Model.Leg1.ArrivalAirport.City (@Model.LayoverDuration.ToString(@"hh\h\ mm\m"))</span>
     </div>
 
-    <div class="flight-trip-segment container pt-2">
-        <div class="badge bg-info text-dark mb-2">Leg 2</div>
-        <div class="flight-card-header p-0 border-0">
-            <div class="flight-main-info">
-                <div class="flight-top-row">
-                    <h4 class="flight-number">@Model.Leg2.FlightNumber</h4>
-                    <div class="flight-airline">
-                        <img src="@Model.Leg2.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" style="max-height: 25px;" />
-                        <span class="airline-name ms-2 fw-bold">@Model.Leg2.Airline.Name</span>
-                    </div>
-                    <a asp-page="/FlightInfo" asp-route-id="@Model.Leg2.Id" class="flight-link">
-                        <span class="details-link">Details</span>
-                    </a>
-                </div>
-                <div class="flight-route mt-2">
-                    @Model.Leg2.DepartureAirport.Name (@Model.Leg2.DepartureAirport.IATACode)
-                    <span class="route-arrow mx-2 text-muted">→</span>
-                    @Model.Leg2.ArrivalAirport.Name (@Model.Leg2.ArrivalAirport.IATACode)
-                </div>
+    <!-- ZBOR 2 (LEG 2) -->
+    <div class="segment-container" style="border-left-color: #10b981;">
+        <div class="segment-header">
+            <span class="leg-badge" style="background: #10b981;">Leg 2</span>
+            <span class="flight-number-sub">@Model.Leg2.FlightNumber</span>
+
+            <div class="flight-airline">
+                @if (!string.IsNullOrEmpty(Model.Leg2.Airline.LogoUrl))
+                {
+                    <img src="@Model.Leg2.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" />
+                }
+                <span class="airline-name">@Model.Leg2.Airline.Name</span>
             </div>
+
+            <a asp-page="/FlightInfo" asp-route-id="@Model.Leg2.Id" class="flight-link">
+                <span class="details-link">Details →</span>
+            </a>
         </div>
 
-        <div class="flight-card-body p-0 mt-3 d-flex justify-content-between">
-            <div class="flight-info-box">
-                <span class="flight-label text-muted small d-block">Departure</span>
-                <span class="flight-value fw-bold">@Model.Leg2.DepartureTime.ToString("g")</span>
+        <div class="flight-route" style="padding: 6px 0; background: transparent;">
+            <span>@Model.Leg2.DepartureAirport.IATACode</span>
+            <span class="route-arrow">→</span>
+            <span>@Model.Leg2.ArrivalAirport.IATACode</span>
+        </div>
+
+        <div class="d-flex justify-content-between text-start mt-1">
+            <div>
+                <span class="flight-label">Dep</span>
+                <span class="flight-value d-block">@Model.Leg2.DepartureTime.ToString("g")</span>
             </div>
-            <div class="flight-info-box text-end">
-                <span class="flight-label text-muted small d-block">Arrival</span>
-                <span class="flight-value fw-bold">@Model.Leg2.ArrivalTime.ToString("g")</span>
+            <div class="text-end">
+                <span class="flight-label">Arr</span>
+                <span class="flight-value d-block">@Model.Leg2.ArrivalTime.ToString("g")</span>
             </div>
         </div>
     </div>
 
-    <hr />
+    <!-- COSTA TOTAL & REZERVARE -->
+    <div class="flight-card-body" style="display: flex; flex-direction: column; gap: 12px; margin-top: auto;">
+        <div class="layover-price-box">
+            <span class="layover-price-label">Total Fare (1 Stop)</span>
+            <span class="layover-price">€@Model.TotalPrice</span>
+        </div>
 
-    <div class="flight-card-footer d-flex justify-content-between align-items-center mt-3 p-3 bg-light rounded-bottom">
-        
         @if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole("Company"))
         {
-            <div class="flight-price-box">
-                <span class="price-label text-muted small d-block">Total Price (1 Stop)</span>
-                <span class="flight-price text-success fs-4 fw-bold">€@Model.TotalPrice</span>
+            <div class="w-100">
+                <a asp-page="/BookingPassenger"
+                   asp-route-id="@Model.Leg1.Id"
+                   asp-route-returnId="@Guid.Empty"
+                   asp-route-leg2Id="@Model.Leg2.Id"
+                   class="book-layover-btn">
+                    Book Layover Journey
+                </a>
             </div>
-
-            <a asp-page="/BookingPassenger"
-               asp-route-id="@Model.Leg1.Id"
-               asp-route-returnId="@Guid.Empty"
-               asp-route-leg2Id="@Model.Leg2.Id"
-               class="reserve-btn btn btn-warning">
-                Book Layover
-            </a>
         }
-        
     </div>
 </div>

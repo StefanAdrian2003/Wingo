@@ -16,11 +16,136 @@
 
 <link rel="stylesheet" href="~/css/Flight.css" asp-append-version="true" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+<style>
+    /* STRUCTURA PAGINII PARAMETRIZATĂ MODERN */
+    .flights-page {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 30px;
+        max-width: 1400px;
+        margin: 40px auto;
+        padding: 0 20px;
+        align-items: start;
+    }
+
+    /* SIDEBAR MODERNISED */
+    .flight-search-sidebar {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+    }
+
+        .flight-search-sidebar h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .flight-search-sidebar label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+
+        .flight-search-sidebar .form-control,
+        .flight-search-sidebar .form-select {
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+
+            .flight-search-sidebar .form-control:focus,
+            .flight-search-sidebar .form-select:focus {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+
+    .btn-search-submit {
+        background: #3b82f6;
+        color: white;
+        font-weight: 600;
+        padding: 12px;
+        border-radius: 8px;
+        border: none;
+        transition: background 0.2s;
+    }
+
+        .btn-search-submit:hover {
+            background: #2563eb;
+        }
+
+    /* CONTAINER REZULTATE & REZOLVARE SPAȚIU GOL */
+    .flights-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+        .flights-container h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin: 0 0 10px 0;
+        }
+
+    /* GRID CORECT PENTRU FLIGHT CARDS */
+    .flight-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 24px;
+        width: 100%;
+    }
+
+        /* COMPATIBILITATE PENTRU CARDS DE TIP LAYOVER SAU ALERTE */
+        .flight-list .alert,
+        .flight-list partial[name*="Layover"],
+        .flight-list partial[name*="RoundTrip"] {
+            grid-column: 1 / -1;
+        }
+
+    /* PAGINARE CURATĂ */
+    .pagination .page-link {
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        padding: 8px 16px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+        color: white;
+    }
+
+    .pagination .page-link:hover:not(.active) {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+
+    /* RESPONSIVENESS */
+    @@media (max-width: 992px) {
+        .flights-page {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 
 <div class="flights-page">
 
     <div class="flight-search-sidebar">
-        <h3>Search Flights</h3>
+        <h3><i class="bi bi-search text-primary"></i> Search Flights</h3>
         <form method="get">
             <div class="mb-3">
                 <label>Departure Airport</label>
@@ -47,9 +172,9 @@
                 <input asp-for="SelectedDate" type="date" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
 
-            <div class="form-check mb-2">
+            <div class="form-check mb-3">
                 <input asp-for="IsRoundTrip" class="form-check-input" type="checkbox" id="isRoundTripCheck" />
-                <label asp-for="IsRoundTrip" class="form-check-label">Round-trip</label>
+                <label asp-for="IsRoundTrip" class="form-check-label" style="margin-bottom: 0; cursor: pointer;">Round-trip</label>
             </div>
 
             <div class="mb-3" id="returnDateWrapper" style="@(Model.IsRoundTrip ? "" : "display:none;")">
@@ -57,24 +182,24 @@
                 <input asp-for="ReturnDate" type="date" class="form-control" id="returnDateInput" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
 
-            <div class="mb-3">
+            <div class="mb-4">
                 <label>Maximum Price (€)</label>
                 <input asp-for="MaxPrice" type="number" min="0" class="form-control" placeholder="Ex: 300" />
             </div>
 
             <input type="hidden" name="CurrentPage" value="1" />
 
-            <button type="submit" class="btn btn-primary w-100">Search</button>
+            <button type="submit" class="btn-search-submit w-100">Find Flights</button>
         </form>
     </div>
 
-    <div class="flights-container background">
+    <div class="flights-container">
 
         @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Company"))
         {
-            <div class="alert alert-warning d-flex align-items-center mb-4 shadow-sm" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
-                <div>
+            <div class="alert alert-warning d-flex align-items-center mb-0 border-0 shadow-sm rounded-4" style="background-color: #fffbeb; border-left: 4px solid #f59e0b !important;" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-3 fs-4 text-warning"></i>
+                <div class="text-warning-emphasis">
                     <strong>Notice:</strong> Your account is registered as a <strong>Company</strong>.
                     Company profiles are restricted from booking or reserving passenger flights.
                 </div>
@@ -83,19 +208,20 @@
 
         <h2>Available Flights</h2>
 
-        @* FIX: RoundTripConnectings was missing from the empty-state check, so layover
-               round-trip results caused "No flights found" to always display. *@
         @if (!Model.Flights.Any() && !Model.RoundTrips.Any() && !Model.ConnectingFlights.Any() && !Model.RoundTripConnectings.Any())
         {
-            <p class="text-center py-4">No flights found.</p>
+            <div class="text-center py-5 border rounded-4 bg-white shadow-sm">
+                <i class="bi bi-airplane fs-1 text-muted mb-3 d-block"></i>
+                <p class="text-muted m-0">No flights found matching your current criteria.</p>
+            </div>
         }
         else
         {
             <div class="flight-list">
                 @if (Model.IsRoundTrip && Model.RoundTripConnectings.Any())
                 {
-                    <div class="alert alert-info text-center mb-4">
-                        No direct round trips found — showing 1-stop options instead.
+                    <div class="alert alert-info text-center w-100 rounded-3">
+                        <i class="bi bi-info-circle"></i> No direct round trips found — showing 1-stop options instead.
                     </div>
                     @foreach (var combo in Model.RoundTripConnectings)
                     {
@@ -118,7 +244,7 @@
                 }
                 else if (Model.ConnectingFlights.Any())
                 {
-                    <div class="alert alert-info text-center mb-4">
+                    <div class="alert alert-info text-center w-100 rounded-3">
                         <i class="bi bi-info-circle"></i> We couldn't find any direct flights, but we found these 1-stop layover options!
                     </div>
                     @foreach (var connectingFlight in Model.ConnectingFlights)
@@ -129,7 +255,7 @@
             </div>
 
             <nav aria-label="Flight search results navigation" class="mt-4 d-flex justify-content-center">
-                <ul class="pagination">
+                <ul class="pagination shadow-sm rounded-3 overflow-hidden">
                     <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
                         @{
                             routeData["CurrentPage"] = (Model.CurrentPage - 1).ToString();

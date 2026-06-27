@@ -1,103 +1,217 @@
 ﻿@model Proiect_Licenta.Models.RoundTrip
 
-<link rel="stylesheet" href="~/css/FlightCard.css" asp-append-version="true" />
+<style>
+    /* Aliniere la structura fixă a întregului sistem de carduri */
+    .roundtrip-flight-card {
+        width: 100%;
+        max-width: 440px;
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        box-sizing: border-box;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
 
-<div class="flight-card round-trip-card">
-    
-    <div class="flight-trip-segment container border-bottom pb-3 mb-3">
-        <div class="badge bg-primary text-white mb-2">Outbound / Dus</div>
-        <div class="flight-card-header p-0 border-0">
-            <div class="flight-main-info">
-                <div class="flight-top-row">
-                    <h4 class="flight-number">@Model.OutboundFlight.FlightNumber</h4>
-                    <div class="flight-airline">
-                        <img src="@Model.OutboundFlight.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" />
-                        <span class="airline-name">@Model.OutboundFlight.Airline.Name</span>
-                    </div>
-                    <a asp-page="/FlightInfo" asp-route-id="@Model.OutboundFlight.Id" class="flight-link">
-                        <span class="details-link">Details</span>
-                    </a>
-                </div>
-                <div class="flight-route">
-                    @Model.OutboundFlight.DepartureAirport.Name (@Model.OutboundFlight.DepartureAirport.IATACode)
-                    <span class="route-arrow">→</span>
-                    @Model.OutboundFlight.ArrivalAirport.Name (@Model.OutboundFlight.ArrivalAirport.IATACode)
-                </div>
-            </div>
-        </div>
-
-        <div class="flight-card-body p-0 mt-2 d-flex justify-content-between">
-            <div class="flight-info-box">
-                <span class="flight-label">Departure</span>
-                <span class="flight-value">@Model.OutboundFlight.DepartureTime.ToString("g")</span>
-            </div>
-            <div class="flight-info-box">
-                <span class="flight-label">Arrival</span>
-                <span class="flight-value">@Model.OutboundFlight.ArrivalTime.ToString("g")</span>
-            </div>
-            <div class="flight-info-box">
-                <span class="flight-label">Aircraft</span>
-                <span class="flight-value">@Model.OutboundFlight.Aircraft.Model</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="flight-trip-segment container">
-        <div class="badge bg-secondary text-white mb-2">Return / Întors</div>
-        <div class="flight-card-header p-0 border-0">
-            <div class="flight-main-info">
-                <div class="flight-top-row">
-                    <h4 class="flight-number">@Model.ReturnFlight.FlightNumber</h4>
-                    <div class="flight-airline">
-                        <img src="@Model.ReturnFlight.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" />
-                        <span class="airline-name">@Model.ReturnFlight.Airline.Name</span>
-                    </div>
-                    <a asp-page="/FlightInfo" asp-route-id="@Model.ReturnFlight.Id" class="flight-link">
-                        <span class="details-link">Details</span>
-                    </a>
-                </div>
-                <div class="flight-route">
-                    @Model.ReturnFlight.DepartureAirport.Name (@Model.ReturnFlight.DepartureAirport.IATACode)
-                    <span class="route-arrow">→</span>
-                    @Model.ReturnFlight.ArrivalAirport.Name (@Model.ReturnFlight.ArrivalAirport.IATACode)
-                </div>
-            </div>
-        </div>
-
-        <div class="flight-card-body p-0 mt-2 d-flex justify-content-between">
-            <div class="flight-info-box">
-                <span class="flight-label">Departure</span>
-                <span class="flight-value">@Model.ReturnFlight.DepartureTime.ToString("g")</span>
-            </div>
-            <div class="flight-info-box">
-                <span class="flight-label">Arrival</span>
-                <span class="flight-value">@Model.ReturnFlight.ArrivalTime.ToString("g")</span>
-            </div>
-            <div class="flight-info-box">
-                <span class="flight-label">Aircraft</span>
-                <span class="flight-value">@Model.ReturnFlight.Aircraft.Model</span>
-            </div>
-        </div>
-    </div>
-
-    <hr />
-
-    <div class="flight-card-footer d-flex justify-content-between align-items-center mt-3">
-        @if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole("Company"))
-        {
-            <div class="flight-price-box">
-                <span class="price-label">Total Price (Both Flights)</span>
-                <span class="flight-price text-success fs-4 fw-bold">€@Model.TotalPrice</span>
-            </div>
-
-            <a asp-page="/BookingPassenger"
-               asp-route-id="@Model.OutboundFlight.Id"
-               asp-route-returnId="@Model.ReturnFlight.Id"
-               class="reserve-btn btn btn-primary">
-                Reserve Bundle!
-            </a>
+        .roundtrip-flight-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px -5px rgba(16, 185, 129, 0.1); /* Glow verde subtil pentru bundle-uri */
         }
 
-        
+    /* SEGMENTE INDIVIDUALE */
+    .trip-segment {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        background: #f8fafc;
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+    .segment-badge-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .direction-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .badge-outbound {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+    }
+
+    .badge-return {
+        background: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+
+    /* PREȚ TIP BUNDLE COMPUS */
+    .bundle-price-box {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid #bbf7d0;
+        padding: 12px;
+        border-radius: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    .bundle-price-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #166534;
+    }
+
+    .bundle-price {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #15803d;
+    }
+
+    /* UTILS ACTION BUTTON */
+    .book-bundle-btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        background: #10b981;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 12px;
+        border-radius: 10px;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        transition: background 0.2s, transform 0.1s;
+        border: none;
+    }
+
+        .book-bundle-btn:hover {
+            background: #059669;
+            color: #ffffff;
+        }
+
+        .book-bundle-btn:active {
+            transform: scale(0.98);
+        }
+</style>
+
+<div class="roundtrip-flight-card">
+
+    <div class="trip-segment" style="border-left: 3px solid #3b82f6;">
+        <div class="segment-badge-row">
+            <span class="direction-badge badge-outbound">
+                <i class="bi bi-airplane-engines"></i> Outbound / Dus
+            </span>
+            <span class="flight-number-sub" style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">
+                @Model.OutboundFlight.FlightNumber
+            </span>
+
+            <div class="flight-airline">
+                @if (!string.IsNullOrEmpty(Model.OutboundFlight.Airline.LogoUrl))
+                {
+                    <img src="@Model.OutboundFlight.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" />
+                }
+                <span class="airline-name">@Model.OutboundFlight.Airline.Name</span>
+            </div>
+
+            <a asp-page="/FlightInfo" asp-route-id="@Model.OutboundFlight.Id" class="flight-link">
+                <span class="details-link">Details →</span>
+            </a>
+        </div>
+
+        <div class="flight-route" style="padding: 6px 0; background: transparent;">
+            <span>@Model.OutboundFlight.DepartureAirport.IATACode</span>
+            <span class="route-arrow">→</span>
+            <span>@Model.OutboundFlight.ArrivalAirport.IATACode</span>
+        </div>
+
+        <div class="d-flex justify-content-between text-start mt-1">
+            <div>
+                <span class="flight-label">Departure</span>
+                <span class="flight-value d-block">@Model.OutboundFlight.DepartureTime.ToString("g")</span>
+            </div>
+            <div class="text-end">
+                <span class="flight-label">Arrival</span>
+                <span class="flight-value d-block">@Model.OutboundFlight.ArrivalTime.ToString("g")</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="trip-segment" style="border-left: 3px solid #10b981;">
+        <div class="segment-badge-row">
+            <span class="direction-badge badge-return">
+                <i class="bi bi-airplane-engines" style="transform: rotate(180deg);"></i> Return / Întors
+            </span>
+            <span class="flight-number-sub" style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">
+                @Model.ReturnFlight.FlightNumber
+            </span>
+
+            <div class="flight-airline">
+                @if (!string.IsNullOrEmpty(Model.ReturnFlight.Airline.LogoUrl))
+                {
+                    <img src="@Model.ReturnFlight.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" />
+                }
+                <span class="airline-name">@Model.ReturnFlight.Airline.Name</span>
+            </div>
+
+            <a asp-page="/FlightInfo" asp-route-id="@Model.ReturnFlight.Id" class="flight-link">
+                <span class="details-link">Details →</span>
+            </a>
+        </div>
+
+        <div class="flight-route" style="padding: 6px 0; background: transparent;">
+            <span>@Model.ReturnFlight.DepartureAirport.IATACode</span>
+            <span class="route-arrow">→</span>
+            <span>@Model.ReturnFlight.ArrivalAirport.IATACode</span>
+        </div>
+
+        <div class="d-flex justify-content-between text-start mt-1">
+            <div>
+                <span class="flight-label">Departure</span>
+                <span class="flight-value d-block">@Model.ReturnFlight.DepartureTime.ToString("g")</span>
+            </div>
+            <div class="text-end">
+                <span class="flight-label">Arrival</span>
+                <span class="flight-value d-block">@Model.ReturnFlight.ArrivalTime.ToString("g")</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="flight-card-body" style="display: flex; flex-direction: column; gap: 12px; margin-top: auto;">
+        <div class="bundle-price-box">
+            <span class="bundle-price-label">Total Bundle Price</span>
+            <span class="bundle-price">€@Model.TotalPrice</span>
+        </div>
+
+        @if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole("Company"))
+        {
+            <div class="w-100">
+                <a asp-page="/BookingPassenger"
+                   asp-route-id="@Model.OutboundFlight.Id"
+                   asp-route-returnId="@Model.ReturnFlight.Id"
+                   class="book-bundle-btn">
+                    Reserve Both Seats
+                </a>
+            </div>
+        }
     </div>
 </div>
