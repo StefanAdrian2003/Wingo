@@ -60,6 +60,7 @@ namespace Proiect_Licenta.Pages
 
             LatestPosts = await _context.Posts
                 .Include(p => p.User)
+                .Include(p => p.Likes)
                 .OrderByDescending(p => p.DateOfCreation)
                 .Take(2)
                 .ToListAsync();

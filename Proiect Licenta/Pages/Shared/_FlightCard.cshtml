@@ -1,149 +1,308 @@
 ﻿@model Proiect_Licenta.Models.Flight
 
+<style>
+    .flight-card {
+        width: 100%;
+        max-width: 440px;
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        box-sizing: border-box;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
 
-<link rel="stylesheet" href="~/css/FlightCard.css" asp-append-version="true" />
+        .flight-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px -5px rgba(59, 130, 246, 0.08);
+        }
 
+    /* HEADER */
+    .flight-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .flight-main-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .flight-top-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .flight-number {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #1e293b;
+        letter-spacing: 0.5px;
+        margin: 0;
+        background: #f1f5f9;
+        padding: 2px 8px;
+        border-radius: 6px;
+    }
+
+    .flight-airline {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .airline-logo {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+
+    .airline-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    .flight-link {
+        margin-left: auto;
+        text-decoration: none;
+    }
+
+    .details-link {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #3b82f6;
+        transition: color 0.2s;
+    }
+
+        .details-link:hover {
+            color: #1d4ed8;
+        }
+
+    /* RUTA */
+    .flight-route {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #334155;
+        background: #f8fafc;
+        padding: 10px 12px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .route-arrow {
+        color: #3b82f6;
+        font-weight: 700;
+    }
+
+    /* BODY GRID */
+    .flight-card-body {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .flight-info-box {
+        background: #f8fafc;
+        padding: 10px;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .flight-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .flight-value {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    /* PRICE BOX */
+    .flight-price-box {
+        grid-column: span 2;
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border: 1px solid #bfdbfe;
+        padding: 12px;
+        border-radius: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .price-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #1e40af;
+    }
+
+    .flight-price {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #1d4ed8;
+    }
+
+    /* ACTIONS / FOOTER */
+    .flight-card-footer {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        width: 100%;
+    }
+
+    .reserve-btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        background: #3b82f6;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 12px;
+        border-radius: 10px;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        transition: background 0.2s, transform 0.1s;
+    }
+
+        .reserve-btn:hover {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .reserve-btn:active {
+            transform: scale(0.98);
+        }
+
+    .btn-action-outline {
+        background: none;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .btn-action-outline:hover {
+            background: #fff5f5;
+            border-color: #fca5a5;
+            color: #e11d48;
+        }
+
+    .btn-close-card {
+        background: none;
+        border: none;
+        color: #94a3b8;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: background 0.2s, color 0.2s;
+    }
+
+        .btn-close-card:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+</style>
 
 <div class="flight-card">
-
     <div class="flight-card-header">
-
         <div class="flight-main-info">
-
             <div class="flight-top-row">
-
-                <h4 class="flight-number">
-                    @Model.FlightNumber
-                </h4>
+                <span class="flight-number">@Model.FlightNumber</span>
 
                 <div class="flight-airline">
-
-                    <img src="@Model.Airline.LogoUrl"
-                         alt="Airline Logo"
-                         class="airline-logo" />
-
-                    <span class="airline-name">
-                        @Model.Airline.Name
-                    </span>
-
+                    @if (!string.IsNullOrEmpty(Model.Airline.LogoUrl))
+                    {
+                        <img src="@Model.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" />
+                    }
+                    <span class="airline-name">@Model.Airline.Name</span>
                 </div>
 
-
                 <a asp-page="/FlightInfo" asp-route-id="@Model.Id" class="flight-link">
-                    <span class="details-link">
-                        View details
-                    </span>
+                    <span class="details-link">Details →</span>
                 </a>
             </div>
 
             <div class="flight-route">
-                @Model.DepartureAirport.Name (@Model.DepartureAirport.IATACode)
+                <span>@Model.DepartureAirport.IATACode</span>
                 <span class="route-arrow">→</span>
-                @Model.ArrivalAirport.Name (@Model.ArrivalAirport.IATACode)
+                <span>@Model.ArrivalAirport.IATACode</span>
             </div>
-
         </div>
 
-        @if (User.Identity != null && User.Identity.IsAuthenticated &&
-                User.Identity.Name != Model.Airline.User.UserName)
+        @if (User.Identity != null && User.Identity.IsAuthenticated && User.Identity.Name != Model.Airline.User.UserName)
         {
-            <button type="button"
-                    onclick="openReportModal('@Model.Id', 'Flight')">
+            <button type="button" class="btn-action-outline" onclick="openReportModal('@Model.Id', 'Flight')">
                 Report
             </button>
         }
 
         @if (User.Identity != null && User.Identity.IsAuthenticated)
         {
-            @if (User.Identity.Name == Model.Airline.User.UserName
-                    || User.IsInRole("Admin"))
+            @if (User.Identity.Name == Model.Airline.User.UserName || User.IsInRole("Admin"))
             {
-                <form method="post"
-                      asp-page="/_Actions"
-                      asp-page-handler="DeleteFlight">
-
-                    <input type="hidden"
-                           name="flightId"
-                           value="@Model.Id" />
-
-                    <button type="button"
-                            onclick="openDeleteModal('@Model.Id', 'Flight')">
+                <form method="post" asp-page="/_Actions" asp-page-handler="DeleteFlight" class="m-0">
+                    <input type="hidden" name="flightId" value="@Model.Id" />
+                    <button type="button" class="btn-close-card" onclick="openDeleteModal('@Model.Id', 'Flight')">
                         ✖
                     </button>
-
                 </form>
             }
         }
-
     </div>
 
     <div class="flight-card-body">
-
         <div class="flight-info-box">
-
-            <span class="flight-label">
-                Departure
-            </span>
-
-            <span class="flight-value">
-                @Model.DepartureTime.ToString("g")
-            </span>
-
+            <span class="flight-label">Departure</span>
+            <span class="flight-value">@Model.DepartureTime.ToString("g")</span>
         </div>
 
         <div class="flight-info-box">
-
-            <span class="flight-label">
-                Arrival
-            </span>
-
-            <span class="flight-value">
-                @Model.ArrivalTime.ToString("g")
-            </span>
-
+            <span class="flight-label">Arrival</span>
+            <span class="flight-value">@Model.ArrivalTime.ToString("g")</span>
         </div>
 
-        <div class="flight-info-box">
-
-            <span class="flight-label">
-                Aircraft
-            </span>
-
-            <span class="flight-value">
-                @Model.Aircraft.Model
-            </span>
-
+        <div class="flight-info-box" style="grid-column: span 2;">
+            <span class="flight-label">Aircraft / Fleet</span>
+            <span class="flight-value">✈️ @Model.Aircraft.Model</span>
         </div>
 
         <div class="flight-price-box">
-
-            <span class="price-label">
-                Price
-            </span>
-
-            <span class="flight-price">
-                €@Model.Price
-            </span>
-
+            <span class="price-label">Ticket Fare</span>
+            <span class="flight-price">€@Model.Price</span>
         </div>
-
     </div>
 
     <div class="flight-card-footer">
-
         @if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole("Company"))
         {
-            <a asp-page="/BookingPassenger"
-               asp-route-id="@Model.Id"
-               class="reserve-btn">
-
-                Reserve now!
-
+            <a asp-page="/BookingPassenger" asp-route-id="@Model.Id" class="reserve-btn">
+                Reserve seat
             </a>
         }
-
-        
-
     </div>
-
 </div>
