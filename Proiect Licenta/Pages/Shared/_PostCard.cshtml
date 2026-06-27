@@ -1,36 +1,104 @@
 ﻿@model Proiect_Licenta.Models.Post
 
 <style>
-    /* Limitări text și descriere */
-    .post-description {
-        display: -webkit-box;
-        -webkit-line-clamp: 2; /* maxim 2 randuri */
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: 0.95rem;
-        color: #64748b;
-        margin: 8px 0;
-        line-height: 1.5;
+    /* 1. DIMENSIUNI FIXE STRICTE PENTRU CARD */
+    .post-card {
+        width: 520px;          /* Lățime fixă */
+        height: 580px;         /* Înălțime fixă pentru toate cardurile */
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+        
+        /* Flexbox pentru a distribui conținutul perfect în interiorul celor 580px */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; 
+        box-sizing: border-box;
     }
 
-    /* Aliniere Header: Nume în stânga, Butoane în dreapta */
+    /* 2. FEREASTRA FIXĂ PENTRU IMAGINE (WINDOW) */
+    .post-image-wrapper {
+        width: 100%;
+        height: 320px;         /* Înălțimea fixă a ferestrei foto */
+        border-radius: 12px;
+        overflow: hidden;      /* Ascunde tot ce depășește această fereastră */
+        background-color: #f8f9fa;
+        position: relative;
+    }
+
+    .post-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;     /* Decupează și centrează automat poza (umple fereastra fără distorsionare) */
+        object-position: center;
+        display: block;
+    }
+
+    /* Structură Header */
     .post-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        margin-bottom: 12px;
+        height: 30px;
     }
 
-    /* Containerul din dreapta pentru butoane */
     .post-actions-zone {
         display: flex;
         align-items: center;
-        gap: 8px; /* Spațiu între Report și X */
+        gap: 8px;
     }
 
-    /* Stil butoane din Header */
+    /* Elemente de Text */
+    .post-title {
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: #1e293b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; /* Pune ... dacă titlul e prea lung și depășește un rând */
+    }
+
+    .post-user-link {
+        font-weight: 600;
+        color: #3b82f6;
+    }
+
+    .post-description {
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* Maxim 2 rânduri */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.9rem;
+        color: #64748b;
+        margin: 4px 0;
+        line-height: 1.4;
+        height: 2.8em; /* Spațiu fix alocat pentru exact 2 rânduri */
+    }
+
+    /* Zona inferioară (Stats & Date) */
+    .post-footer-zone {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .post-stats {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .creation-date {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        text-align: right;
+    }
+
+    /* Stil butoane */
     .btn-report {
         background: none;
         border: none;
@@ -40,16 +108,12 @@
         cursor: pointer;
         padding: 4px 10px;
         border-radius: 6px;
-        transition: background 0.2s, transform 0.1s;
+        transition: background 0.2s;
     }
 
-        .btn-report:hover {
-            background: rgba(220, 53, 69, 0.08);
-        }
-
-        .btn-report:active {
-            transform: scale(0.95);
-        }
+    .btn-report:hover {
+        background: rgba(220, 53, 69, 0.08);
+    }
 
     .btn-delete {
         background: none;
@@ -59,86 +123,26 @@
         cursor: pointer;
         padding: 4px 8px;
         border-radius: 6px;
-        transition: background 0.1s, color 0.1s;
     }
 
-        .btn-delete:hover {
-            background: rgba(0, 0, 0, 0.05);
-            color: #1e293b;
-        }
-
-    /* Corecții și design general Card */
-    .post-card {
-        width: 100%;
-        max-width: 520px;
-        background: #ffffff;
-        border: 1px solid rgba(0, 0, 0, 0.06);
-        border-radius: 16px;
-        padding: 20px;
-        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .post-title {
-        font-weight: 700;
-        font-size: 1.2rem;
+    .btn-delete:hover {
+        background: rgba(0, 0, 0, 0.05);
         color: #1e293b;
-    }
-
-    .post-user-link {
-        font-weight: 600;
-        color: #3b82f6;
-    }
-
-    /* Imagini uniforme în interiorul cardului */
-    .post-image-wrapper {
-        width: 100%;
-        border-radius: 12px;
-        overflow: hidden;
-        background-color: #f8f9fa;
-    }
-
-    .post-image {
-        width: 100%;
-        height: auto;
-        max-height: 380px;
-        object-fit: cover;
-        display: block;
-    }
-
-    .post-stats {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 4px;
-    }
-
-    .creation-date {
-        font-size: 0.8rem;
-        color: #94a3b8;
-        text-align: right;
     }
 </style>
 
 <div class="post-card">
-
     <div class="post-header">
         <div class="post-user-zone">
             @if (User.Identity.IsAuthenticated && User.Identity.Name == Model.User.UserName)
             {
-                <a asp-area="Identity"
-                   asp-page="/Account/Manage/Profile"
-                   class="post-user-link text-decoration-none">
+                <a asp-area="Identity" asp-page="/Account/Manage/Profile" class="post-user-link text-decoration-none">
                     @Model.User.UserName (You)
                 </a>
             }
             else
             {
-                <a asp-page="/CustomProfile"
-                   asp-route-username="@Model.User.UserName"
-                   class="post-user-link text-decoration-none">
+                <a asp-page="/CustomProfile" asp-route-username="@Model.User.UserName" class="post-user-link text-decoration-none">
                     @Model.User.UserName
                 </a>
             }
@@ -147,59 +151,52 @@
         <div class="post-actions-zone">
             @if (User.Identity.IsAuthenticated && User.Identity.Name != Model.User.UserName)
             {
-                <button type="button" class="btn-report"
-                        onclick="openReportModal('@Model.Id', 'Post')">
+                <button type="button" class="btn-report" onclick="openReportModal('@Model.Id', 'Post')">
                     Report
                 </button>
             }
 
             @if (User.Identity.IsAuthenticated && (User.Identity.Name == Model.User.UserName || User.IsInRole("Admin")))
             {
-                <button type="button" class="btn-delete"
-                        onclick="openDeleteModal('@Model.Id', 'Post')">
+                <button type="button" class="btn-delete" onclick="openDeleteModal('@Model.Id', 'Post')">
                     ✖
                 </button>
             }
         </div>
     </div>
 
-    <span class="post-title">@Model.Title</span>
+    <div class="post-title">@Model.Title</div>
 
     <div class="post-image-wrapper">
-        <img src="@Model.ImagePath"
-             alt="Post image"
-             class="post-image" />
+        <img src="@Model.ImagePath" alt="Post image" class="post-image" />
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(Model.Description))
-    {
-        <p class="post-description">@Model.Description</p>
-    }
+    <div>
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <p class="post-description">@Model.Description</p>
+        }
+        else
+        {
+            <p class="post-description text-muted-soft"><i>No description provided.</i></p>
+        }
+    </div>
 
-    <div class="post-stats">
-        <form method="post"
-              asp-page="/_Actions"
-              asp-page-handler="Like"
-              asp-route-postId="@Model.Id"
-              class="d-inline">
+    <div class="post-footer-zone">
+        <div class="post-stats">
+            <form method="post" asp-page="/_Actions" asp-page-handler="Like" asp-route-postId="@Model.Id" class="d-inline">
+                <button hx-post="/_Actions?handler=Like&postId=@Model.Id" hx-target="#like-count-@Model.Id" hx-swap="outerHTML" class="btn btn-light btn-sm rounded-pill px-3">
+                    ❤️ <span id="like-count-@Model.Id">@Model.Likes.Count</span>
+                </button>
+            </form>
 
-            <button hx-post="/_Actions?handler=Like&postId=@Model.Id"
-                    hx-target="#like-count-@Model.Id"
-                    hx-swap="outerHTML"
-                    class="btn btn-light btn-sm rounded-pill px-3">
-                ❤️ <span id="like-count-@Model.Id">@Model.Likes.Count</span>
+            <button type="button" class="btn btn-link text-decoration-none p-0" data-bs-toggle="modal" data-bs-target="#commentsModal-@Model.Id">
+                See post
             </button>
-        </form>
+        </div>
 
-        <button type="button"
-                class="btn btn-link text-decoration-none p-0"
-                data-bs-toggle="modal"
-                data-bs-target="#commentsModal-@Model.Id">
-            See post
-        </button>
-    </div>
-
-    <div class="creation-date">
-        @Model.DateOfCreation.ToString("g")
+        <div class="creation-date">
+            @Model.DateOfCreation.ToString("g")
+        </div>
     </div>
 </div>
