@@ -4,6 +4,7 @@
     .flight-card {
         width: 100%;
         max-width: 440px;
+        height: 560px; /* MODIFICAT: crescut de la 520px la 560px pentru a acomoda textul mai lung */
         background: #ffffff;
         border: 1px solid rgba(0, 0, 0, 0.06);
         border-radius: 16px;
@@ -11,7 +12,7 @@
         box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        justify-content: space-between;
         box-sizing: border-box;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
@@ -21,26 +22,24 @@
             box-shadow: 0 12px 35px -5px rgba(59, 130, 246, 0.08);
         }
 
-    /* HEADER */
-    .flight-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
+    /* STRUCTURĂ FIXĂ HEADER (BENTO GRID) */
+    .flight-card-header-grid {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: start;
         width: 100%;
+        height: 125px;
     }
 
-    .flight-main-info {
+    .flight-meta-structure {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        width: 100%;
+        gap: 6px;
     }
 
-    .flight-top-row {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
+    /* Rândul 1: Număr zbor (ID) */
+    .flight-number-wrapper {
+        display: block;
     }
 
     .flight-number {
@@ -48,16 +47,18 @@
         font-weight: 800;
         color: #1e293b;
         letter-spacing: 0.5px;
-        margin: 0;
         background: #f1f5f9;
         padding: 2px 8px;
         border-radius: 6px;
+        display: inline-block;
     }
 
+    /* Rândul 2: Nume Companie sub ID */
     .flight-airline {
         display: flex;
         align-items: center;
         gap: 6px;
+        height: 24px;
     }
 
     .airline-logo {
@@ -71,47 +72,72 @@
         font-size: 0.85rem;
         font-weight: 600;
         color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .flight-link {
-        margin-left: auto;
-        text-decoration: none;
+    /* Rândul 3: Buton Detalii */
+    .flight-details-wrapper {
+        display: block;
     }
 
     .details-link {
         font-size: 0.85rem;
-        font-weight: 600;
+        font-weight: 700;
         color: #3b82f6;
+        text-decoration: none;
         transition: color 0.2s;
+        display: inline-flex;
+        align-items: center;
     }
 
         .details-link:hover {
             color: #1d4ed8;
         }
 
-    /* RUTA */
+    /* Rândul 4: Ruta (IATA + Oraș) */
     .flight-route {
-        font-size: 0.95rem;
+        font-size: 0.90rem;
         font-weight: 600;
         color: #334155;
         background: #f8fafc;
-        padding: 10px 12px;
+        padding: 6px 12px;
         border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        margin-top: 2px;
+        height: 34px;
+        box-sizing: border-box;
+    }
+
+        .flight-route span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+    .route-arrow {
+        color: #3b82f6;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    /* Acțiuni colț dreapta sus (Report / Delete) */
+    .flight-header-actions {
         display: flex;
         align-items: center;
         gap: 6px;
     }
 
-    .route-arrow {
-        color: #3b82f6;
-        font-weight: 700;
-    }
-
-    /* BODY GRID */
+    /* BODY GRID FIXAT */
     .flight-card-body {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
+        margin-top: auto;
     }
 
     .flight-info-box {
@@ -121,6 +147,8 @@
         display: flex;
         flex-direction: column;
         gap: 2px;
+        height: 105px; /* MODIFICAT: crescut de la 85px la 105px ca să intre perfect 2 rânduri de text */
+        box-sizing: border-box;
     }
 
     .flight-label {
@@ -137,7 +165,27 @@
         color: #1e293b;
     }
 
-    /* PRICE BOX */
+    .flight-sub-value {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #64748b;
+        margin-top: auto;
+        line-height: 1.3; /* MODIFICAT: ușor mărit pentru lizibilitate */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* AIRCRAFT BOX */
+    .aircraft-box {
+        grid-column: span 2;
+        height: 45px;
+        box-sizing: border-box;
+    }
+
+    /* PRICE BOX COMPLET DETERMINIST */
     .flight-price-box {
         grid-column: span 2;
         background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
@@ -147,6 +195,8 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        height: 50px;
+        box-sizing: border-box;
     }
 
     .price-label {
@@ -161,11 +211,19 @@
         color: #1d4ed8;
     }
 
-    /* ACTIONS / FOOTER */
+    /* ACTIONS / FOOTER FIXAT LA BAZĂ */
     .flight-card-footer {
         display: flex;
         gap: 8px;
         align-items: center;
+        width: 100%;
+        height: 48px;
+        margin-top: auto;
+    }
+
+    /* Placeholder transparent pentru companii ca să mențină înălțimea cardului intactă */
+    .footer-placeholder {
+        height: 48px;
         width: 100%;
     }
 
@@ -182,6 +240,7 @@
         text-decoration: none;
         box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
         transition: background 0.2s, transform 0.1s;
+        box-sizing: border-box;
     }
 
         .reserve-btn:hover {
@@ -229,64 +288,70 @@
 </style>
 
 <div class="flight-card">
-    <div class="flight-card-header">
-        <div class="flight-main-info">
-            <div class="flight-top-row">
+    <div class="flight-card-header-grid">
+        <div class="flight-meta-structure">
+            <div class="flight-number-wrapper">
                 <span class="flight-number">@Model.FlightNumber</span>
+            </div>
 
-                <div class="flight-airline">
-                    @if (!string.IsNullOrEmpty(Model.Airline.LogoUrl))
-                    {
-                        <img src="@Model.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" />
-                    }
-                    <span class="airline-name">@Model.Airline.Name</span>
-                </div>
+            <div class="flight-airline">
+                @if (!string.IsNullOrEmpty(Model.Airline.LogoUrl))
+                {
+                    <img src="@Model.Airline.LogoUrl" alt="Airline Logo" class="airline-logo" />
+                }
+                <span class="airline-name">@Model.Airline.Name</span>
+            </div>
 
-                <a asp-page="/FlightInfo" asp-route-id="@Model.Id" class="flight-link">
-                    <span class="details-link">Details →</span>
+            <div class="flight-details-wrapper">
+                <a asp-page="/FlightInfo" asp-route-id="@Model.Id" class="details-link">
+                    Details →
                 </a>
             </div>
 
             <div class="flight-route">
-                <span>@Model.DepartureAirport.IATACode</span>
+                <span>@Model.DepartureAirport.IATACode (@Model.DepartureAirport.City)</span>
                 <span class="route-arrow">→</span>
-                <span>@Model.ArrivalAirport.IATACode</span>
+                <span>@Model.ArrivalAirport.IATACode (@Model.ArrivalAirport.City)</span>
             </div>
         </div>
 
-        @if (User.Identity != null && User.Identity.IsAuthenticated && User.Identity.Name != Model.Airline.User.UserName)
-        {
-            <button type="button" class="btn-action-outline" onclick="openReportModal('@Model.Id', 'Flight')">
-                Report
-            </button>
-        }
-
-        @if (User.Identity != null && User.Identity.IsAuthenticated)
-        {
-            @if (User.Identity.Name == Model.Airline.User.UserName || User.IsInRole("Admin"))
+        <div class="flight-header-actions">
+            @if (User.Identity != null && User.Identity.IsAuthenticated && User.Identity.Name != Model.Airline.User.UserName)
             {
-                <form method="post" asp-page="/_Actions" asp-page-handler="DeleteFlight" class="m-0">
-                    <input type="hidden" name="flightId" value="@Model.Id" />
-                    <button type="button" class="btn-close-card" onclick="openDeleteModal('@Model.Id', 'Flight')">
-                        ✖
-                    </button>
-                </form>
+                <button type="button" class="btn-action-outline" onclick="openReportModal('@Model.Id', 'Flight')">
+                    Report
+                </button>
             }
-        }
+
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                @if (User.Identity.Name == Model.Airline.User.UserName || User.IsInRole("Admin"))
+                {
+                    <form method="post" asp-page="/_Actions" asp-page-handler="DeleteFlight" class="m-0">
+                        <input type="hidden" name="flightId" value="@Model.Id" />
+                        <button type="button" class="btn-close-card" onclick="openDeleteModal('@Model.Id', 'Flight')">
+                            ✖
+                        </button>
+                    </form>
+                }
+            }
+        </div>
     </div>
 
     <div class="flight-card-body">
         <div class="flight-info-box">
             <span class="flight-label">Departure</span>
             <span class="flight-value">@Model.DepartureTime.ToString("g")</span>
+            <span class="flight-sub-value">📍 @Model.DepartureAirport.Name</span>
         </div>
 
         <div class="flight-info-box">
             <span class="flight-label">Arrival</span>
             <span class="flight-value">@Model.ArrivalTime.ToString("g")</span>
+            <span class="flight-sub-value">📍 @Model.ArrivalAirport.Name</span>
         </div>
 
-        <div class="flight-info-box" style="grid-column: span 2;">
+        <div class="flight-info-box aircraft-box">
             <span class="flight-label">Aircraft / Fleet</span>
             <span class="flight-value">✈️ @Model.Aircraft.Model</span>
         </div>
@@ -303,6 +368,10 @@
             <a asp-page="/BookingPassenger" asp-route-id="@Model.Id" class="reserve-btn">
                 Reserve seat
             </a>
+        }
+        else
+        {
+            <div class="footer-placeholder"></div>
         }
     </div>
 </div>

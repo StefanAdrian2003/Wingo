@@ -9,14 +9,14 @@ namespace Proiect_Licenta.Data
     /// Seeds a dedicated test scenario for layover + round-trip booking:
     ///
     ///   OUTBOUND (layover):
-    ///     Leg 1 — JFK (New York)     → ORD (Chicago)   departs D+1 08:00 UTC, arrives 10:15 UTC  (2h15m)
-    ///     Leg 2 — ORD (Chicago)      → LAX (Los Angeles) departs D+1 12:00 UTC, arrives 15:30 UTC (3h30m)
-    ///     (1h45m layover at ORD — plenty of time, no overlap)
+    ///      Leg 1 — JFK (New York)     → ORD (Chicago)   departs D+1 08:00 UTC, arrives 10:15 UTC  (2h15m)
+    ///      Leg 2 — ORD (Chicago)      → LAX (Los Angeles) departs D+1 12:00 UTC, arrives 15:30 UTC (3h30m)
+    ///      (1h45m layover at ORD — plenty of time, no overlap)
     ///
     ///   RETURN (layover):
-    ///     Leg 1 — LAX (Los Angeles)  → ORD (Chicago)   departs D+5 18:00 UTC, arrives 23:30 UTC  (5h30m)
-    ///     Leg 2 — ORD (Chicago)      → JFK (New York)  departs D+6 01:30 UTC, arrives 05:00 UTC  (3h30m)
-    ///     (2h layover at ORD overnight — valid connection)
+    ///      Leg 1 — LAX (Los Angeles)  → ORD (Chicago)   departs D+5 18:00 UTC, arrives 23:30 UTC  (5h30m)
+    ///      Leg 2 — ORD (Chicago)      → JFK (New York)  departs D+6 01:30 UTC, arrives 05:00 UTC  (3h30m)
+    ///      (2h layover at ORD overnight — valid connection)
     ///
     /// All 4 flights use the same dedicated test aircraft and airline ("WingoTest").
     /// Run this seeder AFTER AirportSeeder (JFK/ORD/LAX must exist).
@@ -28,6 +28,9 @@ namespace Proiect_Licenta.Data
             UserManager<User> userManager)
         {
             const string testEmail = "wingotest@wingo.com";
+            // Generăm username-ul curat din numele companiei, eliminând textul "Airlines" dacă se dorește o potrivire perfectă
+            // În acest caz, "WingoTest" devine handle-ul curat "wingotest"
+            const string testUsername = "wingotest";
 
             // ── Guard: already seeded ────────────────────────────────────────────
             if (await userManager.FindByEmailAsync(testEmail) != null)
@@ -51,7 +54,7 @@ namespace Proiect_Licenta.Data
             {
                 FirstName = "WingoTest",
                 LastName = "Airlines",
-                UserName = testEmail,
+                UserName = testUsername, // Modificat aici: Username-ul este acum doar numele companiei formatat mic
                 Email = testEmail,
                 EmailConfirmed = true,
                 IsCompany = true

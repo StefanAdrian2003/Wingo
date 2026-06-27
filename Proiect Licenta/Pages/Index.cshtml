@@ -7,46 +7,56 @@
 <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
 
 <style>
-    /* Fix critic pentru rândurile din carousel conform imaginii active */
+    /* Schimbăm rândul din carusel într-o coloană verticală */
     .carousel-cards-row {
         display: flex;
-        justify-content: center;
-        align-items: flex-start; /* Previne lungirea forțată a elementelor pe verticală */
-        gap: 20px;
-        padding: 15px 0;
+        flex-direction: column; /* Forțează cardurile să stea unul sub altul */
+        justify-content: flex-start;
+        align-items: center;
+        gap: 16px; /* Spațiul dintre cele două carduri stivuite */
+        padding: 10px 0;
         width: 100%;
     }
 
-    /* Targetăm wrapper-ul din interiorul elementului din carousel */
+    /* Adăugăm un container relativ cu spațiu pe margini pentru săgeți */
+    #popularFlightsCarousel {
+        position: relative;
+        padding: 0 45px; /* Spațiu lateral pentru butoane ca să nu atingă cardurile */
+    }
+
+    /* Lăsăm cardul să ocupe tot spațiul disponibil pe lățime din coloana lui */
     .carousel-card-item {
-        flex: 0 1 440px; /* Lățimea ideală pentru noul sistem Bento */
-        max-width: 440px;
         width: 100%;
     }
 
-    /* Asigurăm că stilurile din zborul simplu moștenesc corect layout-ul compact */
-    .carousel-card-item .flight-card {
-        width: 100% !important;
-        max-width: 440px !important;
-        margin: 0 auto !important;
-        height: auto !important; /* Elimină stretching-ul */
+    /* Repoziționare și stilizare corectă a butoanelor caruselului */
+    .custom-carousel-btn {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        border-radius: 50%;
+        color: #1e293b !important;
+        top: 50% !important;
+        transform: translateY(-50%);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        opacity: 1 !important;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
     }
 
-    /* Ajustare pentru butoanele de control ale caruselului să nu se suprapună inestetic */
-    .custom-carousel-btn {
-        width: 45px;
-        height: 45px;
-        background-color: rgba(255, 255, 255, 0.9);
-        border-radius: 50%;
-        color: #000;
-        top: 50%;
-        transform: translateY(-50%);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        opacity: 1;
+    .carousel-control-prev.custom-carousel-btn {
+        left: 0px;
     }
+
+    .carousel-control-next.custom-carousel-btn {
+        right: 0px;
+    }
+
     .custom-carousel-btn:hover {
-        background-color: #ffffff;
-        color: #2563eb;
+        background-color: #ffffff !important;
+        color: #2563eb !important;
+        transform: translateY(-50%) scale(1.05);
     }
 </style>
 

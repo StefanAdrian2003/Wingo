@@ -76,6 +76,8 @@ namespace Proiect_Licenta.Data.Seeders
             foreach (var company in companies)
             {
                 var email = $"{company.Name.Replace(" ", "").ToLower()}@wingo.com";
+                // Generăm username-ul curat din numele companiei (ex: "lufthansa", "airfrance", "wizzair")
+                var username = company.Name.Replace(" ", "").ToLower();
 
                 var existingUser = await userManager.FindByEmailAsync(email);
                 if (existingUser != null)
@@ -85,7 +87,7 @@ namespace Proiect_Licenta.Data.Seeders
                 {
                     FirstName = company.Name,
                     LastName = "Official",
-                    UserName = email,
+                    UserName = username, // Modificat aici: Acum username-ul este numele companiei formatat curat
                     Email = email,
                     EmailConfirmed = true,
                     IsCompany = true
