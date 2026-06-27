@@ -18,7 +18,6 @@ namespace Proiect_Licenta.Services
 
         public async Task<bool> IsSafeAsync(string comment)
         {
-            // 🛡️ OPTIMIZED PROMPT: Multi-language handling, typo tolerance, and strict output constraint
             var request = new
             {
                 model = "gpt-4o-mini",
@@ -77,7 +76,7 @@ namespace Proiect_Licenta.Services
 
                         if (string.IsNullOrEmpty(answer))
                         {
-                            return false; // Fallback: reject if empty response
+                            return false;
                         }
 
                         return answer == "YES";

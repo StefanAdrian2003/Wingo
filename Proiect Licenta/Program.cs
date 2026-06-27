@@ -1,18 +1,15 @@
 ﻿using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Proiect_Licenta.Data;
 using Proiect_Licenta.Data.Seeders;
 using Proiect_Licenta.Models;
 using Proiect_Licenta.Services;
-using System.IO;                               // 🛡️ Required for Data Protection file paths
-using System.Text.RegularExpressions;          // Required for CSV Quote-Safe Parser Engine
-using Microsoft.AspNetCore.RateLimiting;       // 🛡️ Required for Rate Limiting middleware policies
+using System.Text.RegularExpressions;          
+using Microsoft.AspNetCore.RateLimiting;   
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
@@ -23,11 +20,9 @@ builder.Services.AddDefaultIdentity<User>(options =>
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// 🛡️ FIX FOR SHARED HOSTING: Forces Antiforgery/DataProtection keys to save to a permanent file directory
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "private", "keys")));
 
-// 🛡️ SECURITY LAYER: Configure Rate Limiting Policy (Max 20 requests per 10 seconds per user IP)
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -35,7 +30,7 @@ builder.Services.AddRateLimiter(options =>
     {
         fixedOptions.PermitLimit = 20;
         fixedOptions.Window = TimeSpan.FromSeconds(10);
-        fixedOptions.QueueLimit = 0; // Reject flood traffic immediately without queuing
+        fixedOptions.QueueLimit = 0;
     });
 });
 
@@ -49,7 +44,6 @@ builder.Services.AddScoped<NotificationService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -65,7 +59,6 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// 🛡️ ACTIVATE RATE LIMITER: Must be applied right after UseRouting and strictly before Authentication/Authorization
 app.UseRateLimiter();
 
 app.UseAuthentication();
@@ -77,7 +70,6 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-    // await context.Database.MigrateAsync();
 
     var services = scope.ServiceProvider;
     try
@@ -86,18 +78,15 @@ using (var scope = app.Services.CreateScope())
         {
             var lines = File.ReadAllLines("Data/airports.dat");
 
-            // Regular Expression to match commas ONLY outside of double quotes
             var csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 
             foreach (var line in lines)
             {
-                // Quote-safe array extraction
                 var parts = csvParser.Split(line);
 
-                if (parts.Length < 8) // Valid rows must reach at least index position 7 for longitude
+                if (parts.Length < 8)
                     continue;
 
-                // Safely extract and parse numeric coordinates from indexes 6 and 7
                 double.TryParse(parts[6].Trim('"'), System.Globalization.CultureInfo.InvariantCulture, out double latitude);
                 double.TryParse(parts[7].Trim('"'), System.Globalization.CultureInfo.InvariantCulture, out double longitude);
 
@@ -108,11 +97,10 @@ using (var scope = app.Services.CreateScope())
                     Country = parts[3].Trim('"'),
                     IATACode = parts[4].Trim('"'),
                     ICAOCode = parts[5].Trim('"'),
-                    Latitude = latitude,   // Assigned
-                    Longitude = longitude  // Assigned
+                    Latitude = latitude,   
+                    Longitude = longitude  
                 };
 
-                // Filter logic blocks
                 if (string.IsNullOrWhiteSpace(airport.Name) ||
                     string.IsNullOrWhiteSpace(airport.City) ||
                     string.IsNullOrWhiteSpace(airport.IATACode) ||
@@ -140,7 +128,6 @@ using (var scope = app.Services.CreateScope())
             }
         }
 
-        // 🛡️ SECURITY REMEDIATION: Pull variables from configuration mapping instead of hardcoding raw text
         string adminEmail = builder.Configuration["SeedSettings:AdminEmail"] ?? "admin@site.com";
         string adminPassword = builder.Configuration["SeedSettings:AdminPassword"] ?? "Admin123!";
         string adminUsername = builder.Configuration["SeedSettings:AdminUsername"] ?? "admin";
@@ -153,7 +140,7 @@ using (var scope = app.Services.CreateScope())
             {
                 LastName = "Stefan",
                 FirstName = "Adrian",
-                UserName = adminUsername, // 🛡️ PRIVACY REMEDIATION: Uses a distinct public alias name instead of the raw email
+                UserName = adminUsername,
                 Email = adminEmail,
                 EmailConfirmed = true
             };

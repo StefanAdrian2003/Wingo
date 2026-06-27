@@ -1,5 +1,57 @@
 ﻿@model Proiect_Licenta.Models.Badge
 
+<style>
+    .badge-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .badge-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 24px;
+        width: 220px;
+        text-align: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+        .badge-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .badge-card img {
+            width: 80px; 
+            height: 80px; 
+            object-fit: cover; 
+            border-radius: 50%; 
+            margin-bottom: 16px;
+            background-color: #f8f9fa; 
+        }
+
+        .badge-card h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333333;
+            margin: 0 0 8px 0;
+        }
+
+        .badge-card p {
+            font-size: 0.9rem;
+            color: #666666;
+            margin: 0;
+            line-height: 1.4;
+        }
+</style>
+
+
 <div class="badge-card">
 
     <img src="@Model.Icon" alt="@Model.Name" />

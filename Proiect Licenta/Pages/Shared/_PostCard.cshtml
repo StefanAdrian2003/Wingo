@@ -14,7 +14,6 @@
 
 <div class="post-card">
 
-    <!-- HEADER -->
     <div class="post-header">
         @if (User.Identity.IsAuthenticated && User.Identity.Name == Model.User.UserName)
         {
@@ -56,22 +55,18 @@
 
     <span class="post-title">@Model.Title</span>
 
-    <!-- IMAGE -->
     <div class="post-image-wrapper">
         <img src="@Model.ImagePath"
              alt="Post image"
              class="post-image" />
     </div>
 
-    <!-- DESCRIPTION -->
     @if (!string.IsNullOrWhiteSpace(Model.Description))
     {
         <p class="post-description">@Model.Description</p>
     }
 
-    <!-- STATS -->
     <div class="post-stats">
-        <!-- LIKE -->
         <form method="post" 
               asp-page="/_Actions"
               asp-page-handler="Like"
@@ -88,8 +83,6 @@
         </form>
 
 
-
-        <!-- COMMENTS -->
         <button type="button"
                 class="btn btn-link p-0"
                 data-bs-toggle="modal"
@@ -98,7 +91,6 @@
         </button>
     </div>
 
-    <!-- DATE -->
     <div class="creation-date">
         @Model.DateOfCreation.ToString("g")
     </div>

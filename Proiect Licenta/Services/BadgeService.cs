@@ -25,7 +25,6 @@ namespace Proiect_Licenta.Services
         // Ofera un badge pe baza ID-ului
         public async Task AwardBadgeAsync(string userId, Guid badgeId)
         {
-            // Nu da badge dacă deja există
             if (await UserHasBadgeAsync(userId, badgeId))
                 return;
 
@@ -46,7 +45,6 @@ namespace Proiect_Licenta.Services
 
             await _db.SaveChangesAsync();
 
-            // NOTIFICATION
             await _notificationService.CreateAsync(
                 receiverId: userId,
                 senderId: null,
@@ -62,12 +60,11 @@ namespace Proiect_Licenta.Services
                 .FirstOrDefaultAsync(b => b.Name == badgeName);
 
             if (badge == null)
-                return; // nu exista badge-ul
+                return;
 
             await AwardBadgeAsync(userId, badge.Id);
         }
 
-        // Exemplu simplu: badge-uri in functie de nr. de postari
         public async Task CheckPostingBadgesAsync(string userId)
         {
             await AwardBadgeByNameAsync(userId, "Welcome");
