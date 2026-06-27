@@ -1,11 +1,10 @@
 ﻿@model Proiect_Licenta.Models.Post
 
 <style>
-    /* DESIGN UNITAR PENTRU CARD (Apară identic peste tot) */
     .post-card {
         width: 100%;
-        max-width: 480px; /* Dimensiune ideală pentru lizibilitate (stil Instagram/LinkedIn) */
-        margin: 0 auto; /* Centrează cardul în coloana lui */
+        max-width: 480px; 
+        margin: 0 auto;   
         background: #ffffff;
         border: 1px solid rgba(0, 0, 0, 0.06);
         border-radius: 16px;
@@ -17,7 +16,6 @@
         box-sizing: border-box;
     }
 
-    /* ALINIERE HEADER */
     .post-header {
         display: flex;
         justify-content: space-between;
@@ -43,27 +41,25 @@
         line-height: 1.3;
     }
 
-    /* FEREASTRA FIXĂ PENTRU IMAGINE (Rezolvă pozele panoramice/înalte) */
+    /* MODIFICARE AICI: Wrapper-ul devine fluid, fără fundal gri vizibil */
     .post-image-wrapper {
         width: 100%;
-        height: 300px; /* Înălțime fixă pentru fereastră */
+        height: auto;           /* Nu mai blocăm înălțimea la 300px */
         border-radius: 12px;
-        overflow: hidden; /* Taie marginile care depășesc */
-        background-color: #f1f5f9; /* Fundal gri neutru dacă poza se încarcă greu */
+        overflow: hidden; 
+        background-color: transparent; /* Adio margini gri */
     }
 
     .post-image {
         width: 100%;
-        height: 100%;
-        object-fit: cover; /* Rezolvă distorsiunea: umple zona și decupează surplusul */
-        object-position: center; /* Pstrează focusul pe mijlocul pozei */
+        height: auto;
         display: block;
+        object-fit: contain;    /* Se asigură că poza își păstrează proporția nativă */
     }
 
-    /* DESGRIERE TEXT LIMITATĂ */
     .post-description {
         display: -webkit-box;
-        -webkit-line-clamp: 2; /* Maxim 2 rânduri */
+        -webkit-line-clamp: 2; 
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -73,7 +69,6 @@
         line-height: 1.5;
     }
 
-    /* INTERACȚIUNE & STATISTICI */
     .post-stats {
         display: flex;
         align-items: center;
@@ -88,7 +83,6 @@
         text-align: right;
     }
 
-    /* BUTOANE */
     .btn-report {
         background: none;
         border: none;
@@ -101,9 +95,9 @@
         transition: background 0.2s;
     }
 
-        .btn-report:hover {
-            background: rgba(220, 53, 69, 0.08);
-        }
+    .btn-report:hover {
+        background: rgba(220, 53, 69, 0.08);
+    }
 
     .btn-delete {
         background: none;
@@ -116,10 +110,10 @@
         transition: background 0.2s, color 0.2s;
     }
 
-        .btn-delete:hover {
-            background: rgba(0, 0, 0, 0.05);
-            color: #1e293b;
-        }
+    .btn-delete:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: #1e293b;
+    }
 </style>
 
 <div class="post-card">
